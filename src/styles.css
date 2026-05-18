@@ -21,6 +21,7 @@
 
 * {
   box-sizing: border-box;
+  min-width: 0;
 }
 
 html,
@@ -71,12 +72,15 @@ button {
 .page-bg {
   min-height: 100dvh;
   padding: 20px 16px 120px;
+  width: 100%;
+  overflow-x: clip;
 }
 
 .auth-layout,
 .app-layout {
   max-width: 1120px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .auth-layout {
@@ -100,6 +104,7 @@ button {
   border-radius: 24px;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(12px);
+  width: 100%;
 }
 
 .auth-card {
@@ -498,6 +503,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .topbar {
@@ -507,6 +513,7 @@ button:disabled {
 .brand-block h1 {
   margin: 4px 0 0;
   font-size: 1.55rem;
+  overflow-wrap: anywhere;
 }
 
 .context-strip {
@@ -520,6 +527,11 @@ button:disabled {
   color: #dbe5ff;
   font-size: 0.92rem;
   flex-wrap: wrap;
+}
+
+.context-strip span,
+.context-strip a {
+  overflow-wrap: anywhere;
 }
 
 .tab-bar {
@@ -552,6 +564,7 @@ button:disabled {
   color: #b8c3de;
   font-size: 0.78rem;
   font-weight: 600;
+  min-width: 0;
 }
 
 .tab-link.active {
@@ -663,6 +676,7 @@ button:disabled {
   color: #f8fbff;
   font-size: 1.75rem;
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .rate-card small {
@@ -678,6 +692,7 @@ button:disabled {
   border-radius: 20px;
   background: rgba(251, 191, 36, 0.09);
   border: 1px solid rgba(251, 191, 36, 0.18);
+  flex-wrap: wrap;
 }
 
 .fee-note p {
@@ -833,6 +848,7 @@ button:disabled {
   padding: 12px 14px;
   border-radius: 18px;
   background: rgba(79, 124, 255, 0.08);
+  flex-wrap: wrap;
 }
 
 .amount-line strong {
@@ -907,6 +923,7 @@ button:disabled {
   font-size: clamp(2rem, 9vw, 3.2rem);
   line-height: 1;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
 }
 
 .payment-card p {
@@ -1096,6 +1113,7 @@ button:disabled {
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .text-link {
@@ -1176,6 +1194,99 @@ button:disabled {
   background: rgba(255, 107, 107, 0.12);
   color: #ffc5c5;
   border: 1px solid rgba(255, 107, 107, 0.18);
+}
+
+@media (max-width: 420px) {
+  .page-bg {
+    padding: 14px 12px 116px;
+  }
+
+  .auth-card,
+  .panel,
+  .hero-card,
+  .action-card,
+  .order-card,
+  .summary-card,
+  .gold-guide-card,
+  .support-card,
+  .support-footer,
+  .inline-payment-form {
+    border-radius: 20px;
+  }
+
+  .auth-card,
+  .panel,
+  .hero-card,
+  .action-card,
+  .order-card,
+  .summary-card {
+    padding: 18px 16px;
+  }
+
+  .auth-logo-frame {
+    width: 92px;
+    height: 92px;
+  }
+
+  .auth-logo-mark {
+    width: 60px;
+    height: 60px;
+  }
+
+  .auth-splash-copy h2 {
+    font-size: clamp(1.95rem, 11vw, 2.5rem);
+  }
+
+  .brand-title,
+  .gold-guide-card h3 {
+    font-size: 1.55rem;
+  }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  .topbar .button-ghost {
+    width: 100%;
+  }
+
+  .context-strip {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .mini-metrics,
+  .stats-grid,
+  .trust-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-card {
+    padding: 18px 16px;
+  }
+
+  .payment-card strong {
+    font-size: clamp(1.65rem, 10vw, 2.35rem);
+  }
+
+  .tab-bar {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .tab-link {
+    padding: 8px 4px;
+    font-size: 0.7rem;
+  }
+
+  .tab-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 0.68rem;
+  }
 }
 
 @media (min-width: 760px) {
