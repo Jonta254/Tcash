@@ -6,9 +6,12 @@ import {
   buildWorldAppDeeplink,
   getCurrentUser,
   getOrdersForCurrentUser,
+  getWorldNotificationPermissionState,
   getWorldAppContext,
   isUserAccessVerified,
   openSupportEmail,
+  openWhatsAppSupport,
+  requestWorldNotificationPermission,
   requestWorldVerification,
   updateCurrentUserProfile,
   waitForWorldHumanVerification,
@@ -41,6 +44,9 @@ function DashboardPage() {
   const [profileError, setProfileError] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
+  const [notificationLoading, setNotificationLoading] = useState(false);
   const worldApp = getWorldAppContext();
   const exchangeRates = useExchangeRates();
   const settings = useAppSettings();
@@ -64,6 +70,24 @@ function DashboardPage() {
     setUser(nextUser);
     return nextUser;
   };
+
+  useEffect(() => {
+    let active = true;
+
+    const syncNotificationPermission = async () => {
+      const permissionState = await getWorldNotificationPermissionState();
+
+      if (active) {
+        setNotificationsEnabled(permissionState.granted);
+      }
+    };
+
+    syncNotificationPermission();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!needsFirstAccessVerification || !user?.walletAddress) {
@@ -170,6 +194,27 @@ function DashboardPage() {
     const nextUser = updateCurrentUserProfile({ mpesaPhoneNumber: profilePhone.trim() });
     setUser(nextUser);
     setProfileMessage("Payout phone saved. Sell orders will use this number.");
+  };
+
+  const handleEnableNotifications = async () => {
+    setNotificationError("");
+    setNotificationLoading(true);
+
+    try {
+      const permissionState = await requestWorldNotificationPermission();
+
+      if (!permissionState.granted) {
+        throw new Error("World notification permission was not granted.");
+      }
+
+      setNotificationsEnabled(true);
+    } catch (error) {
+      setNotificationError(
+        error instanceof Error ? error.message : "TMpesa could not enable World notifications.",
+      );
+    } finally {
+      setNotificationLoading(false);
+    }
   };
 
   return (
@@ -361,21 +406,79 @@ function DashboardPage() {
       <section className="support-footer">
         <div>
           <strong>Support</strong>
-          <p>Questions or delayed payment? Contact TMpesa support by email.</p>
+          <p>Email support for account help, or open WhatsApp quickly if your order payout is delayed.</p>
         </div>
-        <button
-          type="button"
-          className="button-secondary"
-          onClick={() =>
-            openSupportEmail({
-              subject: "TMpesa support",
-              body: "Hello TMpesa team,\n\nI need help with my account or order.",
-            })
-          }
-        >
-          Email Support
-        </button>
+        <div className="button-row compact-actions">
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() =>
+              openSupportEmail({
+                subject: "TMpesa support request",
+                body: [
+                  "Hello TMpesa support,",
+                  "",
+                  "I need help with my account or order.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Email Support
+          </button>
+          <button
+            type="button"
+            className="button-ghost"
+            onClick={() =>
+              openWhatsAppSupport({
+                message: [
+                  "Hello TMpesa support,",
+                  "",
+                  "My payment or settlement is delayed and I need assistance.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Payment Delay
+          </button>
+        </div>
       </section>
+
+      {hasWorldSession ? (
+        <section className="panel stack">
+          <span className="brand-kicker">World alerts</span>
+          <div className="split">
+            <div>
+              <h3>Enable order notifications in World App</h3>
+              <p className="muted">
+                TMpesa can request World notification permission so users can receive order updates
+                inside World App after placement.
+              </p>
+            </div>
+            <span className={`status-pill ${notificationsEnabled ? "completed" : "pending"}`}>
+              {notificationsEnabled ? "Enabled" : "Not enabled"}
+            </span>
+          </div>
+          {notificationError ? <div className="error">{notificationError}</div> : null}
+          {!notificationsEnabled ? (
+            <button
+              type="button"
+              className="button"
+              onClick={handleEnableNotifications}
+              disabled={notificationLoading}
+            >
+              {notificationLoading ? "Opening World permission..." : "Enable World Notifications"}
+            </button>
+          ) : (
+            <div className="notice">
+              World notification permission is already enabled for this TMpesa session.
+            </div>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

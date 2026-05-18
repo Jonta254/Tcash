@@ -42,7 +42,7 @@ class AppErrorBoundary extends Component {
               </button>
               <a
                 className="button-secondary"
-                href={`mailto:brianokindo@gmail.com?subject=TMpesa%20World%20App%20startup%20error&body=${encodedError}`}
+                href={`mailto:brianokindo2022@gmail.com?subject=TMpesa%20World%20App%20startup%20error&body=${encodedError}`}
               >
                 Email Support
               </a>

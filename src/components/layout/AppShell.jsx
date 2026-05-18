@@ -41,7 +41,10 @@ function AppShell() {
       <div className="app-layout app-shell">
         <header className="topbar">
           <div className="brand-block">
-            <span className="brand-kicker">TMpesa</span>
+            <div className="brand-shell">
+              <span className="brand-jewel" aria-hidden="true">◇</span>
+              <span className="brand-status">World exchange ready</span>
+            </div>
             <h1>{APP_CONFIG.appName}</h1>
           </div>
           <button type="button" className="button-ghost" onClick={handleLogout}>

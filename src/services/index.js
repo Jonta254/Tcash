@@ -29,14 +29,16 @@ export {
   updateExchangeRates,
 } from "./settingsService";
 export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
-export { notifyAdminOrderCreated } from "./notificationService";
+export { notifyAdminOrderCreated, notifyWorldUserOrderCreated } from "./notificationService";
 export {
   buildWorldAppDeeplink,
   checkWorldHumanVerification,
   canUseWorldPay,
   connectWithWorldAppWallet,
   getWorldAppContext,
+  getWorldNotificationPermissionState,
   requestWorldPayment,
+  requestWorldNotificationPermission,
   requestWorldVerification,
   waitForWorldHumanVerification,
 } from "./worldAppService";

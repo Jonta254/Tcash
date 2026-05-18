@@ -72,7 +72,7 @@ Create env vars from [.env.example](C:/Users/ADMIN/Documents/Codex/2026-04-19-i-
 - `APP_ID`: your World mini app id, used for payment verification
 - `DEV_PORTAL_API_KEY`: World Developer Portal API key, used to confirm World payments
 - `RESEND_API_KEY`: optional Resend key for sending admin order notification emails
-- `ORDER_NOTIFICATION_EMAIL`: optional admin email override, defaults to `brianokindo@gmail.com`
+- `ORDER_NOTIFICATION_EMAIL`: optional admin email override, defaults to `brianokindo2022@gmail.com`
 - `ORDER_EMAIL_FROM`: optional verified sender, defaults to Resend test sender
 
 ## Demo Admin Account

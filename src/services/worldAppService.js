@@ -50,6 +50,44 @@ async function runMiniKitCommand(commandName, payload) {
   return { result, data };
 }
 
+function normalizePermissionList(data) {
+  if (!data) {
+    return [];
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data.permissions)) {
+    return data.permissions;
+  }
+
+  if (Array.isArray(data.granted_permissions)) {
+    return data.granted_permissions;
+  }
+
+  return [];
+}
+
+function permissionGranted(permissions, targetPermission) {
+  return permissions.some((permission) => {
+    if (typeof permission === "string") {
+      return permission === targetPermission;
+    }
+
+    if (permission?.permission === targetPermission) {
+      return permission.status === "granted" || permission.granted === true;
+    }
+
+    if (permission?.name === targetPermission) {
+      return permission.status === "granted" || permission.granted === true;
+    }
+
+    return false;
+  });
+}
+
 export function getWorldAppContext() {
   const isBrowser = typeof window !== "undefined";
   const fallbackWorldApp = isBrowser ? window.WorldApp : null;
@@ -199,6 +237,48 @@ export async function requestWorldVerification({
     nullifierHash: data.nullifier_hash,
     merkleRoot: data.merkle_root,
     signal,
+  };
+}
+
+export async function getWorldNotificationPermissionState() {
+  if (!MiniKit.isInstalled()) {
+    return { granted: false, available: false };
+  }
+
+  try {
+    const { data } = await runMiniKitCommand("getPermissions");
+    const permissions = normalizePermissionList(data);
+
+    return {
+      granted: permissionGranted(permissions, "notifications"),
+      available: true,
+      permissions,
+    };
+  } catch {
+    return { granted: false, available: false, permissions: [] };
+  }
+}
+
+export async function requestWorldNotificationPermission() {
+  if (!MiniKit.isInstalled()) {
+    throw new Error("Open TMpesa inside World App to enable order notifications.");
+  }
+
+  const currentPermissions = await getWorldNotificationPermissionState();
+
+  if (currentPermissions.granted) {
+    return currentPermissions;
+  }
+
+  const { data } = await runMiniKitCommand("requestPermission", {
+    permission: "notifications",
+  });
+  const permissions = normalizePermissionList(data);
+
+  return {
+    granted: permissionGranted(permissions, "notifications"),
+    available: true,
+    permissions,
   };
 }
 

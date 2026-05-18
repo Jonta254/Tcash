@@ -1,24 +1,20 @@
 import { getSettings } from "./settingsService";
 
-function buildGmailComposeUrl({ subject, body }) {
-  const params = new URLSearchParams({
-    view: "cm",
-    fs: "1",
-    to: getSettings().supportEmail,
-    su: subject,
-    body,
-  });
+function encodeQueryValue(value) {
+  return encodeURIComponent(value).replace(/%20/g, "%20");
+}
 
-  return `https://mail.google.com/mail/?${params.toString()}`;
+function buildGmailComposeUrl({ subject, body }) {
+  const supportEmail = getSettings().supportEmail;
+  return (
+    "https://mail.google.com/mail/?" +
+    `view=cm&fs=1&to=${encodeQueryValue(supportEmail)}&su=${encodeQueryValue(subject)}&body=${encodeQueryValue(body)}`
+  );
 }
 
 function buildMailToUrl({ subject, body }) {
-  const params = new URLSearchParams({
-    subject,
-    body,
-  });
-
-  return `mailto:${encodeURIComponent(getSettings().supportEmail)}?${params.toString()}`;
+  const supportEmail = getSettings().supportEmail;
+  return `mailto:${encodeURIComponent(supportEmail)}?subject=${encodeQueryValue(subject)}&body=${encodeQueryValue(body)}`;
 }
 
 export function openSupportEmail({ subject, body }) {
@@ -65,8 +61,8 @@ export function openOrderSupportEmail(order, mode = "support") {
     `Hello TMpesa team,`,
     "",
     mode === "delay"
-      ? "I need help because my order appears delayed."
-      : "I need support with my order.",
+      ? "My payment or settlement appears delayed and I need assistance."
+      : "I need help with my account or order.",
     "",
     `Order ID: ${order.id}`,
     `Order Type: ${order.type}`,
@@ -86,7 +82,7 @@ export function openOrderSupportEmail(order, mode = "support") {
       message: [
         "Hello TMpesa team,",
         "",
-        "My payment or settlement seems delayed. Please assist.",
+        "My payment or settlement seems delayed. Please review my order and assist me.",
         "",
         `Order ID: ${order.id}`,
         `Order Type: ${order.type}`,

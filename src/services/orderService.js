@@ -1,7 +1,7 @@
 import { STORAGE_KEYS } from "../config/appConfig";
 import { getCurrentUser } from "./authService";
 import { readStorage, writeStorage } from "./localStorage";
-import { notifyAdminOrderCreated } from "./notificationService";
+import { notifyAdminOrderCreated, notifyWorldUserOrderCreated } from "./notificationService";
 
 export function initializeOrders() {
   const storedOrders = readStorage(STORAGE_KEYS.orders, null);
@@ -71,6 +71,7 @@ export function createOrder(payload) {
 
   writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
   notifyAdminOrderCreated(order);
+  notifyWorldUserOrderCreated(order);
   return order;
 }
 

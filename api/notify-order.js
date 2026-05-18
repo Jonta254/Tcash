@@ -1,6 +1,6 @@
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
-const ADMIN_EMAIL = "brianokindo@gmail.com";
+const ADMIN_EMAIL = "brianokindo2022@gmail.com";
 const FROM_EMAIL = "TMpesa <onboarding@resend.dev>";
 
 function escapeHtml(value) {

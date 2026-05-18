@@ -17,7 +17,7 @@ export const APP_CONFIG = {
     sellWalletAddress: "0x0f029f35a9da4043ff84b2c98a023d0a68eb64b4",
     mpesaPaybillNumber: "5698981",
     mpesaTillName: "TMpesa Exchange",
-    supportEmail: "brianokindo@gmail.com",
+    supportEmail: "brianokindo2022@gmail.com",
     whatsappSupportLink: "https://wa.me/qr/WLKPNPNVKPZEM1",
     worldAppId: RESOLVED_WORLD_APP_ID,
   },

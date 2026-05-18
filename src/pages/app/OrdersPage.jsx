@@ -4,6 +4,7 @@ import OrderCard from "../../components/orders/OrderCard";
 import {
   getCurrentUser,
   getOrdersForCurrentUser,
+  openWhatsAppSupport,
   openOrderSupportEmail,
   updateOrder,
 } from "../../services";
@@ -65,6 +66,35 @@ function OrdersPage() {
         {message ? <div className="notice">{message}</div> : null}
         {user?.isAdmin ? <Link to="/admin" className="button-secondary">Open Admin</Link> : null}
       </section>
+
+      {orders.length ? (
+        <section className="support-footer support-footer-emphasis">
+          <div>
+            <strong>Delayed payment or payout?</strong>
+            <p>
+              Open WhatsApp support right away. TMpesa will prefill a delay message so you can send
+              it quickly after placing an order.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="button"
+            onClick={() =>
+              openWhatsAppSupport({
+                message: [
+                  "Hello TMpesa support,",
+                  "",
+                  "I have already placed an order and my payment or settlement is delayed.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Open Delay WhatsApp
+          </button>
+        </section>
+      ) : null}
 
       {orders.length ? (
         <section className="order-grid">

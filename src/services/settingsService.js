@@ -7,8 +7,8 @@ const LEGACY_MPESA_PAYBILL_NUMBER = "522522";
 const LEGACY_USDT_ASSET = "USDT";
 const WORLD_USDC_ASSET = "USDC";
 const LEGACY_SUPPORT_EMAILS = new Set([
+  "brianokindo@gmail.com",
   "brianokind02022@gmail.com",
-  "brianokindo2022@gmail.com",
   "brianokindo2022",
   "brianokindo2022'",
 ]);
