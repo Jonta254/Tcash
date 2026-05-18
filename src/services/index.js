@@ -28,7 +28,7 @@ export {
   updateOperationalSettings,
   updateExchangeRates,
 } from "./settingsService";
-export { openOrderSupportEmail, openSupportEmail } from "./supportService";
+export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
 export { notifyAdminOrderCreated } from "./notificationService";
 export {
   buildWorldAppDeeplink,

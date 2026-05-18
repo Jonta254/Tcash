@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   getWorldAppContext,
   isUserAccessVerified,
+  openWhatsAppSupport,
   openSupportEmail,
   requestWorldPayment,
   requestWorldVerification,
@@ -288,7 +289,7 @@ function SellPage() {
         </div>
         <div className="support-card">
           <strong>Need help?</strong>
-          <p className="muted">Open Gmail support for sell questions or delayed payout help.</p>
+          <p className="muted">Use Gmail for support questions or WhatsApp for delayed payout follow-up.</p>
           <button
             type="button"
             className="button-secondary"
@@ -305,13 +306,12 @@ function SellPage() {
             type="button"
             className="button-ghost"
             onClick={() =>
-              openSupportEmail({
-                subject: "TMpesa delayed sell payout",
-                body: "Hello TMpesa team,\n\nMy sell payout seems delayed. Please assist.",
+              openWhatsAppSupport({
+                message: "Hello TMpesa team,\n\nMy sell payout seems delayed. Please assist.",
               })
             }
           >
-            Payment Delay
+            Delay on WhatsApp
           </button>
         </div>
       </aside>

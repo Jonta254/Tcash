@@ -38,6 +38,23 @@ export function openSupportEmail({ subject, body }) {
   }, 700);
 }
 
+export function openWhatsAppSupport({ message }) {
+  const settings = getSettings();
+  const baseUrl = settings.whatsappSupportLink || "";
+
+  if (!baseUrl) {
+    return;
+  }
+
+  try {
+    const url = new URL(baseUrl);
+    url.searchParams.set("text", message);
+    window.location.href = url.toString();
+  } catch {
+    window.location.href = baseUrl;
+  }
+}
+
 export function openOrderSupportEmail(order, mode = "support") {
   const subject =
     mode === "delay"
@@ -63,6 +80,27 @@ export function openOrderSupportEmail(order, mode = "support") {
   ]
     .filter(Boolean)
     .join("\n");
+
+  if (mode === "delay") {
+    openWhatsAppSupport({
+      message: [
+        "Hello TMpesa team,",
+        "",
+        "My payment or settlement seems delayed. Please assist.",
+        "",
+        `Order ID: ${order.id}`,
+        `Order Type: ${order.type}`,
+        `Asset: ${order.asset}`,
+        `Crypto Amount: ${order.cryptoAmount}`,
+        `KES Amount: ${order.kesAmount}`,
+        `Status: ${order.status}`,
+        order.paymentReference ? `Reference: ${order.paymentReference}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    });
+    return;
+  }
 
   openSupportEmail({ subject, body });
 }

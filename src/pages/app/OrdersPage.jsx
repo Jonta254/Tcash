@@ -103,7 +103,7 @@ function OrdersPage() {
                   className="button-ghost"
                   onClick={() => openOrderSupportEmail(order, "delay")}
                 >
-                  Payment Delay
+                  Delay on WhatsApp
                 </button>
               </div>
             </OrderCard>

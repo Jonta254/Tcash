@@ -18,6 +18,7 @@ export const APP_CONFIG = {
     mpesaPaybillNumber: "5698981",
     mpesaTillName: "TMpesa Exchange",
     supportEmail: "brianokindo@gmail.com",
+    whatsappSupportLink: "https://wa.me/qr/WLKPNPNVKPZEM1",
     worldAppId: RESOLVED_WORLD_APP_ID,
   },
   supportedAssets: ["WLD", "USDC"],
