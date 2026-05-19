@@ -6,4 +6,19 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("@worldcoin") || id.includes("\\viem\\") || id.includes("/viem/") || id.includes("\\ox\\") || id.includes("/ox/")) {
+            return "world-sdk";
+          }
+
+          if (id.includes("react-router-dom") || id.includes("\\react-router\\") || id.includes("/react-router/")) {
+            return "router";
+          }
+        },
+      },
+    },
+  },
 });
