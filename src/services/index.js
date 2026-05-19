@@ -28,8 +28,10 @@ export {
   updateOperationalSettings,
   updateExchangeRates,
 } from "./settingsService";
+export { getReferralSummary, markReferralShared } from "./referralService";
 export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
 export { notifyAdminOrderCreated, notifyWorldUserOrderCreated } from "./notificationService";
+export { getWorldWalletPortfolio } from "./walletPortfolioService";
 export {
   buildWorldAppDeeplink,
   checkWorldHumanVerification,
@@ -37,8 +39,10 @@ export {
   connectWithWorldAppWallet,
   getWorldAppContext,
   getWorldNotificationPermissionState,
+  openWorldChatInvite,
   requestWorldPayment,
   requestWorldNotificationPermission,
   requestWorldVerification,
+  shareMiniAppInvite,
   waitForWorldHumanVerification,
 } from "./worldAppService";

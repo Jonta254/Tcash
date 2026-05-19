@@ -50,42 +50,60 @@ async function runMiniKitCommand(commandName, payload) {
   return { result, data };
 }
 
-function normalizePermissionList(data) {
+function permissionGranted(data, targetPermission) {
   if (!data) {
-    return [];
+    return false;
+  }
+
+  if (data.permission === targetPermission && data.status === "success") {
+    return true;
   }
 
   if (Array.isArray(data)) {
-    return data;
+    return data.some((permission) => permissionGranted(permission, targetPermission));
   }
 
   if (Array.isArray(data.permissions)) {
-    return data.permissions;
+    return permissionGranted(data.permissions, targetPermission);
   }
 
   if (Array.isArray(data.granted_permissions)) {
-    return data.granted_permissions;
+    return permissionGranted(data.granted_permissions, targetPermission);
   }
 
-  return [];
-}
+  if (typeof data.permissions === "object" && data.permissions !== null) {
+    const permissionState = data.permissions[targetPermission];
 
-function permissionGranted(permissions, targetPermission) {
-  return permissions.some((permission) => {
-    if (typeof permission === "string") {
-      return permission === targetPermission;
+    if (permissionState === true) {
+      return true;
     }
 
-    if (permission?.permission === targetPermission) {
-      return permission.status === "granted" || permission.granted === true;
+    if (typeof permissionState === "string") {
+      return permissionState === "granted";
     }
 
-    if (permission?.name === targetPermission) {
-      return permission.status === "granted" || permission.granted === true;
+    if (typeof permissionState === "object" && permissionState !== null) {
+      return permissionState.granted === true || permissionState.status === "granted";
     }
+  }
 
-    return false;
-  });
+  if (typeof data[targetPermission] === "boolean") {
+    return data[targetPermission];
+  }
+
+  if (typeof data === "string") {
+    return data === targetPermission;
+  }
+
+  if (typeof data.permission === "string" && data.permission === targetPermission) {
+    return data.granted === true || data.status === "granted" || data.status === "success";
+  }
+
+  if (typeof data.name === "string" && data.name === targetPermission) {
+    return data.granted === true || data.status === "granted";
+  }
+
+  return false;
 }
 
 export function getWorldAppContext() {
@@ -247,15 +265,14 @@ export async function getWorldNotificationPermissionState() {
 
   try {
     const { data } = await runMiniKitCommand("getPermissions");
-    const permissions = normalizePermissionList(data);
 
     return {
-      granted: permissionGranted(permissions, "notifications"),
+      granted: permissionGranted(data, "notifications"),
       available: true,
-      permissions,
+      permissions: data?.permissions || data || {},
     };
   } catch {
-    return { granted: false, available: false, permissions: [] };
+    return { granted: false, available: false, permissions: {} };
   }
 }
 
@@ -273,13 +290,35 @@ export async function requestWorldNotificationPermission() {
   const { data } = await runMiniKitCommand("requestPermission", {
     permission: "notifications",
   });
-  const permissions = normalizePermissionList(data);
 
   return {
-    granted: permissionGranted(permissions, "notifications"),
+    granted: permissionGranted(data, "notifications"),
     available: true,
-    permissions,
+    permissions: data,
   };
+}
+
+export async function shareMiniAppInvite({ title, text, url }) {
+  if (!MiniKit.isInstalled()) {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      await navigator.share({ title, text, url });
+      return { shared: true, via: "browser" };
+    }
+
+    throw new Error("Open TMpesa inside World App to share your invite.");
+  }
+
+  await runMiniKitCommand("share", { title, text, url });
+  return { shared: true, via: "world-app" };
+}
+
+export async function openWorldChatInvite({ message }) {
+  if (!MiniKit.isInstalled()) {
+    throw new Error("Open TMpesa inside World App to send an invite through World Chat.");
+  }
+
+  await runMiniKitCommand("chat", { message });
+  return { opened: true };
 }
 
 export async function checkWorldHumanVerification(walletAddress) {

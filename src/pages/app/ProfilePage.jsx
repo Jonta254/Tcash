@@ -2,10 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import {
   getCurrentUser,
   getOrdersForCurrentUser,
+  getReferralSummary,
+  getWorldWalletPortfolio,
   getWorldNotificationPermissionState,
+  markReferralShared,
+  openWorldChatInvite,
   openSupportEmail,
   openWhatsAppSupport,
   requestWorldNotificationPermission,
+  shareMiniAppInvite,
 } from "../../services";
 
 function formatJoinedDate(value) {
@@ -26,6 +31,11 @@ function ProfilePage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [notificationLoading, setNotificationLoading] = useState(false);
+  const [walletPortfolio, setWalletPortfolio] = useState({ assets: [], supported: false });
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState("");
+  const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(user));
+  const [referralError, setReferralError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -44,6 +54,37 @@ function ProfilePage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!user?.walletAddress) {
+      return;
+    }
+
+    let active = true;
+    setWalletLoading(true);
+    setWalletError("");
+
+    getWorldWalletPortfolio(user.walletAddress)
+      .then((portfolio) => {
+        if (active) {
+          setWalletPortfolio(portfolio);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setWalletError(error instanceof Error ? error.message : "Unable to load wallet data.");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setWalletLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.walletAddress]);
 
   const profileStats = useMemo(() => {
     const totalTrades = orders.length;
@@ -80,6 +121,35 @@ function ProfilePage() {
     }
   };
 
+  const handleShareInvite = async () => {
+    setReferralError("");
+
+    try {
+      const inviteText = `Join me on TMpesa with my invite code ${referralSummary.code}. Buy and sell WLD or USDC with M-Pesa settlement inside World App.`;
+      await shareMiniAppInvite({
+        title: "Join TMpesa",
+        text: inviteText,
+        url: referralSummary.appLink,
+      });
+      setReferralSummary(markReferralShared(user));
+    } catch (error) {
+      setReferralError(error instanceof Error ? error.message : "Unable to share invite.");
+    }
+  };
+
+  const handleShareToWorldChat = async () => {
+    setReferralError("");
+
+    try {
+      await openWorldChatInvite({
+        message: `Try TMpesa with my invite code ${referralSummary.code}. Use World App to buy or sell WLD and USDC with M-Pesa settlement.`,
+      });
+      setReferralSummary(markReferralShared(user));
+    } catch (error) {
+      setReferralError(error instanceof Error ? error.message : "Unable to open World Chat invite.");
+    }
+  };
+
   return (
     <div className="stack">
       <section className="panel profile-hero">
@@ -107,6 +177,70 @@ function ProfilePage() {
             <span>Joined</span>
             <strong>{formatJoinedDate(user?.createdAt)}</strong>
           </div>
+        </div>
+      </section>
+
+      <section className="panel stack">
+        <span className="brand-kicker">World wallet snapshot</span>
+        <div className="split">
+          <div>
+            <h3>Live WLD and USDC wallet view</h3>
+            <p className="muted">
+              TMpesa reads your World wallet address through Wallet Auth, then loads WLD and USDC
+              balances from World Chain using the official public RPC and token contracts.
+            </p>
+          </div>
+          <span className="live-badge">World Chain</span>
+        </div>
+        {walletError ? <div className="error">{walletError}</div> : null}
+        {walletLoading ? <div className="notice">Loading your World wallet snapshot...</div> : null}
+        {!walletLoading ? (
+          <div className="wallet-asset-grid">
+            {walletPortfolio.assets.map((asset) => (
+              <div key={asset.symbol} className="wallet-asset-card">
+                <span>{asset.name}</span>
+                <strong>{asset.formattedBalance}</strong>
+                <small>{asset.symbol}</small>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="panel stack">
+        <div className="split">
+          <div>
+            <span className="brand-kicker">Referral center</span>
+            <h3>Invite new World users to TMpesa</h3>
+            <p className="muted">
+              Share TMpesa using native World mini app sharing so future referral and rewards flows
+              can plug into the same account structure cleanly.
+            </p>
+          </div>
+          <span className="status-pill paid">Code {referralSummary.code}</span>
+        </div>
+        {referralError ? <div className="error">{referralError}</div> : null}
+        <div className="profile-summary-grid">
+          <div className="profile-summary-card">
+            <span>Invite actions</span>
+            <strong>{referralSummary.shareCount}</strong>
+          </div>
+          <div className="profile-summary-card">
+            <span>Last shared</span>
+            <strong>{formatJoinedDate(referralSummary.lastSharedAt)}</strong>
+          </div>
+          <div className="profile-summary-card">
+            <span>Mode</span>
+            <strong>World native</strong>
+          </div>
+        </div>
+        <div className="button-row compact-actions">
+          <button type="button" className="button" onClick={handleShareInvite}>
+            Share Invite
+          </button>
+          <button type="button" className="button-secondary" onClick={handleShareToWorldChat}>
+            Invite via World Chat
+          </button>
         </div>
       </section>
 
@@ -157,6 +291,28 @@ function ProfilePage() {
           <div className="profile-stat-row">
             <span>First trade</span>
             <strong>{formatJoinedDate(profileStats.firstTrade)}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel stack">
+        <span className="brand-kicker">Compliance and trust</span>
+        <div className="profile-stats-list">
+          <div className="profile-stat-row">
+            <span>Wallet Auth</span>
+            <strong>{user?.authMethod === "world-app" ? "Connected" : "Local only"}</strong>
+          </div>
+          <div className="profile-stat-row">
+            <span>First-access verification</span>
+            <strong>{user?.firstAccessVerified ? "Completed" : "Pending"}</strong>
+          </div>
+          <div className="profile-stat-row">
+            <span>World username</span>
+            <strong>{user?.username ? `@${user.username}` : "Unavailable"}</strong>
+          </div>
+          <div className="profile-stat-row">
+            <span>Notification permission</span>
+            <strong>{notificationsEnabled ? "Enabled" : "Not enabled"}</strong>
           </div>
         </div>
       </section>

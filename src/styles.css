@@ -1489,6 +1489,55 @@ button:disabled {
   color: #dde9ff;
 }
 
+.wallet-asset-grid,
+.growth-center-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.wallet-asset-card,
+.growth-center-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(16, 24, 39, 0.92), rgba(13, 21, 33, 0.82)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 38%);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+.wallet-asset-card span,
+.growth-center-card span {
+  color: var(--muted);
+}
+
+.wallet-asset-card strong {
+  font-size: 1.35rem;
+  color: #f6faff;
+}
+
+.wallet-asset-card small {
+  color: #cdefff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.growth-center-panel {
+  background:
+    linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(11, 15, 26, 0.94)),
+    radial-gradient(circle at top right, rgba(71, 215, 172, 0.1), transparent 34%);
+}
+
+.growth-center-link {
+  align-self: start;
+}
+
+.growth-center-card strong {
+  color: #ecf7ff;
+  font-size: 1rem;
+}
+
 .market-feature-list div {
   display: grid;
   gap: 4px;
@@ -1734,7 +1783,9 @@ button:disabled {
 
   .quick-action-grid,
   .market-board-grid,
-  .feature-story-grid {
+  .feature-story-grid,
+  .wallet-asset-grid,
+  .growth-center-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

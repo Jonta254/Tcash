@@ -6,6 +6,24 @@ export const APP_CONFIG = {
   appName: "TMpesa",
   repoName: "WorldTMpesa",
   worldAppId: RESOLVED_WORLD_APP_ID,
+  worldChain: {
+    rpcUrl: "https://worldchain-mainnet.g.alchemy.com/public",
+    chainId: 480,
+    assets: {
+      WLD: {
+        symbol: "WLD",
+        name: "Worldcoin",
+        address: "0x2cfc85d8e48f8eab294be644d9e25c3030863003",
+        decimals: 18,
+      },
+      USDC: {
+        symbol: "USDC",
+        name: "Digital Dollars",
+        address: "0x79A02482A880bCE3F13e09Da970dC34db4CD24d1",
+        decimals: 6,
+      },
+    },
+  },
   firstAccessVerificationAction: "first-access-check",
   highValueOrderAction: "high-value-order-check",
   highValueOrderKesThreshold: 10000,
@@ -30,4 +48,5 @@ export const STORAGE_KEYS = {
   currentUser: "worldtmpesa_current_user",
   orders: "worldtmpesa_orders",
   settings: "worldtmpesa_settings",
+  referralStats: "worldtmpesa_referral_stats",
 };

@@ -454,9 +454,43 @@ function DashboardPage() {
           <span className="feature-story-icon">PM</span>
           <div>
             <strong>Room to grow</strong>
-            <p>The app shell is ready for future referrals, analytics, automation, and live rates.</p>
+            <p>The app shell is ready for referrals, analytics, compliance, wallet insights, and live operations.</p>
           </div>
         </article>
+      </section>
+
+      <section className="panel stack growth-center-panel">
+        <div className="split">
+          <div>
+            <span className="brand-kicker">Growth and trust center</span>
+            <h3>Referral tools, analytics, compliance, and live wallet insight</h3>
+            <p className="muted">
+              TMpesa now includes a dedicated account layer for wallet visibility, referral growth,
+              notification controls, and trading intelligence built around World mini app patterns.
+            </p>
+          </div>
+          <Link to="/profile" className="button-secondary growth-center-link">
+            Open Profile Hub
+          </Link>
+        </div>
+        <div className="growth-center-grid">
+          <div className="growth-center-card">
+            <strong>Referrals</strong>
+            <span>Share the mini app through native World sharing and World Chat invite flows.</span>
+          </div>
+          <div className="growth-center-card">
+            <strong>Analytics</strong>
+            <span>Track trades, completion rate, first trade date, and account progress in one place.</span>
+          </div>
+          <div className="growth-center-card">
+            <strong>Compliance</strong>
+            <span>Review Wallet Auth state, first-access verification, username status, and permissions.</span>
+          </div>
+          <div className="growth-center-card">
+            <strong>Live wallet</strong>
+            <span>See WLD and USDC balances from your World wallet address using World Chain reads.</span>
+          </div>
+        </div>
       </section>
 
       <section className="support-footer">
