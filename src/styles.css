@@ -626,9 +626,44 @@ button:disabled {
   padding: 12px 0 6px;
 }
 
+.topbar-shell {
+  padding: 14px 16px;
+  border-radius: 24px;
+  background:
+    linear-gradient(145deg, rgba(15, 22, 36, 0.96), rgba(10, 16, 28, 0.94)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.1), transparent 36%);
+  border: 1px solid rgba(207, 214, 230, 0.12);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="light"] .topbar-shell {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(239, 244, 251, 0.94)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.12), transparent 36%);
+  border-color: rgba(136, 150, 182, 0.18);
+  box-shadow:
+    0 18px 40px rgba(94, 111, 145, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
 .brand-block {
   display: grid;
   gap: 8px;
+}
+
+.brand-headline {
+  display: grid;
+  gap: 4px;
+}
+
+.brand-headline small {
+  color: var(--muted);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
 }
 
 .brand-shell {
@@ -775,6 +810,11 @@ button:disabled {
   color: #dbe5ff;
   font-size: 0.92rem;
   flex-wrap: wrap;
+}
+
+.context-strip-compact {
+  padding-block: 10px;
+  font-size: 0.86rem;
 }
 
 .context-strip span,
@@ -1387,6 +1427,28 @@ button:disabled {
 
 .support-footer {
   grid-template-columns: 1fr;
+}
+
+.support-footer-compact {
+  gap: 10px;
+  align-items: center;
+}
+
+.support-footer-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.support-footer-copy strong {
+  font-size: 1rem;
+}
+
+.support-footer-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.support-footer-link {
+  justify-self: start;
 }
 
 .support-footer-emphasis {
@@ -2510,6 +2572,10 @@ button:disabled {
     align-items: stretch;
   }
 
+  .topbar-shell {
+    padding: 14px 14px 12px;
+  }
+
   .brand-shell {
     gap: 8px;
   }
@@ -2517,13 +2583,17 @@ button:disabled {
   .topbar-actions {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
   }
 
   .context-strip {
     display: grid;
     justify-content: stretch;
+  }
+
+  .support-footer-actions {
+    grid-template-columns: 1fr;
   }
 
   .mini-metrics,

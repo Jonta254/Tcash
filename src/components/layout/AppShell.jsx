@@ -90,13 +90,16 @@ function AppShell() {
       }}
     >
       <div className="app-layout app-shell">
-        <header className="topbar">
+        <header className="topbar topbar-shell">
           <div className="brand-block">
             <div className="brand-shell">
               <span className="brand-jewel" aria-hidden="true" />
               <span className="brand-status">World exchange ready</span>
             </div>
-            <h1>{APP_CONFIG.appName}</h1>
+            <div className="brand-headline">
+              <h1>{APP_CONFIG.appName}</h1>
+              <small>{hasWorldSession ? "Settlement wallet connected" : "Kenya settlement wallet"}</small>
+            </div>
           </div>
           <div className="topbar-actions">
             <button
@@ -118,19 +121,13 @@ function AppShell() {
               </span>
             </NavLink>
             <button type="button" className="button-ghost topbar-logout" onClick={handleLogout}>
-              Logout
+              Exit
             </button>
           </div>
         </header>
 
-        <div className="context-strip">
-          <span>
-            {hasWorldSession
-              ? "World account connected"
-              : worldApp.isInstalled
-                ? "Opened in World App"
-                : "Open in World App for wallet payments"}
-          </span>
+        <div className="context-strip context-strip-compact">
+          <span>{hasWorldSession ? "World account connected" : "Open in World App for wallet payments"}</span>
           <span>{user?.username ? `@${user.username}` : user?.phone || "TMpesa session"}</span>
           {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
             <a href={worldAppLink} className="text-link">

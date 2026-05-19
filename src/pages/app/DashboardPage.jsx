@@ -410,12 +410,13 @@ function DashboardPage() {
         </div>
       </section>
 
-      <section className="support-footer support-footer-emphasis">
-        <div>
-          <strong>Need help with a payment delay?</strong>
+      <section className="support-footer support-footer-compact support-footer-emphasis">
+        <div className="support-footer-copy">
+          <span className="brand-kicker">Support</span>
+          <strong>Payment delay or account help</strong>
           <p>Email support or open WhatsApp for urgent payout follow-up.</p>
         </div>
-        <div className="button-row compact-actions">
+        <div className="button-row compact-actions support-footer-actions">
           <button
             type="button"
             className="button-secondary"
@@ -452,7 +453,7 @@ function DashboardPage() {
             Payment Delay
           </button>
         </div>
-        <Link to="/support" className="text-link">Open support center</Link>
+        <Link to="/support" className="text-link support-footer-link">Open support center</Link>
       </section>
     </div>
   );
