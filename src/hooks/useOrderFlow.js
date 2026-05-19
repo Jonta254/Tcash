@@ -8,6 +8,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
   const settings = useAppSettings();
   const [asset, setAsset] = useState(initialAsset);
   const [cryptoAmount, setCryptoAmount] = useState("");
+  const [buyKesInput, setBuyKesInput] = useState("");
   const [walletAddress, setWalletAddress] = useState(() => currentUser?.walletAddress || "");
   const [payoutPhoneNumber, setPayoutPhoneNumber] = useState(
     () => currentUser?.mpesaPhoneNumber || currentUser?.phone || "",
@@ -20,31 +21,57 @@ export function useOrderFlow(type, initialAsset = "WLD") {
   const usdcExchangeRate = useExchangeRate("USDC");
   const feePerCoinKes = Number(settings.feeKesPerCoin?.[asset] || 0);
 
-  const grossKesAmount = useMemo(() => {
-    const parsedAmount = Number(cryptoAmount);
-    if (!parsedAmount || parsedAmount < 0) {
+  const parsedSellAmount = Number(cryptoAmount);
+  const parsedBuyKesAmount = Number(buyKesInput);
+
+  const quotedCryptoAmount = useMemo(() => {
+    if (type !== "buy") {
+      return parsedSellAmount > 0 ? parsedSellAmount : 0;
+    }
+
+    if (!parsedBuyKesAmount || parsedBuyKesAmount < 0) {
       return 0;
     }
 
-    return parsedAmount * exchangeRate;
-  }, [cryptoAmount, exchangeRate]);
+    const effectiveRate = exchangeRate + feePerCoinKes;
+    if (!effectiveRate || effectiveRate <= 0) {
+      return 0;
+    }
+
+    return parsedBuyKesAmount / effectiveRate;
+  }, [exchangeRate, feePerCoinKes, parsedBuyKesAmount, parsedSellAmount, type]);
+
+  const grossKesAmount = useMemo(() => {
+    if (type === "buy") {
+      return quotedCryptoAmount * exchangeRate;
+    }
+
+    if (!parsedSellAmount || parsedSellAmount < 0) {
+      return 0;
+    }
+
+    return parsedSellAmount * exchangeRate;
+  }, [exchangeRate, parsedSellAmount, quotedCryptoAmount, type]);
 
   const feeKesAmount = useMemo(() => {
-    const parsedAmount = Number(cryptoAmount);
-    if (!parsedAmount || parsedAmount < 0) {
+    if (type === "buy") {
+      return quotedCryptoAmount * feePerCoinKes;
+    }
+
+    if (!parsedSellAmount || parsedSellAmount < 0) {
       return 0;
     }
 
-    return parsedAmount * feePerCoinKes;
-  }, [cryptoAmount, feePerCoinKes]);
+    return parsedSellAmount * feePerCoinKes;
+  }, [feePerCoinKes, parsedSellAmount, quotedCryptoAmount, type]);
 
   const kesAmount = useMemo(() => {
     if (type === "sell") {
       return Math.max(grossKesAmount - feeKesAmount, 0);
     }
 
-    return grossKesAmount + feeKesAmount;
-  }, [feeKesAmount, grossKesAmount, type]);
+    return parsedBuyKesAmount > 0 ? parsedBuyKesAmount : grossKesAmount + feeKesAmount;
+  }, [feeKesAmount, grossKesAmount, parsedBuyKesAmount, type]);
 
   const buyKesMin = APP_CONFIG.tradeLimits.buyKesMin;
   const buyKesMax = APP_CONFIG.tradeLimits.buyKesMax;
@@ -69,7 +96,12 @@ export function useOrderFlow(type, initialAsset = "WLD") {
   const placeOrder = (options = {}) => {
     setError("");
 
-    if (!cryptoAmount || Number(cryptoAmount) <= 0) {
+    if (type === "buy" && (!buyKesInput || parsedBuyKesAmount <= 0)) {
+      setError("Enter a valid KES amount before placing your order.");
+      return null;
+    }
+
+    if (type === "sell" && (!cryptoAmount || parsedSellAmount <= 0)) {
       setError("Enter a valid crypto amount before placing your order.");
       return null;
     }
@@ -104,7 +136,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     const order = createOrder({
       type,
       asset,
-      cryptoAmount,
+      cryptoAmount: quotedCryptoAmount,
       kesAmount,
       grossKesAmount,
       feeKesAmount,
@@ -151,6 +183,9 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     setAsset,
     cryptoAmount,
     setCryptoAmount,
+    buyKesInput,
+    setBuyKesInput,
+    quotedCryptoAmount,
     walletAddress,
     setWalletAddress,
     payoutPhoneNumber,

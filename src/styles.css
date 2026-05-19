@@ -149,7 +149,7 @@ button {
 
 .page-bg {
   min-height: 100dvh;
-  padding: 20px 16px 120px;
+  padding: 16px 14px 112px;
   width: 100%;
   overflow-x: clip;
 }
@@ -434,7 +434,7 @@ button {
 .auth-form,
 .stack {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .admin-access-panel {
@@ -611,7 +611,7 @@ button:disabled {
 
 .app-shell {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .topbar {
@@ -1119,16 +1119,16 @@ button:disabled {
 .order-grid,
 .info-grid {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .page-section-head {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .task-panel {
-  gap: 18px;
+  gap: 16px;
 }
 
 .mini-metrics {
