@@ -166,6 +166,12 @@ function SellPage() {
               <span>Asset</span>
               <strong>{asset}</strong>
             </div>
+            <div>
+              <span>Available</span>
+              <strong>
+                {selectedAssetBalance ? `${selectedAssetBalance.formattedBalance} ${asset}` : "Syncing"}
+              </strong>
+            </div>
           </div>
         </div>
 
@@ -232,6 +238,10 @@ function SellPage() {
               Displayed rates exclude fees. Final settlement may vary slightly after network and
               payout handling.
             </div>
+            <div className="notice">
+              TMpesa keeps this flow simple: create the order first, approve the wallet send, then
+              wait for manual KES payout to your saved M-Pesa number.
+            </div>
             {needsOrderVerification ? (
               <div className="notice">
                 This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
@@ -245,7 +255,7 @@ function SellPage() {
             ) : null}
 
             <button type="button" className="button" onClick={handleCreateSellOrder}>
-              Create Sell Order
+              Review and Create Sell Order
             </button>
           </div>
         ) : null}
@@ -260,7 +270,6 @@ function SellPage() {
                   wallet to your connected TMpesa Worldchain receiver, then the order waits for
                   admin payout review.
                 </p>
-                <code>Receiver: {settings.sellWalletAddress}</code>
               </div>
             ) : (
               <div className="highlight-box">
@@ -269,7 +278,6 @@ function SellPage() {
                   Open TMpesa inside World App for direct wallet payment. If the World Pay sheet is
                   unavailable, send manually and submit the blockchain transaction hash.
                 </p>
-                <code>Receiver: {settings.sellWalletAddress}</code>
               </div>
             )}
 
@@ -325,6 +333,10 @@ function SellPage() {
                   Your wallet transfer is recorded. The admin will confirm the World payment and
                   send KES to <strong>{currentOrder.payoutPhoneNumber}</strong> while the order
                   remains in payout review.
+                </p>
+                <p>
+                  You can track the status from the Orders tab and use the support actions if your
+                  payout takes longer than expected.
                 </p>
               </div>
             ) : null}
