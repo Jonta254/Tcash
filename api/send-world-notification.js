@@ -3,13 +3,27 @@ import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const WORLD_NOTIFICATIONS_URL = "https://developer.world.org/api/v2/minikit/send-notification";
 
+function buildMiniAppPath(appId, miniAppPath = "/orders") {
+  if (!miniAppPath) {
+    return `worldapp://mini-app?app_id=${encodeURIComponent(appId)}&path=%2Forders`;
+  }
+
+  if (miniAppPath.startsWith("worldapp://")) {
+    return miniAppPath;
+  }
+
+  const normalizedPath = miniAppPath.startsWith("/") ? miniAppPath : `/${miniAppPath}`;
+  return `worldapp://mini-app?app_id=${encodeURIComponent(appId)}&path=${encodeURIComponent(normalizedPath)}`;
+}
+
 function buildNotificationPayload({ walletAddress, title, message, miniAppPath = "/orders" }) {
+  const appId = process.env.APP_ID || process.env.VITE_WORLD_APP_ID || FALLBACK_APP_ID;
   return {
-    app_id: process.env.APP_ID || process.env.VITE_WORLD_APP_ID || FALLBACK_APP_ID,
+    app_id: appId,
     wallet_addresses: [walletAddress],
     title,
     message,
-    mini_app_path: miniAppPath,
+    mini_app_path: buildMiniAppPath(appId, miniAppPath),
   };
 }
 

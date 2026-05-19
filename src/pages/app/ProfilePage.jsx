@@ -6,18 +6,19 @@ import {
   formatWorldLaunchSource,
   getCurrentUser,
   getOrdersForCurrentUser,
-  getReferralSummary,
   getRatingSummary,
-  getWorldNotificationPermissionState,
+  getReferralSummary,
   getWorldAppContext,
+  getWorldNotificationPermissionState,
   markReferralShared,
   notifyAdminReferralEvent,
-  openWorldChatInvite,
   openSupportEmail,
   openWhatsAppSupport,
+  openWorldChatInvite,
   requestWorldNotificationPermission,
   saveUserRating,
   shareMiniAppInvite,
+  updateCurrentUserProfile,
 } from "../../services";
 
 function formatJoinedDate(value) {
@@ -43,6 +44,9 @@ function ProfilePage() {
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(user));
   const [referralError, setReferralError] = useState("");
   const [referralMessage, setReferralMessage] = useState("");
+  const [payoutPhone, setPayoutPhone] = useState(user?.mpesaPhoneNumber || user?.phone || "");
+  const [payoutMessage, setPayoutMessage] = useState("");
+  const [payoutError, setPayoutError] = useState("");
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
   const [ratingError, setRatingError] = useState("");
 
@@ -78,6 +82,14 @@ function ProfilePage() {
     };
   }, [orders]);
 
+  const nextReferralMilestone = useMemo(
+    () =>
+      referralSummary.rewardMilestones.find(
+        (milestone) => referralSummary.activatedUsers < milestone.users,
+      ) || null,
+    [referralSummary],
+  );
+
   const handleEnableNotifications = async () => {
     setNotificationError("");
     setNotificationLoading(true);
@@ -99,6 +111,19 @@ function ProfilePage() {
     }
   };
 
+  const handleSavePayoutNumber = () => {
+    setPayoutError("");
+    setPayoutMessage("");
+
+    if (!payoutPhone.trim()) {
+      setPayoutError("Enter the M-Pesa number TMpesa should use for payouts and rewards.");
+      return;
+    }
+
+    updateCurrentUserProfile({ mpesaPhoneNumber: payoutPhone.trim() });
+    setPayoutMessage("Payout number saved. TMpesa will use it for sell settlements and referral rewards.");
+  };
+
   const handleShareInvite = async () => {
     setReferralError("");
     setReferralMessage("");
@@ -111,6 +136,7 @@ function ProfilePage() {
         url: referralSummary.appLink,
       });
       setReferralSummary(markReferralShared(user));
+      setReferralMessage("Invite shared. TMpesa recorded the referral action.");
     } catch (error) {
       setReferralError(error instanceof Error ? error.message : "Unable to share invite.");
     }
@@ -125,6 +151,7 @@ function ProfilePage() {
         message: `Try TMpesa with my invite code ${referralSummary.code}. Use World App to buy or sell WLD and USDC with M-Pesa settlement.`,
       });
       setReferralSummary(markReferralShared(user));
+      setReferralMessage("World Chat invite opened. TMpesa recorded the referral action.");
     } catch (error) {
       setReferralError(error instanceof Error ? error.message : "Unable to open World Chat invite.");
     }
@@ -197,6 +224,34 @@ function ProfilePage() {
       <section className="panel stack">
         <div className="split">
           <div>
+            <span className="brand-kicker">Payout settings</span>
+            <h3>Save the M-Pesa number TMpesa should use</h3>
+            <p className="muted">
+              TMpesa uses this number for sell settlements and manual referral reward payouts.
+            </p>
+          </div>
+        </div>
+        {payoutError ? <div className="error">{payoutError}</div> : null}
+        {payoutMessage ? <div className="notice">{payoutMessage}</div> : null}
+        <div className="field">
+          <label htmlFor="profilePayoutPhone">M-Pesa payout number</label>
+          <input
+            id="profilePayoutPhone"
+            value={payoutPhone}
+            onChange={(event) => setPayoutPhone(event.target.value)}
+            placeholder="0712345678"
+          />
+        </div>
+        <div className="button-row compact-actions">
+          <button type="button" className="button" onClick={handleSavePayoutNumber}>
+            Save payout number
+          </button>
+        </div>
+      </section>
+
+      <section className="panel stack">
+        <div className="split">
+          <div>
             <span className="brand-kicker">Account</span>
             <h3>Wallet and security tools</h3>
             <p className="muted">
@@ -210,7 +265,7 @@ function ProfilePage() {
         </div>
         <div className="button-row compact-actions">
           <button type="button" className="button-secondary" onClick={toggleTheme}>
-            {isLightTheme ? "◐" : "☼"}
+            {isLightTheme ? "☾" : "☀"}
           </button>
         </div>
       </section>
@@ -221,8 +276,8 @@ function ProfilePage() {
             <span className="brand-kicker">Referral center</span>
             <h3>Invite new World users to TMpesa</h3>
             <p className="muted">
-              Share TMpesa using native World mini app sharing so future referral and rewards flows
-              can plug into the same account structure cleanly.
+              Share TMpesa using native World mini app sharing so referral growth and reward claims
+              stay attached to the same TMpesa account.
             </p>
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
@@ -249,7 +304,7 @@ function ProfilePage() {
             <strong>{formatJoinedDate(referralSummary.lastSharedAt)}</strong>
           </div>
           <div className="profile-summary-card">
-            <span>Trader rewards</span>
+            <span>Paid rewards</span>
             <strong>KES {referralSummary.lifetimeRewardsKes}</strong>
           </div>
           <div className="profile-summary-card">
@@ -258,6 +313,14 @@ function ProfilePage() {
               {referralSummary.pendingMilestones.length
                 ? referralSummary.pendingMilestones.map((milestone) => `KES ${milestone.rewardKes}`).join(", ")
                 : "None"}
+            </strong>
+          </div>
+          <div className="profile-summary-card">
+            <span>Next reward</span>
+            <strong>
+              {nextReferralMilestone
+                ? `${nextReferralMilestone.users - referralSummary.activatedUsers} more for KES ${nextReferralMilestone.rewardKes}`
+                : "All live milestones reached"}
             </strong>
           </div>
         </div>
@@ -270,9 +333,8 @@ function ProfilePage() {
           </button>
         </div>
         <div className="soft-note">
-          TMpesa tracks invite shares, referred users, and activated traders. Referral reward
-          milestones are currently manual: 6 activated users can trigger KES 100, and 10 activated
-          users can trigger KES 150 after admin review and M-Pesa payout.
+          TMpesa records referred users, activated traders, and claim requests. Once you hit a live
+          milestone, claim it here and the admin payout queue is notified for M-Pesa settlement.
         </div>
         {referralSummary.pendingMilestones.length ? (
           <div className="stack">

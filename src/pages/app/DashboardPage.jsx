@@ -228,7 +228,8 @@ function DashboardPage() {
           <div>
             <h3>Add your M-Pesa payout number</h3>
             <p className="muted">
-              TMpesa uses this number whenever a sell order is reviewed and released in KES.
+              TMpesa uses this number whenever a sell order is reviewed and released in KES. You
+              can change it anytime from Profile.
             </p>
           </div>
           {profileError ? <div className="error">{profileError}</div> : null}
@@ -245,6 +246,7 @@ function DashboardPage() {
           <button type="button" className="button" onClick={handleProfileSave}>
             Save payout number
           </button>
+          <Link to="/profile" className="text-link">Manage payout settings</Link>
         </section>
       ) : null}
 
@@ -388,6 +390,13 @@ function DashboardPage() {
             <button type="button" className="button-ghost" onClick={handleShareReferralToWorldChat}>
               World Chat
             </button>
+          </div>
+          <div className="soft-note">
+            {referralSummary.pendingMilestones.length
+              ? `Reward unlocked. Open Profile to claim ${referralSummary.pendingMilestones
+                  .map((milestone) => `KES ${milestone.rewardKes}`)
+                  .join(" and ")} to your saved M-Pesa number.`
+              : "Keep sharing your TMpesa invite. Rewards unlock after referred users complete trades."}
           </div>
         </section>
       ) : null}

@@ -30,8 +30,8 @@ export async function notifyWorldUserOrderCreated(order) {
         title: "TMpesa order received",
         message:
           order.type === "sell"
-            ? `Your ${order.asset} sell order is pending review. Open TMpesa to track payout progress.`
-            : `Your ${order.asset} buy order is pending review. Open TMpesa to track payment progress.`,
+            ? `Hello \${username}, your ${order.asset} sell order is pending review. Open TMpesa to track payout progress.`
+            : `Hello \${username}, your ${order.asset} buy order is pending review. Open TMpesa to track payment progress.`,
         miniAppPath: "/orders",
       }),
     });
@@ -52,8 +52,8 @@ export async function notifyWorldUserOrderStatus(order, status) {
       title: "TMpesa order under review",
       message:
         order.type === "sell"
-          ? "Your sell order is now under manual review. TMpesa will notify you when payout is completed."
-          : "Your buy payment is now under manual review. TMpesa will notify you when crypto is sent.",
+          ? "Hello ${username}, your sell order is now under manual review. TMpesa will notify you when payout is completed."
+          : "Hello ${username}, your buy payment is now under manual review. TMpesa will notify you when crypto is sent.",
     },
     completed: {
       title: "TMpesa order completed",
