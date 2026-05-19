@@ -10,10 +10,7 @@ import {
 
 const navItems = [
   { to: "/", label: "Home", icon: "HM" },
-  { to: "/sell", label: "Sell", icon: "SL" },
-  { to: "/buy", label: "Buy", icon: "BY" },
   { to: "/orders", label: "Orders", icon: "OR" },
-  { to: "/profile", label: "Profile", icon: "PR" },
 ];
 
 function AppShell() {
@@ -48,9 +45,20 @@ function AppShell() {
             </div>
             <h1>{APP_CONFIG.appName}</h1>
           </div>
-          <button type="button" className="button-ghost" onClick={handleLogout}>
-            Logout
-          </button>
+          <div className="topbar-actions">
+            <NavLink to="/profile" className="profile-launch-button">
+              <span className="profile-launch-avatar" aria-hidden="true">
+                {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
+              </span>
+              <span className="profile-launch-copy">
+                <strong>{user?.username ? `@${user.username}` : "Profile"}</strong>
+                <small>Account</small>
+              </span>
+            </NavLink>
+            <button type="button" className="button-ghost topbar-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         </header>
 
         <div className="context-strip">

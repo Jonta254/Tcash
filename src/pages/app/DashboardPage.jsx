@@ -373,20 +373,27 @@ function DashboardPage() {
               </div>
             </div>
 
-            <div className="quick-action-grid">
-              <Link to="/sell" className="quick-action-card quick-action-card-sell">
-                <strong>Sell for KES</strong>
-                <span>Send crypto from World App and settle to your saved M-Pesa number.</span>
-              </Link>
-              <Link to="/buy" className="quick-action-card quick-action-card-buy">
-                <strong>Buy from M-Pesa</strong>
-                <span>Place an order, pay the till number, then receive crypto after review.</span>
-              </Link>
-              <Link to="/orders" className="quick-action-card quick-action-card-orders">
-                <strong>Track orders</strong>
-                <span>See pending, paid, and completed status in one clean activity view.</span>
-              </Link>
-            </div>
+            <section className="home-trade-panel">
+              <div className="split">
+                <div>
+                  <span className="tag">Trade section</span>
+                  <h3>Buy and sell in one focused wallet flow</h3>
+                </div>
+                <Link to="/orders" className="button-ghost home-trade-link">
+                  Open Orders
+                </Link>
+              </div>
+              <div className="home-trade-grid">
+                <Link to="/sell" className="quick-action-card quick-action-card-sell">
+                  <strong>Sell crypto</strong>
+                  <span>Move WLD or USDC from World App, then receive KES to your saved M-Pesa number.</span>
+                </Link>
+                <Link to="/buy" className="quick-action-card quick-action-card-buy">
+                  <strong>Buy crypto</strong>
+                  <span>Pay the till number with M-Pesa and receive WLD or USDC after manual review.</span>
+                </Link>
+              </div>
+            </section>
           </div>
 
           <div className="summary-card stack elevated-summary-card">
@@ -492,35 +499,6 @@ function DashboardPage() {
         </article>
       </section>
 
-      {user?.walletAddress ? (
-        <section className="panel stack">
-          <div className="split">
-            <div>
-              <span className="brand-kicker">Wallet at home</span>
-              <h3>Your live World wallet snapshot</h3>
-              <p className="muted">
-                TMpesa reads WLD and USDC using your World wallet address so you can decide how
-                much to sell before opening the trade flow.
-              </p>
-            </div>
-            <span className="live-badge">WLD + USDC</span>
-          </div>
-          {walletError ? <div className="error">{walletError}</div> : null}
-          {walletLoading ? <div className="notice">Loading wallet balances...</div> : null}
-          {!walletLoading ? (
-            <div className="wallet-asset-grid">
-              {walletPortfolio.assets.map((asset) => (
-                <div key={asset.symbol} className="wallet-asset-card">
-                  <span>{asset.name}</span>
-                  <strong>{asset.formattedBalance}</strong>
-                  <small>{asset.symbol}</small>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
       {!hasWorldSession && !worldApp.isInstalled && worldAppLink ? (
         <section className="panel stack">
           <span className="brand-kicker">Open in World App</span>
@@ -565,18 +543,18 @@ function DashboardPage() {
         </article>
       </section>
 
-      <section className="panel stack growth-center-panel">
+      <section className="panel stack growth-center-panel home-utility-panel">
         <div className="split">
           <div>
-            <span className="brand-kicker">Growth and trust center</span>
-            <h3>Referral tools, analytics, compliance, and live wallet insight</h3>
+            <span className="brand-kicker">Home utilities</span>
+            <h3>Referral, rating, wallet tools, and trust</h3>
             <p className="muted">
-              TMpesa now includes a dedicated account layer for wallet visibility, referral growth,
-              notification controls, and trading intelligence built around World mini app patterns.
+              Keep the wallet experience clean at the top, then place community and growth tools at
+              the bottom where they stay accessible without distracting from trading.
             </p>
           </div>
           <Link to="/profile" className="button-secondary growth-center-link">
-            Open Profile Hub
+            Open Profile
           </Link>
         </div>
         <div className="growth-center-grid">
