@@ -28,6 +28,9 @@ function BuyPage() {
     error,
     setError,
     kesAmount,
+    grossKesAmount,
+    feeKesAmount,
+    feePerCoinKes,
     exchangeRate,
     placeOrder,
     markAsPaid,
@@ -140,8 +143,23 @@ function BuyPage() {
               <span>Amount to pay</span>
               <strong>KES {kesAmount.toLocaleString()}</strong>
             </div>
+            <div className="profile-stats-list">
+              <div className="profile-stat-row">
+                <span>Live market value</span>
+                <strong>KES {grossKesAmount.toLocaleString()}</strong>
+              </div>
+              <div className="profile-stat-row">
+                <span>TMpesa fee</span>
+                <strong>KES {feeKesAmount.toLocaleString()}</strong>
+              </div>
+              <div className="profile-stat-row">
+                <span>Fee per {asset}</span>
+                <strong>KES {feePerCoinKes}</strong>
+              </div>
+            </div>
             <div className="soft-note">
-              Displayed rates exclude fees. Admin confirms the final order before delivery.
+              TMpesa reads the live market rate and adds the desk fee for each coin before showing
+              your final M-Pesa payment amount.
             </div>
             {needsOrderVerification ? (
               <div className="notice">
@@ -167,6 +185,16 @@ function BuyPage() {
               <span>Pay to till</span>
               <strong>{settings.mpesaPaybillNumber}</strong>
               <p>KES {currentOrder.kesAmount.toLocaleString()}</p>
+            </div>
+            <div className="profile-stats-list">
+              <div className="profile-stat-row">
+                <span>Live market value</span>
+                <strong>KES {Number(currentOrder.grossKesAmount || 0).toLocaleString()}</strong>
+              </div>
+              <div className="profile-stat-row">
+                <span>Total fee</span>
+                <strong>KES {Number(currentOrder.feeKesAmount || 0).toLocaleString()}</strong>
+              </div>
             </div>
 
             <div className="info-box receipt-card">

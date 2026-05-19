@@ -38,6 +38,9 @@ function SellPage() {
     error,
     setError,
     kesAmount,
+    grossKesAmount,
+    feeKesAmount,
+    feePerCoinKes,
     exchangeRate,
     placeOrder,
     markAsPaid,
@@ -232,11 +235,25 @@ function SellPage() {
               <span>You will receive</span>
               <strong>KES {kesAmount.toLocaleString()}</strong>
             </div>
+            <div className="profile-stats-list">
+              <div className="profile-stat-row">
+                <span>Live market value</span>
+                <strong>KES {grossKesAmount.toLocaleString()}</strong>
+              </div>
+              <div className="profile-stat-row">
+                <span>TMpesa fee</span>
+                <strong>KES {feeKesAmount.toLocaleString()}</strong>
+              </div>
+              <div className="profile-stat-row">
+                <span>Fee per {asset}</span>
+                <strong>KES {feePerCoinKes}</strong>
+              </div>
+            </div>
             {walletError ? <div className="error">{walletError}</div> : null}
             {walletLoading ? <div className="notice">Loading your sellable wallet balance...</div> : null}
             <div className="soft-note">
-              Displayed rates exclude fees. Final settlement may vary slightly after network and
-              payout handling.
+              TMpesa reads the live market rate, then subtracts the desk fee for each coin before
+              showing your estimated KES payout.
             </div>
             <div className="notice">
               TMpesa keeps this flow simple: create the order first, approve the wallet send, then
@@ -284,6 +301,16 @@ function SellPage() {
             <div className="amount-line">
               <span>KES payout</span>
               <strong>KES {currentOrder.kesAmount.toLocaleString()}</strong>
+            </div>
+            <div className="profile-stats-list">
+              <div className="profile-stat-row">
+                <span>Live market value</span>
+                <strong>KES {Number(currentOrder.grossKesAmount || 0).toLocaleString()}</strong>
+              </div>
+              <div className="profile-stat-row">
+                <span>Total fee</span>
+                <strong>KES {Number(currentOrder.feeKesAmount || 0).toLocaleString()}</strong>
+              </div>
             </div>
             <div className="info-box receipt-card">
               <strong>M-Pesa payout destination</strong>

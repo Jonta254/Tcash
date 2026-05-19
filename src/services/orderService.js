@@ -10,7 +10,7 @@ import {
 import {
   evaluateReferralRewards,
   findReferrerByCode,
-  markReferralMilestonesClaimed,
+  markReferralMilestonesAnnounced,
 } from "./referralService";
 
 export function initializeOrders() {
@@ -69,6 +69,9 @@ export function createOrder(payload) {
     asset: payload.asset,
     cryptoAmount: Number(payload.cryptoAmount),
     kesAmount: Number(payload.kesAmount),
+    grossKesAmount: Number(payload.grossKesAmount || payload.kesAmount || 0),
+    feeKesAmount: Number(payload.feeKesAmount || 0),
+    feePerCoinKes: Number(payload.feePerCoinKes || 0),
     walletAddress: payload.walletAddress || "",
     destinationUsername: payload.destinationUsername || currentUser.username || "",
     payoutPhoneNumber: payload.payoutPhoneNumber || "",
@@ -117,7 +120,7 @@ export function updateOrder(orderId, changes) {
     if (resolvedReferrer) {
       const rewardState = evaluateReferralRewards(resolvedReferrer);
 
-      if (rewardState.pendingMilestones.length) {
+      if (rewardState.unannouncedMilestones.length) {
         notifyAdminReferralEvent({
           eventType: "milestone",
           referralCode: updatedOrder.referredByCode,
@@ -129,12 +132,15 @@ export function updateOrder(orderId, changes) {
           referredWalletAddress: updatedOrder.userWalletAddress || "",
           referredUsers: rewardState.summary.referredUsers,
           activatedUsers: rewardState.summary.activatedUsers,
-          eligibleRewardKes: rewardState.eligibleRewardKes,
+          eligibleRewardKes: rewardState.unannouncedMilestones.reduce(
+            (sum, milestone) => sum + Number(milestone.rewardKes || 0),
+            0,
+          ),
           createdAt: new Date().toISOString(),
         });
-        markReferralMilestonesClaimed(
+        markReferralMilestonesAnnounced(
           updatedOrder.referredByCode,
-          rewardState.pendingMilestones.map((milestone) => milestone.users),
+          rewardState.unannouncedMilestones.map((milestone) => milestone.users),
         );
       }
     }

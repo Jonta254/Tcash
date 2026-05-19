@@ -19,21 +19,26 @@ export {
   updateOrder,
 } from "./orderService";
 export {
+  getFeePerCoin,
   getExchangeRate,
   getExchangeRates,
   getSettings,
   initializeSettings,
   subscribeToSettings,
   subscribeToRateUpdates,
+  updateFeeKesPerCoin,
   updateOperationalSettings,
   updateExchangeRates,
 } from "./settingsService";
 export {
+  createReferralClaim,
   evaluateReferralRewards,
   findReferrerByCode,
+  getAllReferralClaims,
   getReferralSummary,
-  markReferralMilestonesClaimed,
+  markReferralMilestonesAnnounced,
   markReferralShared,
+  updateReferralClaim,
 } from "./referralService";
 export { getRatingSummary, saveUserRating } from "./feedbackService";
 export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
@@ -44,6 +49,7 @@ export {
   notifyWorldUserOrderStatus,
 } from "./notificationService";
 export { getWorldWalletPortfolio } from "./walletPortfolioService";
+export { fetchWorldMarketRates } from "./marketRateService";
 export {
   buildWorldAppDeeplink,
   checkWorldHumanVerification,

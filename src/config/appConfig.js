@@ -32,6 +32,10 @@ export const APP_CONFIG = {
       WLD: 120,
       USDC: 128,
     },
+    feeKesPerCoin: {
+      WLD: 10,
+      USDC: 10,
+    },
     sellWalletAddress: "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc",
     mpesaPaybillNumber: "5698981",
     mpesaTillName: "TMpesa Exchange",
@@ -54,6 +58,7 @@ export const STORAGE_KEYS = {
   orders: "worldtmpesa_orders",
   settings: "worldtmpesa_settings",
   referralStats: "worldtmpesa_referral_stats",
+  referralClaims: "worldtmpesa_referral_claims",
   appTheme: "worldtmpesa_theme",
   ratings: "worldtmpesa_ratings",
 };

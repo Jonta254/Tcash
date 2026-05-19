@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { APP_CONFIG, createOrder, getCurrentUser, updateCurrentUserProfile, updateOrder } from "../services";
+import { useAppSettings } from "./useAppSettings";
 import { useExchangeRate } from "./useExchangeRate";
 
 export function useOrderFlow(type, initialAsset = "WLD") {
   const currentUser = getCurrentUser();
+  const settings = useAppSettings();
   const [asset, setAsset] = useState(initialAsset);
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [walletAddress, setWalletAddress] = useState(() => currentUser?.walletAddress || "");
@@ -15,8 +17,9 @@ export function useOrderFlow(type, initialAsset = "WLD") {
   const [currentOrder, setCurrentOrder] = useState(null);
   const [error, setError] = useState("");
   const exchangeRate = useExchangeRate(asset);
+  const feePerCoinKes = Number(settings.feeKesPerCoin?.[asset] || 0);
 
-  const kesAmount = useMemo(() => {
+  const grossKesAmount = useMemo(() => {
     const parsedAmount = Number(cryptoAmount);
     if (!parsedAmount || parsedAmount < 0) {
       return 0;
@@ -24,6 +27,23 @@ export function useOrderFlow(type, initialAsset = "WLD") {
 
     return parsedAmount * exchangeRate;
   }, [cryptoAmount, exchangeRate]);
+
+  const feeKesAmount = useMemo(() => {
+    const parsedAmount = Number(cryptoAmount);
+    if (!parsedAmount || parsedAmount < 0) {
+      return 0;
+    }
+
+    return parsedAmount * feePerCoinKes;
+  }, [cryptoAmount, feePerCoinKes]);
+
+  const kesAmount = useMemo(() => {
+    if (type === "sell") {
+      return Math.max(grossKesAmount - feeKesAmount, 0);
+    }
+
+    return grossKesAmount + feeKesAmount;
+  }, [feeKesAmount, grossKesAmount, type]);
 
   const placeOrder = (options = {}) => {
     setError("");
@@ -52,6 +72,9 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       asset,
       cryptoAmount,
       kesAmount,
+      grossKesAmount,
+      feeKesAmount,
+      feePerCoinKes,
       walletAddress: walletAddress.trim(),
       payoutPhoneNumber: payoutPhoneNumber.trim(),
       destinationUsername: currentUser?.username || "",
@@ -107,6 +130,9 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     error,
     setError,
     kesAmount,
+    grossKesAmount,
+    feeKesAmount,
+    feePerCoinKes,
     exchangeRate,
     placeOrder,
     markAsPaid,

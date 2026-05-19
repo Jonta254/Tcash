@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import {
+  createReferralClaim,
   formatWorldLaunchSource,
   getCurrentUser,
   getOrdersForCurrentUser,
@@ -10,6 +11,7 @@ import {
   getWorldNotificationPermissionState,
   getWorldAppContext,
   markReferralShared,
+  notifyAdminReferralEvent,
   openWorldChatInvite,
   openSupportEmail,
   openWhatsAppSupport,
@@ -40,6 +42,7 @@ function ProfilePage() {
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(user));
   const [referralError, setReferralError] = useState("");
+  const [referralMessage, setReferralMessage] = useState("");
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
   const [ratingError, setRatingError] = useState("");
 
@@ -98,6 +101,7 @@ function ProfilePage() {
 
   const handleShareInvite = async () => {
     setReferralError("");
+    setReferralMessage("");
 
     try {
       const inviteText = `Join me on TMpesa with my invite code ${referralSummary.code}. Buy and sell WLD or USDC with M-Pesa settlement inside World App.`;
@@ -114,6 +118,7 @@ function ProfilePage() {
 
   const handleShareToWorldChat = async () => {
     setReferralError("");
+    setReferralMessage("");
 
     try {
       await openWorldChatInvite({
@@ -132,6 +137,30 @@ function ProfilePage() {
       setRatingSummary(saveUserRating(user, rating));
     } catch (error) {
       setRatingError(error instanceof Error ? error.message : "Unable to save your rating.");
+    }
+  };
+
+  const handleClaimReferralReward = async (milestoneUsers) => {
+    setReferralError("");
+    setReferralMessage("");
+
+    try {
+      const claim = createReferralClaim(user, milestoneUsers);
+      await notifyAdminReferralEvent({
+        eventType: "claim",
+        referralCode: claim.referralCode,
+        referrerUsername: claim.referrerUsername,
+        referrerLabel: claim.referrerLabel,
+        referrerMpesaPhoneNumber: claim.referrerMpesaPhoneNumber,
+        referredUsers: referralSummary.referredUsers,
+        activatedUsers: referralSummary.activatedUsers,
+        eligibleRewardKes: claim.rewardKes,
+        createdAt: claim.createdAt,
+      });
+      setReferralSummary(getReferralSummary(user));
+      setReferralMessage("Claim request sent. TMpesa admin will review and settle the reward to your M-Pesa number.");
+    } catch (error) {
+      setReferralError(error instanceof Error ? error.message : "Unable to claim referral reward.");
     }
   };
 
@@ -181,7 +210,7 @@ function ProfilePage() {
         </div>
         <div className="button-row compact-actions">
           <button type="button" className="button-secondary" onClick={toggleTheme}>
-            Switch to {isLightTheme ? "night" : "day"} mode
+            {isLightTheme ? "◐" : "☼"}
           </button>
         </div>
       </section>
@@ -198,6 +227,7 @@ function ProfilePage() {
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
         </div>
+        {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
         <div className="profile-summary-grid">
           <div className="profile-summary-card">
@@ -244,6 +274,37 @@ function ProfilePage() {
           milestones are currently manual: 6 activated users can trigger KES 100, and 10 activated
           users can trigger KES 150 after admin review and M-Pesa payout.
         </div>
+        {referralSummary.pendingMilestones.length ? (
+          <div className="stack">
+            <span className="brand-kicker">Claim rewards</span>
+            <div className="profile-links-grid">
+              {referralSummary.pendingMilestones.map((milestone) => (
+                <button
+                  key={milestone.users}
+                  type="button"
+                  className="profile-link-card"
+                  onClick={() => handleClaimReferralReward(milestone.users)}
+                >
+                  <strong>Claim KES {milestone.rewardKes}</strong>
+                  <span>{milestone.users} activated referrals reached. Request payout to your saved M-Pesa number.</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {referralSummary.claims?.length ? (
+          <div className="stack">
+            <span className="brand-kicker">Reward claims</span>
+            <div className="profile-stats-list">
+              {referralSummary.claims.slice(0, 3).map((claim) => (
+                <div key={claim.id} className="profile-stat-row">
+                  <span>{claim.milestoneUsers} referrals</span>
+                  <strong>{claim.status.toUpperCase()} - KES {claim.rewardKes}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="panel stack">

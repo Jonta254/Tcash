@@ -4,13 +4,15 @@ import OrderCard from "../../components/orders/OrderCard";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
+  getAllReferralClaims,
   getAllOrders,
+  getFeePerCoin,
   getCurrentUser,
-  getExchangeRates,
   openOrderSupportEmail,
-  updateExchangeRates,
+  updateFeeKesPerCoin,
   updateOperationalSettings,
   updateOrder,
+  updateReferralClaim,
 } from "../../services";
 
 function AdminPage() {
@@ -24,12 +26,11 @@ function AdminPage() {
   }
 
   const [orders, setOrders] = useState(getAllOrders());
-  const [rateInputs, setRateInputs] = useState(() =>
-    Object.entries(getExchangeRates()).reduce((accumulator, [asset, rate]) => {
-      accumulator[asset] = String(rate);
-      return accumulator;
-    }, {}),
-  );
+  const [referralClaims, setReferralClaims] = useState(getAllReferralClaims());
+  const [feeInputs, setFeeInputs] = useState(() => ({
+    WLD: String(getFeePerCoin("WLD")),
+    USDC: String(getFeePerCoin("USDC")),
+  }));
   const [operationalInputs, setOperationalInputs] = useState(() => ({
     sellWalletAddress: liveSettings.sellWalletAddress,
     mpesaPaybillNumber: liveSettings.mpesaPaybillNumber,
@@ -42,28 +43,35 @@ function AdminPage() {
   const [settingsMessage, setSettingsMessage] = useState("");
   const [settingsError, setSettingsError] = useState("");
   const payoutQueue = orders.filter((order) => order.type === "sell" && order.status === "paid");
+  const referralQueue = referralClaims.filter((claim) => ["pending", "approved"].includes(claim.status));
 
   const handleStatusUpdate = (orderId, status) => {
     updateOrder(orderId, { status });
     setOrders(getAllOrders());
   };
 
-  const handleRateSave = () => {
+  const handleFeeSave = () => {
     setRateError("");
     setRateMessage("");
 
     try {
-      const nextRates = updateExchangeRates(rateInputs);
-      setRateInputs(
-        Object.entries(nextRates).reduce((accumulator, [asset, rate]) => {
-          accumulator[asset] = String(rate);
-          return accumulator;
-        }, {}),
-      );
-      setRateMessage("Exchange rates updated successfully.");
+      const nextFees = updateFeeKesPerCoin(feeInputs);
+      setFeeInputs({
+        WLD: String(nextFees.WLD),
+        USDC: String(nextFees.USDC),
+      });
+      setRateMessage("TMpesa fee settings updated successfully.");
     } catch (error) {
       setRateError(error.message);
     }
+  };
+
+  const handleReferralClaimUpdate = (claimId, status) => {
+    updateReferralClaim(claimId, {
+      status,
+      paidAt: status === "paid" ? new Date().toISOString() : undefined,
+    });
+    setReferralClaims(getAllReferralClaims());
   };
 
   const handleSettingsSave = () => {
@@ -93,8 +101,7 @@ function AdminPage() {
             <span className="brand-kicker">Admin panel</span>
             <h2>Manual confirmation and live settings</h2>
             <p className="muted">
-              Update exchange rates, operational details, and review order status after manual
-              settlement has been completed.
+              Review orders, confirm referral payouts, and manage TMpesa's live operational setup.
             </p>
           </div>
           <div className="mini-metrics">
@@ -113,15 +120,15 @@ function AdminPage() {
       <section className="panel stack task-panel">
         <div className="split">
           <div>
-            <h3>Exchange Rate Control</h3>
+            <h3>Live Price and Fee Control</h3>
             <p className="muted">
-              Update the current KES rates for WLD and USDC here. Buy and sell calculations will
-              use the selected asset rate immediately.
+              TMpesa now reads live WLD and USDC market prices from World's public price endpoint.
+              Set the KES fee deducted from each sell coin and added to each buy coin.
             </p>
           </div>
           <div className="stack">
-            <div className="tag">WLD: KES {liveRates.WLD}</div>
-            <div className="tag">USDC: KES {liveRates.USDC}</div>
+            <div className="tag">WLD live: KES {liveRates.WLD}</div>
+            <div className="tag">USDC live: KES {liveRates.USDC}</div>
           </div>
         </div>
 
@@ -130,38 +137,38 @@ function AdminPage() {
 
         <div className="info-grid">
           <div className="field">
-            <label htmlFor="rateWld">KES per WLD</label>
+            <label htmlFor="feeWld">WLD fee per coin (KES)</label>
             <input
-              id="rateWld"
+              id="feeWld"
               type="number"
-              min="1"
+              min="0"
               step="0.01"
-              value={rateInputs.WLD || ""}
+              value={feeInputs.WLD || ""}
               onChange={(event) =>
-                setRateInputs((current) => ({ ...current, WLD: event.target.value }))
+                setFeeInputs((current) => ({ ...current, WLD: event.target.value }))
               }
-              placeholder="120"
+              placeholder="10"
             />
           </div>
 
           <div className="field">
-            <label htmlFor="rateUsdc">KES per USDC</label>
+            <label htmlFor="feeUsdc">USDC fee per coin (KES)</label>
             <input
-              id="rateUsdc"
+              id="feeUsdc"
               type="number"
-              min="1"
+              min="0"
               step="0.01"
-              value={rateInputs.USDC || ""}
+              value={feeInputs.USDC || ""}
               onChange={(event) =>
-                setRateInputs((current) => ({ ...current, USDC: event.target.value }))
+                setFeeInputs((current) => ({ ...current, USDC: event.target.value }))
               }
-              placeholder="128"
+              placeholder="10"
             />
           </div>
         </div>
 
-        <button type="button" className="button" onClick={handleRateSave}>
-          Save Rates
+        <button type="button" className="button" onClick={handleFeeSave}>
+          Save Fee Settings
         </button>
       </section>
 
@@ -285,6 +292,48 @@ function AdminPage() {
                 <code>M-Pesa: {order.payoutPhoneNumber || order.userMpesaPhoneNumber || "Not provided"}</code>
                 <code>Asset: {order.cryptoAmount} {order.asset}</code>
                 <code>KES to pay: {order.kesAmount.toLocaleString()}</code>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {referralQueue.length ? (
+        <section className="panel stack task-panel">
+          <div>
+            <span className="brand-kicker">Referral claims</span>
+            <h3>Referral rewards ready for M-Pesa payout</h3>
+            <p className="muted">
+              These users reached a referral target and requested payout. Review and send the reward
+              directly to the saved M-Pesa number.
+            </p>
+          </div>
+          <div className="stack">
+            {referralQueue.map((claim) => (
+              <div key={claim.id} className="info-box stack">
+                <strong>{claim.referrerUsername ? `@${claim.referrerUsername}` : claim.referrerLabel}</strong>
+                <code>M-Pesa: {claim.referrerMpesaPhoneNumber}</code>
+                <code>Milestone: {claim.milestoneUsers} referrals</code>
+                <code>Reward: KES {claim.rewardKes}</code>
+                <code>Status: {claim.status}</code>
+                <div className="button-row compact-actions">
+                  {claim.status !== "approved" ? (
+                    <button
+                      type="button"
+                      className="button-secondary"
+                      onClick={() => handleReferralClaimUpdate(claim.id, "approved")}
+                    >
+                      Mark Approved
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => handleReferralClaimUpdate(claim.id, "paid")}
+                  >
+                    Mark Paid
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -1,29 +1,90 @@
 import { useEffect, useState } from "react";
-import { getExchangeRate, getExchangeRates, subscribeToRateUpdates } from "../services";
+import {
+  fetchWorldMarketRates,
+  getExchangeRate,
+  getExchangeRates,
+  subscribeToRateUpdates,
+} from "../services";
 
 export function useExchangeRate(asset = "WLD") {
-  const [exchangeRate, setExchangeRate] = useState(getExchangeRate(asset));
+  const [exchangeRates, setExchangeRates] = useState(getExchangeRates());
 
   useEffect(() => {
+    let active = true;
+
+    const syncLiveRates = async () => {
+      try {
+        const liveMarket = await fetchWorldMarketRates();
+
+        if (active) {
+          setExchangeRates((current) => ({
+            ...current,
+            ...liveMarket.rates,
+          }));
+        }
+      } catch {
+        if (active) {
+          setExchangeRates(getExchangeRates());
+        }
+      }
+    };
+
+    syncLiveRates();
+    const interval = window.setInterval(syncLiveRates, 60000);
     const unsubscribe = subscribeToRateUpdates(() => {
-      setExchangeRate(getExchangeRate(asset));
+      if (active) {
+        setExchangeRates(getExchangeRates());
+      }
+      syncLiveRates();
     });
 
-    return unsubscribe;
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      unsubscribe();
+    };
   }, [asset]);
 
-  return exchangeRate;
+  return exchangeRates[asset] || getExchangeRate(asset);
 }
 
 export function useExchangeRates() {
   const [exchangeRates, setExchangeRates] = useState(getExchangeRates());
 
   useEffect(() => {
+    let active = true;
+
+    const syncLiveRates = async () => {
+      try {
+        const liveMarket = await fetchWorldMarketRates();
+
+        if (active) {
+          setExchangeRates((current) => ({
+            ...current,
+            ...liveMarket.rates,
+          }));
+        }
+      } catch {
+        if (active) {
+          setExchangeRates(getExchangeRates());
+        }
+      }
+    };
+
+    syncLiveRates();
+    const interval = window.setInterval(syncLiveRates, 60000);
     const unsubscribe = subscribeToRateUpdates(() => {
-      setExchangeRates(getExchangeRates());
+      if (active) {
+        setExchangeRates(getExchangeRates());
+      }
+      syncLiveRates();
     });
 
-    return unsubscribe;
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      unsubscribe();
+    };
   }, []);
 
   return exchangeRates;

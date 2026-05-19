@@ -19,6 +19,7 @@ function getDefaultSettings() {
   return {
     ...APP_CONFIG.defaultSettings,
     ratesKes: { ...APP_CONFIG.defaultSettings.ratesKes },
+    feeKesPerCoin: { ...APP_CONFIG.defaultSettings.feeKesPerCoin },
     worldAppId: APP_CONFIG.worldAppId,
   };
 }
@@ -30,6 +31,10 @@ function mergeSettings(settings = {}) {
     ratesKes: {
       ...APP_CONFIG.defaultSettings.ratesKes,
       ...(settings.ratesKes || {}),
+    },
+    feeKesPerCoin: {
+      ...APP_CONFIG.defaultSettings.feeKesPerCoin,
+      ...(settings.feeKesPerCoin || {}),
     },
   };
 }
@@ -118,6 +123,38 @@ export function updateExchangeRates(nextRates) {
   writeStorage(STORAGE_KEYS.settings, settings);
   emitSettingsUpdate(settings);
   return settings.ratesKes;
+}
+
+export function getFeePerCoin(asset = "WLD") {
+  return getSettings().feeKesPerCoin?.[asset] || APP_CONFIG.defaultSettings.feeKesPerCoin[asset] || 0;
+}
+
+export function updateFeeKesPerCoin(nextFees) {
+  const parsedFees = Object.entries(nextFees).reduce((accumulator, [asset, value]) => {
+    const parsedFee = Number(value);
+
+    if (parsedFee < 0 || Number.isNaN(parsedFee)) {
+      throw new Error(`Enter a valid fee above or equal to zero for ${asset}.`);
+    }
+
+    accumulator[asset] = parsedFee;
+    return accumulator;
+  }, {});
+
+  const previousSettings = getSettings();
+  const settings = {
+    ...previousSettings,
+    feeKesPerCoin: {
+      ...APP_CONFIG.defaultSettings.feeKesPerCoin,
+      ...(previousSettings.feeKesPerCoin || {}),
+      ...parsedFees,
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  writeStorage(STORAGE_KEYS.settings, settings);
+  emitSettingsUpdate(settings);
+  return settings.feeKesPerCoin;
 }
 
 export function updateOperationalSettings(nextSettings) {

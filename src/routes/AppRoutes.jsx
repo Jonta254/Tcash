@@ -33,6 +33,7 @@ function AppRoutes() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="admin" element={<AdminPage />} />
+        <Route path="tmpesa-admin" element={<AdminPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

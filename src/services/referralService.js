@@ -1,7 +1,7 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
 import { getAllOrders } from "./orderService";
-import { getUsers } from "./authService";
+import { getCurrentUser, getUsers } from "./authService";
 
 function normalizeCode(value) {
   return String(value || "").replace(/^@/, "").trim().toUpperCase();
@@ -59,13 +59,32 @@ function getEligibleMilestones(activatedUsers) {
   return getRewardMilestones().filter((milestone) => activatedUsers >= milestone.users);
 }
 
-function getPendingMilestones(referralCode, activatedUsers) {
+function getUnannouncedMilestones(referralCode, activatedUsers) {
   const stats = readStorage(STORAGE_KEYS.referralStats, {});
-  const milestoneState = stats[`milestones:${normalizeCode(referralCode)}`] || { claimedRewards: [] };
-  const claimedRewards = new Set(milestoneState.claimedRewards || []);
+  const milestoneState = stats[`milestones:${normalizeCode(referralCode)}`] || { announcedMilestones: [] };
+  const announcedMilestones = new Set(milestoneState.announcedMilestones || []);
 
   return getEligibleMilestones(activatedUsers).filter(
-    (milestone) => !claimedRewards.has(milestone.users),
+    (milestone) => !announcedMilestones.has(milestone.users),
+  );
+}
+
+function getReferralClaims() {
+  return readStorage(STORAGE_KEYS.referralClaims, []);
+}
+
+function getClaimsForReferralCode(referralCode) {
+  const normalizedCode = normalizeCode(referralCode);
+  return getReferralClaims().filter((claim) => normalizeCode(claim.referralCode) === normalizedCode);
+}
+
+function getOpenClaimMilestones(referralCode) {
+  const claims = getClaimsForReferralCode(referralCode);
+  const blockedStatuses = new Set(["pending", "approved", "paid"]);
+  return new Set(
+    claims
+      .filter((claim) => blockedStatuses.has(claim.status))
+      .map((claim) => claim.milestoneUsers),
   );
 }
 
@@ -76,6 +95,14 @@ export function getReferralSummary(user) {
   const code = getReferralCode(user);
   const referredUsers = getReferredUsers(code);
   const tradingSummary = getReferralTradingSummary(referredUsers);
+  const claims = getClaimsForReferralCode(code);
+  const openClaimMilestones = getOpenClaimMilestones(code);
+  const claimableMilestones = getEligibleMilestones(tradingSummary.activatedUsers).filter(
+    (milestone) => !openClaimMilestones.has(milestone.users),
+  );
+  const paidRewardsKes = claims
+    .filter((claim) => claim.status === "paid")
+    .reduce((sum, claim) => sum + Number(claim.rewardKes || 0), 0);
 
   return {
     code,
@@ -85,9 +112,11 @@ export function getReferralSummary(user) {
     referredUsers: referredUsers.length,
     activatedUsers: tradingSummary.activatedUsers,
     totalReferralOrders: tradingSummary.totalOrders,
-    lifetimeRewardsKes: tradingSummary.lifetimeRewardsKes,
+    lifetimeRewardsKes: paidRewardsKes,
+    unlockedRewardsKes: tradingSummary.lifetimeRewardsKes,
     rewardMilestones: getRewardMilestones(),
-    pendingMilestones: getPendingMilestones(code, tradingSummary.activatedUsers),
+    pendingMilestones: claimableMilestones,
+    claims,
   };
 }
 
@@ -110,10 +139,12 @@ export function markReferralShared(user) {
 export function evaluateReferralRewards(user) {
   const summary = getReferralSummary(user);
   const pendingMilestones = summary.pendingMilestones || [];
+  const unannouncedMilestones = getUnannouncedMilestones(summary.code, summary.activatedUsers);
 
   return {
     summary,
     pendingMilestones,
+    unannouncedMilestones,
     eligibleRewardKes: pendingMilestones.reduce(
       (total, milestone) => total + Number(milestone.rewardKes || 0),
       0,
@@ -121,19 +152,67 @@ export function evaluateReferralRewards(user) {
   };
 }
 
-export function markReferralMilestonesClaimed(referralCode, milestones = []) {
+export function markReferralMilestonesAnnounced(referralCode, milestones = []) {
   const stats = readStorage(STORAGE_KEYS.referralStats, {});
   const normalizedCode = normalizeCode(referralCode);
   const key = `milestones:${normalizedCode}`;
-  const current = stats[key] || { claimedRewards: [] };
-  const mergedClaimed = Array.from(new Set([...(current.claimedRewards || []), ...milestones]));
+  const current = stats[key] || { announcedMilestones: [] };
+  const mergedAnnounced = Array.from(new Set([...(current.announcedMilestones || []), ...milestones]));
 
   writeStorage(STORAGE_KEYS.referralStats, {
     ...stats,
     [key]: {
       ...current,
-      claimedRewards: mergedClaimed,
+      announcedMilestones: mergedAnnounced,
       updatedAt: new Date().toISOString(),
     },
   });
+}
+
+export function createReferralClaim(user = getCurrentUser(), milestoneUsers) {
+  if (!user) {
+    throw new Error("You must be logged in to claim referral rewards.");
+  }
+
+  const summary = getReferralSummary(user);
+  const milestone = summary.pendingMilestones.find((entry) => entry.users === milestoneUsers);
+
+  if (!milestone) {
+    throw new Error("This referral reward is not available to claim yet.");
+  }
+
+  if (!user.mpesaPhoneNumber?.trim()) {
+    throw new Error("Add your M-Pesa payout number before claiming referral rewards.");
+  }
+
+  const claims = getReferralClaims();
+  const claim = {
+    id: crypto.randomUUID(),
+    userId: user.id,
+    referralCode: summary.code,
+    referrerUsername: user.username || "",
+    referrerLabel: user.fullName || user.phone || "TMpesa referrer",
+    referrerMpesaPhoneNumber: user.mpesaPhoneNumber,
+    milestoneUsers: milestone.users,
+    rewardKes: milestone.rewardKes,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  };
+
+  writeStorage(STORAGE_KEYS.referralClaims, [claim, ...claims]);
+  return claim;
+}
+
+export function updateReferralClaim(claimId, changes) {
+  const claims = getReferralClaims();
+  const updatedClaims = claims.map((claim) =>
+    claim.id === claimId ? { ...claim, ...changes, updatedAt: new Date().toISOString() } : claim,
+  );
+
+  writeStorage(STORAGE_KEYS.referralClaims, updatedClaims);
+  return updatedClaims.find((claim) => claim.id === claimId) || null;
+}
+
+export function getAllReferralClaims() {
+  return getReferralClaims();
 }

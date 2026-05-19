@@ -106,7 +106,7 @@ function AppShell() {
               aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
             >
               <span className="theme-toggle-orb" aria-hidden="true" />
-              <span>{isLightTheme ? "Night" : "Day"}</span>
+              <span aria-hidden="true">{isLightTheme ? "◐" : "☼"}</span>
             </button>
             <NavLink to="/profile" className="profile-launch-button">
               <span className="profile-launch-avatar" aria-hidden="true">
@@ -139,7 +139,7 @@ function AppShell() {
           ) : null}
         </div>
 
-        <nav className={`tab-bar${user?.isAdmin ? " admin" : ""}`}>
+        <nav className="tab-bar">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -151,15 +151,6 @@ function AppShell() {
               <span>{item.label}</span>
             </NavLink>
           ))}
-          {user?.isAdmin ? (
-            <NavLink
-              to="/admin"
-              className={({ isActive }) => `tab-link${isActive ? " active" : ""}`}
-            >
-              <span className="tab-icon" aria-hidden="true">AD</span>
-              <span>Admin</span>
-            </NavLink>
-          ) : null}
         </nav>
 
         <Outlet />
