@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useThemeMode } from "../../hooks/useThemeMode";
@@ -5,12 +6,11 @@ import {
   APP_CONFIG,
   buildWorldAppDeeplink,
   getCurrentUser,
-  getWorldNotificationPermissionState,
   getWorldAppContext,
+  getWorldNotificationPermissionState,
   logoutUser,
   requestWorldNotificationPermission,
 } from "../../services";
-import { useEffect, useState } from "react";
 
 const navItems = [
   { to: "/", label: "Home", icon: "HM" },
@@ -106,7 +106,7 @@ function AppShell() {
               aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
             >
               <span className="theme-toggle-orb" aria-hidden="true" />
-              <span aria-hidden="true">{isLightTheme ? "◐" : "☼"}</span>
+              <span aria-hidden="true">{isLightTheme ? "☾" : "☀"}</span>
             </button>
             <NavLink to="/profile" className="profile-launch-button">
               <span className="profile-launch-avatar" aria-hidden="true">
@@ -164,9 +164,9 @@ function AppShell() {
                 onClick={() => setShowNotificationPrompt(false)}
                 aria-label="Close notification prompt"
               >
-                x
+                ×
               </button>
-              <div className="notification-prompt-icon" aria-hidden="true">*</div>
+              <div className="notification-prompt-icon" aria-hidden="true">✦</div>
               <div className="stack">
                 <span className="brand-kicker">World notifications</span>
                 <h3>Stay updated on every TMpesa order</h3>
@@ -190,7 +190,7 @@ function AppShell() {
                   className="button-secondary"
                   onClick={() => setShowNotificationPrompt(false)}
                 >
-                  Maybe later
+                  Not now
                 </button>
               </div>
             </div>

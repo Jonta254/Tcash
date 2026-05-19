@@ -28,9 +28,6 @@ function BuyPage() {
     error,
     setError,
     kesAmount,
-    grossKesAmount,
-    feeKesAmount,
-    feePerCoinKes,
     exchangeRate,
     placeOrder,
     markAsPaid,
@@ -143,23 +140,9 @@ function BuyPage() {
               <span>Amount to pay</span>
               <strong>KES {kesAmount.toLocaleString()}</strong>
             </div>
-            <div className="profile-stats-list">
-              <div className="profile-stat-row">
-                <span>Live market value</span>
-                <strong>KES {grossKesAmount.toLocaleString()}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>TMpesa fee</span>
-                <strong>KES {feeKesAmount.toLocaleString()}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Fee per {asset}</span>
-                <strong>KES {feePerCoinKes}</strong>
-              </div>
-            </div>
             <div className="soft-note">
-              TMpesa reads the live market rate and adds the desk fee for each coin before showing
-              your final M-Pesa payment amount.
+              Fees are excluded from the displayed market rate. TMpesa shows the final M-Pesa
+              amount automatically.
             </div>
             {needsOrderVerification ? (
               <div className="notice">
@@ -186,16 +169,7 @@ function BuyPage() {
               <strong>{settings.mpesaPaybillNumber}</strong>
               <p>KES {currentOrder.kesAmount.toLocaleString()}</p>
             </div>
-            <div className="profile-stats-list">
-              <div className="profile-stat-row">
-                <span>Live market value</span>
-                <strong>KES {Number(currentOrder.grossKesAmount || 0).toLocaleString()}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Total fee</span>
-                <strong>KES {Number(currentOrder.feeKesAmount || 0).toLocaleString()}</strong>
-              </div>
-            </div>
+            <div className="soft-note">Fees are excluded from the displayed market rate.</div>
 
             <div className="info-box receipt-card">
               <strong>Crypto delivery destination</strong>

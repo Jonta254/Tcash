@@ -712,6 +712,11 @@ button:disabled {
   background: linear-gradient(145deg, rgba(243, 201, 105, 0.18), rgba(255, 255, 255, 0.86));
 }
 
+:root[data-theme="light"] .profile-launch-copy strong,
+:root[data-theme="light"] .brand-status {
+  color: #11203a;
+}
+
 .profile-launch-button {
   display: inline-flex;
   align-items: center;
@@ -775,6 +780,12 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+:root[data-theme="light"] .context-strip {
+  color: #223451;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(236, 242, 250, 0.88));
+  border-color: rgba(136, 150, 182, 0.2);
+}
+
 .tab-bar {
   position: fixed;
   left: 16px;
@@ -790,6 +801,12 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.14);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
   backdrop-filter: blur(16px);
+}
+
+:root[data-theme="light"] .tab-bar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 244, 251, 0.96));
+  border-color: rgba(136, 150, 182, 0.22);
+  box-shadow: 0 18px 42px rgba(94, 111, 145, 0.18);
 }
 
 .tab-bar.admin {
@@ -813,6 +830,15 @@ button:disabled {
   color: #f4f7ff;
 }
 
+:root[data-theme="light"] .tab-link {
+  color: #52647f;
+}
+
+:root[data-theme="light"] .tab-link.active {
+  color: #132846;
+  background: linear-gradient(145deg, rgba(49, 94, 251, 0.12), rgba(191, 138, 33, 0.12));
+}
+
 .tab-icon {
   display: inline-grid;
   place-items: center;
@@ -822,6 +848,11 @@ button:disabled {
   background: rgba(207, 214, 230, 0.1);
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+:root[data-theme="light"] .tab-icon {
+  background: rgba(136, 150, 182, 0.14);
+  color: #445672;
 }
 
 .tab-link.active .tab-icon {
@@ -1700,6 +1731,23 @@ button:disabled {
   border: 1px solid rgba(154, 231, 255, 0.18);
 }
 
+:root[data-theme="light"] .home-balance-hero {
+  background:
+    linear-gradient(145deg, rgba(33, 48, 70, 0.96), rgba(46, 62, 86, 0.94)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(71, 215, 172, 0.1), transparent 38%);
+  border-color: rgba(61, 104, 163, 0.16);
+}
+
+:root[data-theme="light"] .home-balance-hero span,
+:root[data-theme="light"] .home-balance-hero small {
+  color: rgba(231, 239, 252, 0.82);
+}
+
+:root[data-theme="light"] .home-balance-hero strong {
+  color: #ffffff;
+}
+
 .home-balance-hero span,
 .home-balance-hero small {
   color: var(--muted);
@@ -1727,6 +1775,15 @@ button:disabled {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+:root[data-theme="light"] .recent-order-card {
+  background: rgba(255, 255, 255, 0.74);
+  border-color: rgba(136, 150, 182, 0.16);
+}
+
+:root[data-theme="light"] .recent-order-card strong {
+  color: #152844;
 }
 
 .recent-order-card strong {
@@ -1793,6 +1850,19 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.12);
   min-height: 128px;
   transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+:root[data-theme="light"] .quick-action-card {
+  border-color: rgba(136, 150, 182, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+:root[data-theme="light"] .quick-action-card strong {
+  color: #132846;
+}
+
+:root[data-theme="light"] .quick-action-card span {
+  color: #52647f;
 }
 
 .quick-action-card strong {
@@ -1973,6 +2043,16 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.1);
 }
 
+:root[data-theme="light"] .market-token-card,
+:root[data-theme="light"] .profile-link-card,
+:root[data-theme="light"] .wallet-asset-card,
+:root[data-theme="light"] .growth-center-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 242, 250, 0.92)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 38%);
+  border-color: rgba(136, 150, 182, 0.16);
+}
+
 .market-token-card span,
 .profile-summary-card span,
 .profile-link-card span {
@@ -2019,6 +2099,18 @@ button:disabled {
 .wallet-asset-card strong {
   font-size: 1.35rem;
   color: #f6faff;
+}
+
+:root[data-theme="light"] .market-token-card strong,
+:root[data-theme="light"] .wallet-asset-card strong,
+:root[data-theme="light"] .growth-center-card strong,
+:root[data-theme="light"] .profile-link-card strong {
+  color: #132846;
+}
+
+:root[data-theme="light"] .market-token-card small,
+:root[data-theme="light"] .wallet-asset-card small {
+  color: #2f4f7a;
 }
 
 .wallet-asset-card small {

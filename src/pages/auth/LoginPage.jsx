@@ -10,10 +10,12 @@ import {
   findReferrerByCode,
   getCurrentUser,
   getWorldAppContext,
+  getWorldNotificationPermissionState,
   isUserAccessVerified,
   loginUser,
   loginWithWorldApp,
   notifyAdminReferralEvent,
+  requestWorldNotificationPermission,
   waitForWorldHumanVerification,
 } from "../../services";
 
@@ -29,6 +31,9 @@ function LoginPage() {
   const [worldLoading, setWorldLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState("");
   const [authStage, setAuthStage] = useState("idle");
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  const [notificationPromptLoading, setNotificationPromptLoading] = useState(false);
+  const [notificationPromptError, setNotificationPromptError] = useState("");
   const targetPath = location.state?.from?.pathname || "/";
   const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
 
@@ -73,6 +78,28 @@ function LoginPage() {
       );
     }
   }, [navigate, targetPath]);
+
+  useEffect(() => {
+    let active = true;
+
+    const checkNotifications = async () => {
+      if (!worldApp.isInstalled) {
+        return;
+      }
+
+      const permissionState = await getWorldNotificationPermissionState();
+
+      if (active && !permissionState.granted) {
+        setShowNotificationPrompt(true);
+      }
+    };
+
+    checkNotifications();
+
+    return () => {
+      active = false;
+    };
+  }, [worldApp.isInstalled]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -155,6 +182,27 @@ function LoginPage() {
     }
   };
 
+  const handleEnableNotifications = async () => {
+    setNotificationPromptError("");
+    setNotificationPromptLoading(true);
+
+    try {
+      const permissionState = await requestWorldNotificationPermission();
+
+      if (!permissionState.granted) {
+        throw new Error("World notification permission was not granted.");
+      }
+
+      setShowNotificationPrompt(false);
+    } catch (err) {
+      setNotificationPromptError(
+        err instanceof Error ? err.message : "TMpesa could not enable notifications.",
+      );
+    } finally {
+      setNotificationPromptLoading(false);
+    }
+  };
+
   return (
     <div className="page-bg">
       <div className="auth-layout auth-layout-single">
@@ -170,8 +218,8 @@ function LoginPage() {
               </div>
               <h2>TMpesa</h2>
               <p className="muted">
-                A high-trust M-Pesa settlement desk for World users. Move from Kenya cash rails to
-                WLD and USDC with secure World login, guided steps, and clean manual review.
+                Buy and sell WLD or USDC with M-Pesa using World wallet sign-in and clean manual
+                settlement.
               </p>
             </div>
           </div>
@@ -214,15 +262,15 @@ function LoginPage() {
             <div className="secure-step-list">
               <div className={authStage === "wallet" ? "active" : ""}>
                 <strong>1. Connect wallet</strong>
-                <p>Confirm your World wallet and username inside the World approval sheet.</p>
+                <p>Approve Wallet Auth inside the official World sheet.</p>
               </div>
               <div className={authStage === "unlock" ? "active" : ""}>
                 <strong>2. Open TMpesa</strong>
-                <p>TMpesa opens immediately and attaches your World identity to the account.</p>
+                <p>TMpesa attaches your World username and wallet to the account.</p>
               </div>
               <div>
                 <strong>3. Unlock trading</strong>
-                <p>New users complete one human check inside the app before using protected flows.</p>
+                <p>New users complete one human check only when needed.</p>
               </div>
             </div>
           </div>
@@ -237,7 +285,7 @@ function LoginPage() {
             </div>
             <p className="muted">
               Tap continue to open the official World approval surface. TMpesa requests only the
-              identity needed to recognize your account and settle your orders safely.
+              identity needed to recognize your account and settle orders safely.
             </p>
             <div className="launch-permissions">
               <div>
@@ -280,22 +328,22 @@ function LoginPage() {
             <div>
               <span className="auth-feature-icon auth-feature-green">KES</span>
               <div>
-                <strong>Made for Kenya cash settlement</strong>
-                <p>Designed around M-Pesa payout, till payment, and practical trade support.</p>
+                <strong>Kenya cash settlement</strong>
+                <p>M-Pesa payout, till payment, and practical trade support.</p>
               </div>
             </div>
             <div>
               <span className="auth-feature-icon auth-feature-blue">WLD</span>
               <div>
                 <strong>Built for World users</strong>
-                <p>Wallet Auth, World verification, and in-app notifications fit the mini app flow.</p>
+                <p>Wallet Auth and World notifications fit the mini app flow.</p>
               </div>
             </div>
             <div>
               <span className="auth-feature-icon auth-feature-gold">PRO</span>
               <div>
                 <strong>Ready to expand</strong>
-                <p>TMpesa is structured for future referrals, analytics, automation, and live ops.</p>
+                <p>Structured for referrals, analytics, automation, and live ops.</p>
               </div>
             </div>
           </div>
@@ -334,6 +382,48 @@ function LoginPage() {
             </form>
           </details>
         </section>
+
+        {showNotificationPrompt ? (
+          <div className="notification-prompt-overlay" role="dialog" aria-modal="true">
+            <div className="notification-prompt-card">
+              <button
+                type="button"
+                className="notification-prompt-close"
+                onClick={() => setShowNotificationPrompt(false)}
+                aria-label="Close notification prompt"
+              >
+                ×
+              </button>
+              <div className="notification-prompt-icon" aria-hidden="true">✦</div>
+              <div className="stack">
+                <span className="brand-kicker">World notifications</span>
+                <h3>Enable TMpesa alerts</h3>
+                <p className="muted">
+                  Turn on notifications to receive a World alert when your order is placed,
+                  reviewed, or completed.
+                </p>
+              </div>
+              {notificationPromptError ? <div className="error">{notificationPromptError}</div> : null}
+              <div className="button-row compact-actions">
+                <button
+                  type="button"
+                  className="button"
+                  onClick={handleEnableNotifications}
+                  disabled={notificationPromptLoading}
+                >
+                  {notificationPromptLoading ? "Opening World permission..." : "Enable notifications"}
+                </button>
+                <button
+                  type="button"
+                  className="button-secondary"
+                  onClick={() => setShowNotificationPrompt(false)}
+                >
+                  Not now
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
