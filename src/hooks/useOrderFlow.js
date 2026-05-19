@@ -17,6 +17,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
   const [currentOrder, setCurrentOrder] = useState(null);
   const [error, setError] = useState("");
   const exchangeRate = useExchangeRate(asset);
+  const usdcExchangeRate = useExchangeRate("USDC");
   const feePerCoinKes = Number(settings.feeKesPerCoin?.[asset] || 0);
 
   const grossKesAmount = useMemo(() => {
@@ -45,11 +46,44 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     return grossKesAmount + feeKesAmount;
   }, [feeKesAmount, grossKesAmount, type]);
 
+  const buyKesMin = APP_CONFIG.tradeLimits.buyKesMin;
+  const buyKesMax = APP_CONFIG.tradeLimits.buyKesMax;
+  const sellMinKesEquivalent = useMemo(() => {
+    const baseRate = Number(usdcExchangeRate || exchangeRate || 0);
+
+    if (!baseRate || baseRate <= 0) {
+      return 0;
+    }
+
+    return APP_CONFIG.tradeLimits.sellMinUsdcEquivalent * baseRate;
+  }, [exchangeRate, usdcExchangeRate]);
+
+  const sellMinAssetAmount = useMemo(() => {
+    if (!exchangeRate || exchangeRate <= 0 || !sellMinKesEquivalent) {
+      return 0;
+    }
+
+    return sellMinKesEquivalent / exchangeRate;
+  }, [exchangeRate, sellMinKesEquivalent]);
+
   const placeOrder = (options = {}) => {
     setError("");
 
     if (!cryptoAmount || Number(cryptoAmount) <= 0) {
       setError("Enter a valid crypto amount before placing your order.");
+      return null;
+    }
+
+    if (type === "buy" && (kesAmount < buyKesMin || kesAmount > buyKesMax)) {
+      setError(`Buy orders must stay between KES ${buyKesMin.toLocaleString()} and KES ${buyKesMax.toLocaleString()} at the live rate.`);
+      return null;
+    }
+
+    if (type === "sell" && grossKesAmount < sellMinKesEquivalent) {
+      const minimumAsset = sellMinAssetAmount ? `${sellMinAssetAmount.toFixed(4)} ${asset}` : `the ${asset} amount equivalent`;
+      setError(
+        `Sell orders must be at least ${APP_CONFIG.tradeLimits.sellMinUsdcEquivalent} USDC equivalent at the live rate. Enter ${minimumAsset} or more.`,
+      );
       return null;
     }
 
@@ -133,6 +167,10 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     grossKesAmount,
     feeKesAmount,
     feePerCoinKes,
+    buyKesMin,
+    buyKesMax,
+    sellMinKesEquivalent,
+    sellMinAssetAmount,
     exchangeRate,
     placeOrder,
     markAsPaid,

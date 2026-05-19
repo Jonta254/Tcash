@@ -38,7 +38,10 @@ function SellPage() {
     error,
     setError,
     kesAmount,
+    grossKesAmount,
     exchangeRate,
+    sellMinKesEquivalent,
+    sellMinAssetAmount,
     placeOrder,
     markAsPaid,
     supportedAssets,
@@ -200,6 +203,9 @@ function SellPage() {
                 onChange={(event) => setCryptoAmount(event.target.value)}
                 placeholder="10"
               />
+              <span className="muted field-hint">
+                Minimum sell size is 3 USDC equivalent. Current minimum: {sellMinAssetAmount ? `${sellMinAssetAmount.toFixed(4)} ${asset}` : `live ${asset} equivalent`} .
+              </span>
               {selectedAssetBalance ? (
                 <div className="inline-payment-form">
                   <span className="muted field-hint">
@@ -238,6 +244,11 @@ function SellPage() {
               Fees are excluded from the displayed market rate. TMpesa shows your final KES payout
               automatically.
             </div>
+            {grossKesAmount < sellMinKesEquivalent && cryptoAmount ? (
+              <div className="notice">
+                Increase the sell amount to at least the live value of 3 USDC before creating this order.
+              </div>
+            ) : null}
             <div className="notice">
               TMpesa keeps this flow simple: create the order first, approve the wallet send, then
               wait for manual KES payout to your saved M-Pesa number.

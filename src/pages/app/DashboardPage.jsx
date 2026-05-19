@@ -386,30 +386,6 @@ function DashboardPage() {
         </section>
       ) : null}
 
-      <section className="panel stack">
-        <div className="split">
-          <div>
-            <span className="brand-kicker">Coming soon</span>
-            <h3>More tools are on the way</h3>
-          </div>
-          <Link to="/orders" className="button-secondary">
-            Open orders
-          </Link>
-        </div>
-        <div className="growth-center-grid">
-          <article className="growth-center-card coming-soon-card">
-            <span>Coming soon</span>
-            <strong>Instant trade alerts</strong>
-            <small>Get clearer settlement and payout updates directly inside TMpesa.</small>
-          </article>
-          <article className="growth-center-card coming-soon-card coming-soon-card-gold">
-            <span>Coming soon</span>
-            <strong>Reward center</strong>
-            <small>Track referral milestones, claim rewards faster, and follow payout progress.</small>
-          </article>
-        </div>
-      </section>
-
       <section className="support-footer support-footer-compact support-footer-emphasis">
         <div className="support-footer-copy">
           <span className="brand-kicker">Support</span>

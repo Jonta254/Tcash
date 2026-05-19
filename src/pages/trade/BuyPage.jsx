@@ -29,6 +29,8 @@ function BuyPage() {
     setError,
     kesAmount,
     exchangeRate,
+    buyKesMin,
+    buyKesMax,
     placeOrder,
     markAsPaid,
     supportedAssets,
@@ -119,6 +121,9 @@ function BuyPage() {
                 onChange={(event) => setCryptoAmount(event.target.value)}
                 placeholder="25"
               />
+              <span className="muted field-hint">
+                Buy orders must stay between KES {buyKesMin.toLocaleString()} and KES {buyKesMax.toLocaleString()} at the live rate.
+              </span>
             </div>
 
             {!currentUser?.walletAddress && !currentUser?.username ? (
@@ -144,6 +149,11 @@ function BuyPage() {
               Fees are excluded from the displayed market rate. TMpesa shows the final M-Pesa
               amount automatically.
             </div>
+            {(kesAmount < buyKesMin || kesAmount > buyKesMax) && cryptoAmount ? (
+              <div className="notice">
+                Adjust the crypto amount so your final buy total stays between KES {buyKesMin.toLocaleString()} and KES {buyKesMax.toLocaleString()}.
+              </div>
+            ) : null}
             {needsOrderVerification ? (
               <div className="notice">
                 This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
