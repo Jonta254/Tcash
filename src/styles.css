@@ -1511,6 +1511,44 @@ button:disabled {
   gap: 14px;
 }
 
+.compact-referral-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.compact-referral-metric {
+  display: grid;
+  gap: 6px;
+  padding: 14px 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+.compact-referral-metric span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.compact-referral-metric strong {
+  color: #f5f9ff;
+  font-size: 1rem;
+}
+
+:root[data-theme="light"] .compact-referral-metric {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 242, 250, 0.92)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 38%);
+  border-color: rgba(136, 150, 182, 0.16);
+}
+
+:root[data-theme="light"] .compact-referral-metric strong {
+  color: #132846;
+}
+
 @media (min-width: 520px) {
   .support-footer {
     grid-template-columns: 1fr auto;

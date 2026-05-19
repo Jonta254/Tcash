@@ -8,7 +8,6 @@ import {
   getWorldWalletPortfolio,
   isUserAccessVerified,
   markReferralShared,
-  openWorldChatInvite,
   openSupportEmail,
   openWhatsAppSupport,
   requestWorldVerification,
@@ -175,16 +174,6 @@ function DashboardPage() {
         title: "Join TMpesa",
         text: `Join me on TMpesa with my invite code ${referralSummary.code}.`,
         url: referralSummary.appLink,
-      });
-      markReferralShared(user);
-      setReferralRefreshKey((value) => value + 1);
-    } catch {}
-  };
-
-  const handleShareReferralToWorldChat = async () => {
-    try {
-      await openWorldChatInvite({
-        message: `Join TMpesa with my invite code ${referralSummary.code}. ${referralSummary.appLink}`,
       });
       markReferralShared(user);
       setReferralRefreshKey((value) => value + 1);
@@ -361,16 +350,16 @@ function DashboardPage() {
             </div>
             <span className="status-pill paid">{referralSummary.code}</span>
           </div>
-          <div className="profile-summary-grid">
-            <div className="profile-summary-card">
-              <span>Referred</span>
-              <strong>{referralSummary.referredUsers}</strong>
-            </div>
-            <div className="profile-summary-card">
+          <div className="compact-referral-metrics">
+            <div className="compact-referral-metric">
               <span>Activated</span>
               <strong>{referralSummary.activatedUsers}</strong>
             </div>
-            <div className="profile-summary-card">
+            <div className="compact-referral-metric">
+              <span>Referred</span>
+              <strong>{referralSummary.referredUsers}</strong>
+            </div>
+            <div className="compact-referral-metric">
               <span>Claimable</span>
               <strong>
                 {referralSummary.pendingMilestones.length
@@ -383,9 +372,9 @@ function DashboardPage() {
             <button type="button" className="button-secondary" onClick={handleShareReferral}>
               Share Invite
             </button>
-            <button type="button" className="button-ghost" onClick={handleShareReferralToWorldChat}>
-              World Chat
-            </button>
+            <Link to="/profile" className="button-ghost">
+              Open referral center
+            </Link>
           </div>
           <div className="soft-note">
             {referralSummary.pendingMilestones.length
