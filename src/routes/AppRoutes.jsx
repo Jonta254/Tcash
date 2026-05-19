@@ -5,10 +5,11 @@ import AdminPage from "../pages/app/AdminPage";
 import DashboardPage from "../pages/app/DashboardPage";
 import OrdersPage from "../pages/app/OrdersPage";
 import ProfilePage from "../pages/app/ProfilePage";
+import SupportPage from "../pages/app/SupportPage";
+import WalletPage from "../pages/app/WalletPage";
 import LoginPage from "../pages/auth/LoginPage";
 import SignupPage from "../pages/auth/SignupPage";
-import BuyPage from "../pages/trade/BuyPage";
-import SellPage from "../pages/trade/SellPage";
+import TradePage from "../pages/trade/TradePage";
 
 function AppRoutes() {
   return (
@@ -24,10 +25,13 @@ function AppRoutes() {
         }
       >
         <Route index element={<DashboardPage />} />
-        <Route path="sell" element={<SellPage />} />
-        <Route path="buy" element={<BuyPage />} />
+        <Route path="wallet" element={<WalletPage />} />
+        <Route path="trade" element={<TradePage />} />
+        <Route path="sell" element={<Navigate to="/trade?tab=sell" replace />} />
+        <Route path="buy" element={<Navigate to="/trade?tab=buy" replace />} />
         <Route path="orders" element={<OrdersPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="support" element={<SupportPage />} />
         <Route path="admin" element={<AdminPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

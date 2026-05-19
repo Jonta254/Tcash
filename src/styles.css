@@ -654,7 +654,7 @@ button:disabled {
   bottom: 16px;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   padding: 10px;
   border-radius: 24px;
@@ -665,7 +665,7 @@ button:disabled {
 }
 
 .tab-bar.admin {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .tab-link {
@@ -1293,6 +1293,49 @@ button:disabled {
   color: #dfe7fc;
 }
 
+.order-timeline {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(160, 175, 212, 0.14);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(15, 22, 37, 0.92), rgba(9, 14, 24, 0.84));
+}
+
+.order-timeline-step {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  color: #7f8cad;
+}
+
+.order-timeline-step span {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid rgba(128, 146, 189, 0.38);
+  background: rgba(26, 37, 60, 0.8);
+  box-shadow: 0 0 0 6px rgba(55, 77, 122, 0.12);
+}
+
+.order-timeline-step.active {
+  color: #eff5ff;
+}
+
+.order-timeline-step.active span {
+  border-color: rgba(87, 221, 167, 0.9);
+  background: linear-gradient(135deg, rgba(87, 221, 167, 1), rgba(56, 181, 220, 0.95));
+  box-shadow: 0 0 0 6px rgba(87, 221, 167, 0.18);
+}
+
+.order-timeline-step small {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1419,6 +1462,105 @@ button:disabled {
 
 .home-trade-panel h3 {
   margin: 8px 0 0;
+}
+
+.home-header-panel,
+.home-balance-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.home-header-panel h2,
+.home-balance-panel h3 {
+  margin: 0;
+}
+
+.home-balance-hero {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(8, 14, 24, 0.96), rgba(15, 28, 37, 0.9)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.18), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(71, 215, 172, 0.12), transparent 38%);
+  border: 1px solid rgba(154, 231, 255, 0.18);
+}
+
+.home-balance-hero span,
+.home-balance-hero small {
+  color: var(--muted);
+}
+
+.home-balance-hero strong {
+  font-size: clamp(2rem, 8vw, 3rem);
+  color: #f8fcff;
+  line-height: 1;
+}
+
+.home-quick-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recent-order-list {
+  display: grid;
+  gap: 12px;
+}
+
+.recent-order-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+.recent-order-card strong {
+  display: block;
+  margin-top: 8px;
+  color: #f5f9ff;
+}
+
+.recent-order-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.home-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 6px;
+}
+
+.trade-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 8px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+.trade-toggle-button {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: transparent;
+  color: #c8d2e6;
+  font-weight: 700;
+}
+
+.trade-toggle-button.active {
+  background: linear-gradient(145deg, rgba(79, 124, 255, 0.18), rgba(71, 215, 172, 0.14));
+  color: #f7fbff;
 }
 
 .home-trade-grid {

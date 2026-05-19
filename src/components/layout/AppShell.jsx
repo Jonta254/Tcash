@@ -10,6 +10,8 @@ import {
 
 const navItems = [
   { to: "/", label: "Home", icon: "HM" },
+  { to: "/wallet", label: "Wallet", icon: "WL" },
+  { to: "/trade", label: "Trade", icon: "TR" },
   { to: "/orders", label: "Orders", icon: "OR" },
 ];
 

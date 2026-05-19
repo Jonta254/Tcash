@@ -18,6 +18,7 @@ function AdminPage() {
   const liveRates = useExchangeRates();
   const liveSettings = useAppSettings();
 
+  // TODO: Replace this temporary admin gate with real authentication before production.
   if (!user?.isAdmin) {
     return <Navigate to="/" replace />;
   }

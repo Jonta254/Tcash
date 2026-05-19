@@ -38,6 +38,7 @@ export {
   checkWorldHumanVerification,
   canUseWorldPay,
   connectWithWorldAppWallet,
+  formatWorldLaunchSource,
   getWorldAppContext,
   getWorldNotificationPermissionState,
   openWorldChatInvite,

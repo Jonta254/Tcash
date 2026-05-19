@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
+  formatWorldLaunchSource,
   getCurrentUser,
   getOrdersForCurrentUser,
   getReferralSummary,
   getRatingSummary,
-  getWorldWalletPortfolio,
   getWorldNotificationPermissionState,
+  getWorldAppContext,
   markReferralShared,
   openWorldChatInvite,
   openSupportEmail,
@@ -30,12 +32,10 @@ function formatJoinedDate(value) {
 function ProfilePage() {
   const user = getCurrentUser();
   const orders = getOrdersForCurrentUser();
+  const worldApp = getWorldAppContext();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [notificationLoading, setNotificationLoading] = useState(false);
-  const [walletPortfolio, setWalletPortfolio] = useState({ assets: [], supported: false });
-  const [walletLoading, setWalletLoading] = useState(false);
-  const [walletError, setWalletError] = useState("");
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(user));
   const [referralError, setReferralError] = useState("");
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
@@ -58,37 +58,6 @@ function ProfilePage() {
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!user?.walletAddress) {
-      return;
-    }
-
-    let active = true;
-    setWalletLoading(true);
-    setWalletError("");
-
-    getWorldWalletPortfolio(user.walletAddress)
-      .then((portfolio) => {
-        if (active) {
-          setWalletPortfolio(portfolio);
-        }
-      })
-      .catch((error) => {
-        if (active) {
-          setWalletError(error instanceof Error ? error.message : "Unable to load wallet data.");
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setWalletLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [user?.walletAddress]);
 
   const profileStats = useMemo(() => {
     const totalTrades = orders.length;
@@ -188,37 +157,26 @@ function ProfilePage() {
             <strong>{user?.mpesaPhoneNumber || "Not added"}</strong>
           </div>
           <div className="profile-summary-card">
-            <span>Joined</span>
-            <strong>{formatJoinedDate(user?.createdAt)}</strong>
+            <span>Launch source</span>
+            <strong>{formatWorldLaunchSource(worldApp.location)}</strong>
           </div>
         </div>
       </section>
 
       <section className="panel stack">
-        <span className="brand-kicker">World wallet snapshot</span>
         <div className="split">
           <div>
-            <h3>Live WLD and USDC wallet view</h3>
+            <span className="brand-kicker">Account</span>
+            <h3>Wallet and security tools</h3>
             <p className="muted">
-              TMpesa reads your World wallet address through Wallet Auth, then loads WLD and USDC
-              balances from World Chain using the official public RPC and token contracts.
+              Wallet balances, receive address, live wallet state, and identity details now live on
+              the dedicated Wallet page.
             </p>
           </div>
-          <span className="live-badge">World Chain</span>
+          <Link to="/wallet" className="button-secondary">
+            Open Wallet
+          </Link>
         </div>
-        {walletError ? <div className="error">{walletError}</div> : null}
-        {walletLoading ? <div className="notice">Loading your World wallet snapshot...</div> : null}
-        {!walletLoading ? (
-          <div className="wallet-asset-grid">
-            {walletPortfolio.assets.map((asset) => (
-              <div key={asset.symbol} className="wallet-asset-card">
-                <span>{asset.name}</span>
-                <strong>{asset.formattedBalance}</strong>
-                <small>{asset.symbol}</small>
-              </div>
-            ))}
-          </div>
-        ) : null}
       </section>
 
       <section className="panel stack">
@@ -379,11 +337,23 @@ function ProfilePage() {
             <span>Notification permission</span>
             <strong>{notificationsEnabled ? "Enabled" : "Not enabled"}</strong>
           </div>
+          <div className="profile-stat-row">
+            <span>Joined</span>
+            <strong>{formatJoinedDate(user?.createdAt)}</strong>
+          </div>
         </div>
       </section>
 
       <section className="panel stack">
-        <span className="brand-kicker">Legal and support</span>
+        <div className="split">
+          <div>
+            <span className="brand-kicker">Support</span>
+            <h3>Quick support links</h3>
+          </div>
+          <Link to="/support" className="button-secondary">
+            Open Support
+          </Link>
+        </div>
         <div className="profile-links-grid">
           <button
             type="button"

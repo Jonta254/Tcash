@@ -127,6 +127,29 @@ export function getWorldAppContext() {
   }
 }
 
+export function formatWorldLaunchSource(location) {
+  const primarySource = location?.open_origin ?? location?.source;
+
+  if (typeof primarySource === "string" && primarySource.trim()) {
+    return primarySource;
+  }
+
+  if (primarySource && typeof primarySource === "object") {
+    const candidate =
+      primarySource.name ||
+      primarySource.label ||
+      primarySource.source ||
+      primarySource.type ||
+      primarySource.origin;
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate;
+    }
+  }
+
+  return "World App";
+}
+
 export async function connectWithWorldAppWallet() {
   if (!MiniKit.isInstalled()) {
     throw new Error("Open this app inside World App to continue with wallet authentication.");

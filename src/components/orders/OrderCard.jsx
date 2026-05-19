@@ -8,6 +8,14 @@ function formatDate(dateValue) {
 function OrderCard({ order, children }) {
   const user = getCurrentUser();
   const isSell = order.type === "sell";
+  const currentStage =
+    order.status === "completed"
+      ? 3
+      : order.status === "paid"
+        ? 2
+        : order.status === "rejected" || order.status === "cancelled"
+          ? 0
+          : 1;
 
   return (
     <article className="order-card stack">
@@ -69,6 +77,21 @@ function OrderCard({ order, children }) {
         {order.paymentSummary ? <span>Payment note: {order.paymentSummary}</span> : null}
         {order.paymentVerificationStatus ? <span>Verification: {order.paymentVerificationStatus}</span> : null}
         <span>Created: {formatDate(order.createdAt)}</span>
+      </div>
+
+      <div className="order-timeline" aria-label="Order timeline">
+        <div className={`order-timeline-step${currentStage >= 1 ? " active" : ""}`}>
+          <span />
+          <small>Placed</small>
+        </div>
+        <div className={`order-timeline-step${currentStage >= 2 ? " active" : ""}`}>
+          <span />
+          <small>Manual Review</small>
+        </div>
+        <div className={`order-timeline-step${currentStage >= 3 ? " active" : ""}`}>
+          <span />
+          <small>Completed</small>
+        </div>
       </div>
 
       {children}

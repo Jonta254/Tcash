@@ -42,10 +42,10 @@ function OrdersPage() {
         <div className="page-section-head">
           <div>
             <span className="brand-kicker">Orders</span>
-            <h2>Your activity</h2>
+            <h2>Order history and tracking</h2>
             <p className="muted">
-              Track every buy and sell order here. New orders begin as pending, then move to paid
-              once you submit proof, and completed after admin confirmation.
+              Track every buy and sell order here. Orders move from pending to manual review and
+              then completed after admin confirmation.
             </p>
           </div>
           <div className="mini-metrics">
@@ -54,11 +54,11 @@ function OrdersPage() {
               <strong>{pendingCount}</strong>
             </div>
             <div>
-              <span>Paid</span>
+              <span>Reviewing</span>
               <strong>{paidCount}</strong>
             </div>
             <div>
-              <span>Done</span>
+              <span>Completed</span>
               <strong>{completedCount}</strong>
             </div>
           </div>
@@ -144,10 +144,10 @@ function OrdersPage() {
           <h3>No orders yet</h3>
           <p className="muted">Your buy and sell requests will appear here once you place one.</p>
           <div className="action-grid">
-            <Link to="/sell" className="button">
+            <Link to="/trade?tab=sell" className="button">
               Start Sell Order
             </Link>
-            <Link to="/buy" className="button-secondary">
+            <Link to="/trade?tab=buy" className="button-secondary">
               Start Buy Order
             </Link>
           </div>
