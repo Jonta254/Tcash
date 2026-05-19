@@ -9,10 +9,11 @@ import {
 } from "../../services";
 
 const navItems = [
-  { to: "/", label: "Home", icon: "H" },
-  { to: "/sell", label: "Sell", icon: "S" },
-  { to: "/buy", label: "Buy", icon: "B" },
-  { to: "/orders", label: "Orders", icon: "O" },
+  { to: "/", label: "Home", icon: "HM" },
+  { to: "/sell", label: "Sell", icon: "SL" },
+  { to: "/buy", label: "Buy", icon: "BY" },
+  { to: "/orders", label: "Orders", icon: "OR" },
+  { to: "/profile", label: "Profile", icon: "PR" },
 ];
 
 function AppShell() {
@@ -42,7 +43,7 @@ function AppShell() {
         <header className="topbar">
           <div className="brand-block">
             <div className="brand-shell">
-              <span className="brand-jewel" aria-hidden="true">◇</span>
+              <span className="brand-jewel" aria-hidden="true" />
               <span className="brand-status">World exchange ready</span>
             </div>
             <h1>{APP_CONFIG.appName}</h1>
@@ -85,7 +86,7 @@ function AppShell() {
               to="/admin"
               className={({ isActive }) => `tab-link${isActive ? " active" : ""}`}
             >
-              <span className="tab-icon" aria-hidden="true">A</span>
+              <span className="tab-icon" aria-hidden="true">AD</span>
               <span>Admin</span>
             </NavLink>
           ) : null}
