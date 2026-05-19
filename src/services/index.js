@@ -28,10 +28,21 @@ export {
   updateOperationalSettings,
   updateExchangeRates,
 } from "./settingsService";
-export { getReferralSummary, markReferralShared } from "./referralService";
+export {
+  evaluateReferralRewards,
+  findReferrerByCode,
+  getReferralSummary,
+  markReferralMilestonesClaimed,
+  markReferralShared,
+} from "./referralService";
 export { getRatingSummary, saveUserRating } from "./feedbackService";
 export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
-export { notifyAdminOrderCreated, notifyWorldUserOrderCreated } from "./notificationService";
+export {
+  notifyAdminOrderCreated,
+  notifyAdminReferralEvent,
+  notifyWorldUserOrderCreated,
+  notifyWorldUserOrderStatus,
+} from "./notificationService";
 export { getWorldWalletPortfolio } from "./walletPortfolioService";
 export {
   buildWorldAppDeeplink,

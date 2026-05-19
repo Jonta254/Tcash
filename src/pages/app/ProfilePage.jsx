@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useThemeMode } from "../../hooks/useThemeMode";
 import {
   formatWorldLaunchSource,
   getCurrentUser,
@@ -33,6 +34,7 @@ function ProfilePage() {
   const user = getCurrentUser();
   const orders = getOrdersForCurrentUser();
   const worldApp = getWorldAppContext();
+  const { isLightTheme, toggleTheme } = useThemeMode();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [notificationLoading, setNotificationLoading] = useState(false);
@@ -177,6 +179,11 @@ function ProfilePage() {
             Open Wallet
           </Link>
         </div>
+        <div className="button-row compact-actions">
+          <button type="button" className="button-secondary" onClick={toggleTheme}>
+            Switch to {isLightTheme ? "night" : "day"} mode
+          </button>
+        </div>
       </section>
 
       <section className="panel stack">
@@ -212,12 +219,16 @@ function ProfilePage() {
             <strong>{formatJoinedDate(referralSummary.lastSharedAt)}</strong>
           </div>
           <div className="profile-summary-card">
-            <span>Referral rewards</span>
+            <span>Trader rewards</span>
             <strong>KES {referralSummary.lifetimeRewardsKes}</strong>
           </div>
           <div className="profile-summary-card">
-            <span>Per activated trader</span>
-            <strong>KES {referralSummary.rewardPerActivatedUserKes}</strong>
+            <span>Pending milestones</span>
+            <strong>
+              {referralSummary.pendingMilestones.length
+                ? referralSummary.pendingMilestones.map((milestone) => `KES ${milestone.rewardKes}`).join(", ")
+                : "None"}
+            </strong>
           </div>
         </div>
         <div className="button-row compact-actions">
@@ -229,9 +240,9 @@ function ProfilePage() {
           </button>
         </div>
         <div className="soft-note">
-          TMpesa now tracks invite shares, referred users, and activated traders. Automatic reward
-          settlement from a wallet still requires a dedicated on-chain reward contract and
-          allowlisting in the World Developer Portal.
+          TMpesa tracks invite shares, referred users, and activated traders. Referral reward
+          milestones are currently manual: 6 activated users can trigger KES 100, and 10 activated
+          users can trigger KES 150 after admin review and M-Pesa payout.
         </div>
       </section>
 

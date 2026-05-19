@@ -1,7 +1,17 @@
 import { STORAGE_KEYS } from "../config/appConfig";
 import { getCurrentUser } from "./authService";
 import { readStorage, writeStorage } from "./localStorage";
-import { notifyAdminOrderCreated, notifyWorldUserOrderCreated } from "./notificationService";
+import {
+  notifyAdminOrderCreated,
+  notifyAdminReferralEvent,
+  notifyWorldUserOrderCreated,
+  notifyWorldUserOrderStatus,
+} from "./notificationService";
+import {
+  evaluateReferralRewards,
+  findReferrerByCode,
+  markReferralMilestonesClaimed,
+} from "./referralService";
 
 export function initializeOrders() {
   const storedOrders = readStorage(STORAGE_KEYS.orders, null);
@@ -62,6 +72,7 @@ export function createOrder(payload) {
     walletAddress: payload.walletAddress || "",
     destinationUsername: payload.destinationUsername || currentUser.username || "",
     payoutPhoneNumber: payload.payoutPhoneNumber || "",
+    referredByCode: currentUser.referredByCode || "",
     humanVerificationStatus: payload.humanVerificationStatus || "",
     humanVerificationLevel: payload.humanVerificationLevel || "",
     paymentReference: payload.paymentReference || "",
@@ -77,10 +88,57 @@ export function createOrder(payload) {
 
 export function updateOrder(orderId, changes) {
   const orders = getAllOrders();
+  const previousOrder = orders.find((order) => order.id === orderId);
   const updatedOrders = orders.map((order) =>
     order.id === orderId ? { ...order, ...changes, updatedAt: new Date().toISOString() } : order,
   );
 
   writeStorage(STORAGE_KEYS.orders, updatedOrders);
-  return updatedOrders.find((order) => order.id === orderId);
+  const updatedOrder = updatedOrders.find((order) => order.id === orderId);
+
+  if (
+    updatedOrder &&
+    changes.status &&
+    previousOrder?.status !== changes.status &&
+    ["paid", "completed", "rejected"].includes(changes.status)
+  ) {
+    notifyWorldUserOrderStatus(updatedOrder, changes.status);
+  }
+
+  if (
+    updatedOrder &&
+    changes.status === "completed" &&
+    previousOrder?.status !== "completed"
+  ) {
+    const resolvedReferrer = updatedOrder.referredByCode
+      ? findReferrerByCode(updatedOrder.referredByCode)
+      : null;
+
+    if (resolvedReferrer) {
+      const rewardState = evaluateReferralRewards(resolvedReferrer);
+
+      if (rewardState.pendingMilestones.length) {
+        notifyAdminReferralEvent({
+          eventType: "milestone",
+          referralCode: updatedOrder.referredByCode,
+          referrerUsername: resolvedReferrer.username || "",
+          referrerLabel: resolvedReferrer.fullName || resolvedReferrer.phone || "TMpesa referrer",
+          referrerMpesaPhoneNumber: resolvedReferrer.mpesaPhoneNumber || "",
+          referredUsername: updatedOrder.destinationUsername || "",
+          referredLabel: updatedOrder.userLabel || "Activated user",
+          referredWalletAddress: updatedOrder.userWalletAddress || "",
+          referredUsers: rewardState.summary.referredUsers,
+          activatedUsers: rewardState.summary.activatedUsers,
+          eligibleRewardKes: rewardState.eligibleRewardKes,
+          createdAt: new Date().toISOString(),
+        });
+        markReferralMilestonesClaimed(
+          updatedOrder.referredByCode,
+          rewardState.pendingMilestones.map((milestone) => milestone.users),
+        );
+      }
+    }
+  }
+
+  return updatedOrder;
 }

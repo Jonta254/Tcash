@@ -39,6 +39,10 @@ export const APP_CONFIG = {
     whatsappSupportLink: "https://wa.me/qr/WLKPNPNVKPZEM1",
     worldAppId: RESOLVED_WORLD_APP_ID,
     referralRewardKes: 30,
+    referralMilestones: [
+      { users: 6, rewardKes: 100 },
+      { users: 10, rewardKes: 150 },
+    ],
   },
   supportedAssets: ["WLD", "USDC"],
   worldPaySupportedAssets: ["WLD", "USDC"],
@@ -50,5 +54,6 @@ export const STORAGE_KEYS = {
   orders: "worldtmpesa_orders",
   settings: "worldtmpesa_settings",
   referralStats: "worldtmpesa_referral_stats",
+  appTheme: "worldtmpesa_theme",
   ratings: "worldtmpesa_ratings",
 };

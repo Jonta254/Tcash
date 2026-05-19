@@ -4,13 +4,16 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import {
   buildWorldAppDeeplink,
   connectWithWorldAppWallet,
+  evaluateReferralRewards,
   findUserByUsername,
   findUserByWalletAddress,
+  findReferrerByCode,
   getCurrentUser,
   getWorldAppContext,
   isUserAccessVerified,
   loginUser,
   loginWithWorldApp,
+  notifyAdminReferralEvent,
   waitForWorldHumanVerification,
 } from "../../services";
 
@@ -112,7 +115,7 @@ function LoginPage() {
           ? "Opening TMpesa and preparing your first-access verification..."
           : "Opening your TMpesa session...",
       );
-      loginWithWorldApp(profile, {
+      const nextUser = loginWithWorldApp(profile, {
         firstAccessVerified: existingUser?.firstAccessVerified || isAlreadyHumanVerified,
         firstAccessVerifiedAt:
           existingUser?.firstAccessVerifiedAt ||
@@ -121,6 +124,26 @@ function LoginPage() {
           existingUser?.firstAccessVerificationLevel || (isAlreadyHumanVerified ? "address-book" : ""),
         referredByCode: existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
       });
+
+      if (!existingUser && referralCode) {
+        const referrer = findReferrerByCode(referralCode);
+        const rewardState = referrer ? evaluateReferralRewards(referrer) : null;
+
+        notifyAdminReferralEvent({
+          eventType: "signup",
+          referralCode,
+          referrerUsername: referrer?.username || "",
+          referrerLabel: referrer?.fullName || referrer?.phone || "TMpesa referrer",
+          referrerMpesaPhoneNumber: referrer?.mpesaPhoneNumber || "",
+          referredUsername: nextUser.username || "",
+          referredLabel: nextUser.fullName || nextUser.phone || "New user",
+          referredWalletAddress: nextUser.walletAddress || "",
+          referredUsers: rewardState?.summary.referredUsers || 0,
+          activatedUsers: rewardState?.summary.activatedUsers || 0,
+          eligibleRewardKes: rewardState?.eligibleRewardKes || 0,
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       finalizeSessionRedirect();
     } catch (err) {
