@@ -3,6 +3,7 @@ import {
   getCurrentUser,
   getOrdersForCurrentUser,
   getReferralSummary,
+  getRatingSummary,
   getWorldWalletPortfolio,
   getWorldNotificationPermissionState,
   markReferralShared,
@@ -10,6 +11,7 @@ import {
   openSupportEmail,
   openWhatsAppSupport,
   requestWorldNotificationPermission,
+  saveUserRating,
   shareMiniAppInvite,
 } from "../../services";
 
@@ -36,6 +38,8 @@ function ProfilePage() {
   const [walletError, setWalletError] = useState("");
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(user));
   const [referralError, setReferralError] = useState("");
+  const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
+  const [ratingError, setRatingError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -150,6 +154,16 @@ function ProfilePage() {
     }
   };
 
+  const handleRateTmPesa = (rating) => {
+    setRatingError("");
+
+    try {
+      setRatingSummary(saveUserRating(user, rating));
+    } catch (error) {
+      setRatingError(error instanceof Error ? error.message : "Unable to save your rating.");
+    }
+  };
+
   return (
     <div className="stack">
       <section className="panel profile-hero">
@@ -226,12 +240,26 @@ function ProfilePage() {
             <strong>{referralSummary.shareCount}</strong>
           </div>
           <div className="profile-summary-card">
+            <span>New users</span>
+            <strong>{referralSummary.referredUsers}</strong>
+          </div>
+          <div className="profile-summary-card">
+            <span>Activated traders</span>
+            <strong>{referralSummary.activatedUsers}</strong>
+          </div>
+        </div>
+        <div className="profile-summary-grid">
+          <div className="profile-summary-card">
             <span>Last shared</span>
             <strong>{formatJoinedDate(referralSummary.lastSharedAt)}</strong>
           </div>
           <div className="profile-summary-card">
-            <span>Mode</span>
-            <strong>World native</strong>
+            <span>Referral rewards</span>
+            <strong>KES {referralSummary.lifetimeRewardsKes}</strong>
+          </div>
+          <div className="profile-summary-card">
+            <span>Per activated trader</span>
+            <strong>KES {referralSummary.rewardPerActivatedUserKes}</strong>
           </div>
         </div>
         <div className="button-row compact-actions">
@@ -241,6 +269,11 @@ function ProfilePage() {
           <button type="button" className="button-secondary" onClick={handleShareToWorldChat}>
             Invite via World Chat
           </button>
+        </div>
+        <div className="soft-note">
+          TMpesa now tracks invite shares, referred users, and activated traders. Automatic reward
+          settlement from a wallet still requires a dedicated on-chain reward contract and
+          allowlisting in the World Developer Portal.
         </div>
       </section>
 
@@ -292,6 +325,38 @@ function ProfilePage() {
             <span>First trade</span>
             <strong>{formatJoinedDate(profileStats.firstTrade)}</strong>
           </div>
+        </div>
+      </section>
+
+      <section className="panel stack">
+        <div className="split">
+          <div>
+            <span className="brand-kicker">Rate TMpesa</span>
+            <h3>Leave a quick product rating</h3>
+            <p className="muted">
+              There is no official World mini app rating command in the docs yet, so TMpesa keeps
+              an in-app rating pulse and can also open support for deeper feedback.
+            </p>
+          </div>
+          <span className="status-pill completed">
+            {ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5` : "New"}
+          </span>
+        </div>
+        {ratingError ? <div className="error">{ratingError}</div> : null}
+        <div className="rating-button-row">
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <button
+              key={rating}
+              type="button"
+              className="button-secondary"
+              onClick={() => handleRateTmPesa(rating)}
+            >
+              {`${rating} Star${rating > 1 ? "s" : ""}`}
+            </button>
+          ))}
+        </div>
+        <div className="notice">
+          Current pulse: {ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} user ratings.` : "No ratings yet."}
         </div>
       </section>
 

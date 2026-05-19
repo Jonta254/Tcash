@@ -2,7 +2,10 @@ import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
 
 const SETTINGS_UPDATED_EVENT = "worldtmpesa:settings-updated";
-const LEGACY_SELL_WALLET_ADDRESS = "0xWORLDTMPESA-WLD-WALLET-001";
+const LEGACY_SELL_WALLET_ADDRESSES = new Set([
+  "0xWORLDTMPESA-WLD-WALLET-001",
+  "0x0f029f35a9da4043ff84b2c98a023d0a68eb64b4".toLowerCase(),
+]);
 const LEGACY_MPESA_PAYBILL_NUMBER = "522522";
 const LEGACY_USDT_ASSET = "USDT";
 const WORLD_USDC_ASSET = "USDC";
@@ -56,7 +59,7 @@ export function initializeSettings() {
 
   delete nextSettings.ratesKes[LEGACY_USDT_ASSET];
 
-  if (nextSettings.sellWalletAddress === LEGACY_SELL_WALLET_ADDRESS) {
+  if (LEGACY_SELL_WALLET_ADDRESSES.has(String(nextSettings.sellWalletAddress || "").toLowerCase())) {
     nextSettings.sellWalletAddress = APP_CONFIG.defaultSettings.sellWalletAddress;
   }
 

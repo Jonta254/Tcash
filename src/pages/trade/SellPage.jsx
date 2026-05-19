@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
@@ -6,6 +6,7 @@ import {
   canUseWorldPay,
   getCurrentUser,
   getWorldAppContext,
+  getWorldWalletPortfolio,
   isUserAccessVerified,
   openWhatsAppSupport,
   openSupportEmail,
@@ -19,6 +20,9 @@ function SellPage() {
   const currentUser = getCurrentUser();
   const worldApp = getWorldAppContext();
   const [sendLoading, setSendLoading] = useState(false);
+  const [walletPortfolio, setWalletPortfolio] = useState({ assets: [] });
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState("");
   const {
     asset,
     setAsset,
@@ -47,6 +51,41 @@ function SellPage() {
     kesAmount >= APP_CONFIG.highValueOrderKesThreshold &&
     worldApp.isInstalled &&
     !isUserAccessVerified(currentUser);
+  const selectedAssetBalance = useMemo(
+    () => walletPortfolio.assets.find((entry) => entry.symbol === asset),
+    [asset, walletPortfolio.assets],
+  );
+
+  useEffect(() => {
+    if (!currentUser?.walletAddress) {
+      return;
+    }
+
+    let active = true;
+    setWalletLoading(true);
+    setWalletError("");
+
+    getWorldWalletPortfolio(currentUser.walletAddress)
+      .then((portfolio) => {
+        if (active) {
+          setWalletPortfolio(portfolio);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setWalletError(error instanceof Error ? error.message : "Unable to load your World wallet.");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setWalletLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentUser?.walletAddress]);
 
   const handleMiniAppSend = async () => {
     if (!currentOrder) {
@@ -155,6 +194,20 @@ function SellPage() {
                 onChange={(event) => setCryptoAmount(event.target.value)}
                 placeholder="10"
               />
+              {selectedAssetBalance ? (
+                <div className="inline-payment-form">
+                  <span className="muted field-hint">
+                    Available now: {selectedAssetBalance.formattedBalance} {asset}
+                  </span>
+                  <button
+                    type="button"
+                    className="button-ghost"
+                    onClick={() => setCryptoAmount(selectedAssetBalance.formattedBalance)}
+                  >
+                    Use max
+                  </button>
+                </div>
+              ) : null}
             </div>
             <div className="field">
               <label htmlFor="payoutPhoneNumber">M-Pesa payout number</label>
@@ -173,6 +226,8 @@ function SellPage() {
               <span>You will receive</span>
               <strong>KES {kesAmount.toLocaleString()}</strong>
             </div>
+            {walletError ? <div className="error">{walletError}</div> : null}
+            {walletLoading ? <div className="notice">Loading your sellable wallet balance...</div> : null}
             <div className="soft-note">
               Displayed rates exclude fees. Final settlement may vary slightly after network and
               payout handling.
@@ -199,10 +254,11 @@ function SellPage() {
           <div className="stack">
             {canSendInsideMiniApp ? (
               <div className="highlight-box action-highlight">
-                <strong>Step 2: Send with World App</strong>
+                <strong>Step 2: Send directly to TMpesa receiver</strong>
                 <p className="muted">
-                  Tap send and approve the World Pay sheet. The payment goes to the TMpesa
-                  Worldchain receiver below and your order moves to admin payout automatically.
+                  Tap send and approve the World Pay sheet. The asset goes straight from the user
+                  wallet to your connected TMpesa Worldchain receiver, then the order waits for
+                  admin payout review.
                 </p>
                 <code>Receiver: {settings.sellWalletAddress}</code>
               </div>
@@ -236,7 +292,7 @@ function SellPage() {
                     onClick={handleMiniAppSend}
                     disabled={sendLoading}
                   >
-                    {sendLoading ? "Opening World payment..." : `Send ${currentOrder.asset} with World Pay`}
+                    {sendLoading ? "Opening World payment..." : `Send ${currentOrder.asset} to TMpesa`}
                   </button>
                 ) : (
                   <>
@@ -266,8 +322,9 @@ function SellPage() {
               <div className="success-panel">
                 <strong>Payment received for review</strong>
                 <p>
-                  Your sell order is marked as paid. The admin will confirm the World payment and
-                  send KES to <strong>{currentOrder.payoutPhoneNumber}</strong>.
+                  Your wallet transfer is recorded. The admin will confirm the World payment and
+                  send KES to <strong>{currentOrder.payoutPhoneNumber}</strong> while the order
+                  remains in payout review.
                 </p>
               </div>
             ) : null}

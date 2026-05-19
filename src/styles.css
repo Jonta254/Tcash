@@ -1495,6 +1495,12 @@ button:disabled {
   gap: 14px;
 }
 
+.rating-button-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .wallet-asset-card,
 .growth-center-card {
   display: grid;
@@ -1791,6 +1797,10 @@ button:disabled {
 
   .button-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rating-button-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .stats-grid {

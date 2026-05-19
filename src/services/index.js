@@ -29,6 +29,7 @@ export {
   updateExchangeRates,
 } from "./settingsService";
 export { getReferralSummary, markReferralShared } from "./referralService";
+export { getRatingSummary, saveUserRating } from "./feedbackService";
 export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
 export { notifyAdminOrderCreated, notifyWorldUserOrderCreated } from "./notificationService";
 export { getWorldWalletPortfolio } from "./walletPortfolioService";

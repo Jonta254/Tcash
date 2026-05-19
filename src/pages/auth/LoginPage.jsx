@@ -17,6 +17,7 @@ import {
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
   const settings = useAppSettings();
   const worldApp = getWorldAppContext();
   const worldAppLink = buildWorldAppDeeplink(location.state?.from?.pathname || "/");
@@ -26,6 +27,7 @@ function LoginPage() {
   const [authStatus, setAuthStatus] = useState("");
   const [authStage, setAuthStage] = useState("idle");
   const targetPath = location.state?.from?.pathname || "/";
+  const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
 
   const finalizeSessionRedirect = () => {
     const currentUser = getCurrentUser();
@@ -117,6 +119,7 @@ function LoginPage() {
           (isAlreadyHumanVerified ? new Date().toISOString() : null),
         firstAccessVerificationLevel:
           existingUser?.firstAccessVerificationLevel || (isAlreadyHumanVerified ? "address-book" : ""),
+        referredByCode: existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
       });
 
       finalizeSessionRedirect();

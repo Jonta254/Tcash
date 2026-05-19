@@ -8,6 +8,8 @@ import {
   getOrdersForCurrentUser,
   getWorldNotificationPermissionState,
   getWorldAppContext,
+  getWorldWalletPortfolio,
+  getRatingSummary,
   isUserAccessVerified,
   openSupportEmail,
   openWhatsAppSupport,
@@ -47,10 +49,14 @@ function DashboardPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [notificationLoading, setNotificationLoading] = useState(false);
+  const [walletPortfolio, setWalletPortfolio] = useState({ assets: [] });
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState("");
   const worldApp = getWorldAppContext();
   const exchangeRates = useExchangeRates();
   const settings = useAppSettings();
   const orders = getOrdersForCurrentUser();
+  const ratingSummary = useMemo(() => getRatingSummary(), []);
   const worldAppLink = buildWorldAppDeeplink("/");
   const launchSource = formatLaunchSource(worldApp.location);
   const hasWorldSession = user?.authMethod === "world-app" || Boolean(user?.username);
@@ -101,6 +107,37 @@ function DashboardPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!user?.walletAddress) {
+      return;
+    }
+
+    let active = true;
+    setWalletLoading(true);
+    setWalletError("");
+
+    getWorldWalletPortfolio(user.walletAddress)
+      .then((portfolio) => {
+        if (active) {
+          setWalletPortfolio(portfolio);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setWalletError(error instanceof Error ? error.message : "Unable to load your World wallet.");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setWalletLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.walletAddress]);
 
   useEffect(() => {
     if (!needsFirstAccessVerification || !user?.walletAddress) {
@@ -422,6 +459,35 @@ function DashboardPage() {
         </article>
       </section>
 
+      {user?.walletAddress ? (
+        <section className="panel stack">
+          <div className="split">
+            <div>
+              <span className="brand-kicker">Wallet at home</span>
+              <h3>Your live World wallet snapshot</h3>
+              <p className="muted">
+                TMpesa reads WLD and USDC using your World wallet address so you can decide how
+                much to sell before opening the trade flow.
+              </p>
+            </div>
+            <span className="live-badge">WLD + USDC</span>
+          </div>
+          {walletError ? <div className="error">{walletError}</div> : null}
+          {walletLoading ? <div className="notice">Loading wallet balances...</div> : null}
+          {!walletLoading ? (
+            <div className="wallet-asset-grid">
+              {walletPortfolio.assets.map((asset) => (
+                <div key={asset.symbol} className="wallet-asset-card">
+                  <span>{asset.name}</span>
+                  <strong>{asset.formattedBalance}</strong>
+                  <small>{asset.symbol}</small>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
       {!hasWorldSession && !worldApp.isInstalled && worldAppLink ? (
         <section className="panel stack">
           <span className="brand-kicker">Open in World App</span>
@@ -457,6 +523,13 @@ function DashboardPage() {
             <p>The app shell is ready for referrals, analytics, compliance, wallet insights, and live operations.</p>
           </div>
         </article>
+        <article className="feature-story-card">
+          <span className="feature-story-icon">★</span>
+          <div>
+            <strong>Community rating pulse</strong>
+            <p>{ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} ratings.` : "Be one of the first users to rate TMpesa."}</p>
+          </div>
+        </article>
       </section>
 
       <section className="panel stack growth-center-panel">
@@ -490,6 +563,14 @@ function DashboardPage() {
             <strong>Live wallet</strong>
             <span>See WLD and USDC balances from your World wallet address using World Chain reads.</span>
           </div>
+        </div>
+        <div className="button-row compact-actions">
+          <Link to="/profile" className="button-secondary">
+            Manage referrals and wallet
+          </Link>
+          <Link to="/profile" className="button-ghost">
+            Rate TMpesa
+          </Link>
         </div>
       </section>
 
