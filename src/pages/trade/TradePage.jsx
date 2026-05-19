@@ -18,34 +18,51 @@ function TradePage() {
 
   return (
     <div className="stack">
-      <section className="panel stack">
-        <div className="split">
-          <div>
-            <span className="brand-kicker">Trade</span>
+      <section className="panel stack trade-desk-shell">
+        <div className="trade-desk-head">
+          <div className="trade-desk-copy">
+            <span className="brand-kicker">Trade desk</span>
             <h2>Buy or sell WLD and USDC</h2>
             <p className="muted">
-              Use one focused trading desk for both directions. Switch between buying and selling
-              without leaving the wallet flow.
+              One compact desk for live quotes, M-Pesa settlement, and World wallet trading.
             </p>
           </div>
           <Link to="/orders" className="button-secondary">
             Orders
           </Link>
         </div>
-        <div className="trade-toggle">
+
+        <div className="trade-desk-meta">
+          <div>
+            <span>Flow</span>
+            <strong>Wallet to cash</strong>
+          </div>
+          <div>
+            <span>Pricing</span>
+            <strong>Live market</strong>
+          </div>
+          <div>
+            <span>Settlement</span>
+            <strong>Manual desk</strong>
+          </div>
+        </div>
+
+        <div className="trade-toggle trade-toggle-premium">
           <button
             type="button"
             className={`trade-toggle-button${activeTab === "buy" ? " active" : ""}`}
             onClick={() => switchTab("buy")}
           >
-            Buy Crypto
+            <span className="trade-toggle-label">Buy</span>
+            <small>Pay KES</small>
           </button>
           <button
             type="button"
             className={`trade-toggle-button${activeTab === "sell" ? " active" : ""}`}
             onClick={() => switchTab("sell")}
           >
-            Sell Crypto
+            <span className="trade-toggle-label">Sell</span>
+            <small>Receive KES</small>
           </button>
         </div>
       </section>

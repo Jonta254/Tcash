@@ -205,7 +205,7 @@ button {
 }
 
 .auth-entry-card {
-  gap: 18px;
+  gap: 16px;
 }
 
 .auth-splash-card {
@@ -288,6 +288,165 @@ button {
 .auth-connect-button {
   min-height: 58px;
   font-size: 1.05rem;
+}
+
+.auth-gate-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px 16px;
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(24, 19, 10, 0.94), rgba(11, 16, 29, 0.96)),
+    radial-gradient(circle at top right, rgba(243, 201, 105, 0.18), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(154, 231, 255, 0.1), transparent 42%);
+  border: 1px solid rgba(243, 201, 105, 0.18);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+}
+
+:root[data-theme="light"] .auth-gate-card {
+  background:
+    linear-gradient(145deg, rgba(255, 250, 241, 0.98), rgba(242, 247, 253, 0.96)),
+    radial-gradient(circle at top right, rgba(243, 201, 105, 0.12), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(154, 231, 255, 0.08), transparent 42%);
+  border-color: rgba(191, 138, 33, 0.2);
+  box-shadow: 0 14px 34px rgba(86, 100, 130, 0.12);
+}
+
+.auth-gate-head,
+.auth-gate-copy {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auth-gate-copy h3 {
+  margin: 8px 0 0;
+  color: #fff2c6;
+}
+
+:root[data-theme="light"] .auth-gate-copy h3 {
+  color: #1b2c47;
+}
+
+.auth-gate-copy p {
+  margin: 0;
+  max-width: 420px;
+}
+
+.auth-gate-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-gate-tile {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 248, 220, 0.04);
+  border: 1px solid rgba(243, 201, 105, 0.1);
+}
+
+:root[data-theme="light"] .auth-gate-tile {
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(191, 138, 33, 0.16);
+}
+
+.auth-gate-tile strong {
+  display: block;
+  color: #fff0bf;
+}
+
+:root[data-theme="light"] .auth-gate-tile strong {
+  color: #1f2d45;
+}
+
+.auth-gate-tile span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.auth-mini-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.auth-mini-flow div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(207, 214, 230, 0.12);
+}
+
+:root[data-theme="light"] .auth-mini-flow div {
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(136, 150, 182, 0.18);
+}
+
+.auth-mini-flow div.active {
+  background: rgba(243, 201, 105, 0.14);
+  border-color: rgba(243, 201, 105, 0.24);
+}
+
+.auth-mini-flow span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(79, 124, 255, 0.22);
+  color: #f6faff;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.auth-mini-flow strong {
+  color: #f2f6ff;
+  font-size: 0.9rem;
+}
+
+:root[data-theme="light"] .auth-mini-flow strong {
+  color: #162846;
+}
+
+.auth-inline-note {
+  text-align: left;
+}
+
+.auth-compact-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.auth-benefit-chip {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 10px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+  text-align: center;
+}
+
+:root[data-theme="light"] .auth-benefit-chip {
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(136, 150, 182, 0.18);
+}
+
+.auth-benefit-chip strong {
+  color: #eef4ff;
+  font-size: 0.86rem;
+}
+
+:root[data-theme="light"] .auth-benefit-chip strong {
+  color: #162846;
 }
 
 .launch-card {
@@ -519,6 +678,38 @@ button {
   cursor: pointer;
   color: #dbe5ff;
   font-weight: 700;
+}
+
+.admin-access-panel-quiet {
+  padding: 8px 0 0;
+  border: 0;
+  background: transparent;
+}
+
+.admin-access-panel-quiet summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  opacity: 0.84;
+}
+
+.admin-access-panel-quiet summary::before {
+  content: ">";
+  color: var(--gold);
+}
+
+.admin-access-panel-quiet[open] {
+  padding-top: 10px;
+}
+
+.admin-access-panel-quiet form {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .admin-access-panel[open] summary {
@@ -2013,6 +2204,91 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.1);
 }
 
+.trade-desk-shell {
+  gap: 14px;
+  padding: 18px;
+  background:
+    linear-gradient(160deg, rgba(16, 24, 39, 0.97), rgba(11, 17, 30, 0.94)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 36%),
+    radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.08), transparent 34%);
+}
+
+:root[data-theme="light"] .trade-desk-shell {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.99), rgba(242, 247, 253, 0.96)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 36%),
+    radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.08), transparent 34%);
+}
+
+.trade-desk-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trade-desk-copy h2 {
+  margin: 8px 0 0;
+}
+
+.trade-desk-copy p {
+  margin: 8px 0 0;
+  max-width: 560px;
+}
+
+.trade-desk-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trade-desk-meta div {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+:root[data-theme="light"] .trade-desk-meta div {
+  background: rgba(255, 255, 255, 0.74);
+  border-color: rgba(136, 150, 182, 0.16);
+}
+
+.trade-desk-meta span {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+}
+
+.trade-desk-meta strong {
+  color: #f4f8ff;
+  font-size: 0.95rem;
+}
+
+:root[data-theme="light"] .trade-desk-meta strong {
+  color: #152844;
+}
+
+.trade-toggle-premium {
+  padding: 10px;
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(9, 14, 24, 0.88), rgba(18, 28, 39, 0.82)),
+    radial-gradient(circle at top right, rgba(79, 124, 255, 0.1), transparent 40%);
+  border-color: rgba(207, 214, 230, 0.12);
+}
+
+:root[data-theme="light"] .trade-toggle-premium {
+  background:
+    linear-gradient(145deg, rgba(232, 238, 248, 0.96), rgba(255, 255, 255, 0.98)),
+    radial-gradient(circle at top right, rgba(79, 124, 255, 0.06), transparent 40%);
+  border-color: rgba(136, 150, 182, 0.18);
+}
+
 .trade-toggle-button {
   border: 0;
   border-radius: 14px;
@@ -2020,11 +2296,31 @@ button:disabled {
   background: transparent;
   color: #c8d2e6;
   font-weight: 700;
+  display: grid;
+  gap: 4px;
+  text-align: left;
 }
 
 .trade-toggle-button.active {
   background: linear-gradient(145deg, rgba(79, 124, 255, 0.18), rgba(71, 215, 172, 0.14));
   color: #f7fbff;
+}
+
+:root[data-theme="light"] .trade-toggle-button {
+  color: #4f6180;
+}
+
+:root[data-theme="light"] .trade-toggle-button.active {
+  color: #142847;
+}
+
+.trade-toggle-label {
+  font-size: 1rem;
+}
+
+.trade-toggle-button small {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .home-trade-grid {
@@ -2600,6 +2896,12 @@ button:disabled {
   .stats-grid,
   .trust-grid,
   .profile-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-mini-flow,
+  .auth-compact-benefits,
+  .trade-desk-meta {
     grid-template-columns: 1fr;
   }
 

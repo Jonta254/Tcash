@@ -5,9 +5,9 @@ import {
   buildWorldAppDeeplink,
   connectWithWorldAppWallet,
   evaluateReferralRewards,
+  findReferrerByCode,
   findUserByUsername,
   findUserByWalletAddress,
-  findReferrerByCode,
   getCurrentUser,
   getWorldAppContext,
   getWorldNotificationPermissionState,
@@ -142,14 +142,17 @@ function LoginPage() {
           ? "Opening TMpesa and preparing your first-access verification..."
           : "Opening your TMpesa session...",
       );
+
       const nextUser = loginWithWorldApp(profile, {
         firstAccessVerified: existingUser?.firstAccessVerified || isAlreadyHumanVerified,
         firstAccessVerifiedAt:
           existingUser?.firstAccessVerifiedAt ||
           (isAlreadyHumanVerified ? new Date().toISOString() : null),
         firstAccessVerificationLevel:
-          existingUser?.firstAccessVerificationLevel || (isAlreadyHumanVerified ? "address-book" : ""),
-        referredByCode: existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
+          existingUser?.firstAccessVerificationLevel ||
+          (isAlreadyHumanVerified ? "address-book" : ""),
+        referredByCode:
+          existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
       });
 
       if (!existingUser && referralCode) {
@@ -249,56 +252,51 @@ function LoginPage() {
             </div>
           </div>
 
-          <div className="secure-access-card">
-            <div className="secure-access-head">
-              <span className="secure-access-badge">Secure access</span>
-              <span className="secure-access-trust">Wallet Auth first</span>
+          <div className="auth-gate-card">
+            <div className="auth-gate-head">
+              <span className="secure-access-badge">World sign in</span>
+              <span className="secure-access-trust">Official approval sheet</span>
             </div>
-            <h3>Login with World Wallet Auth</h3>
-            <p className="muted">
-              TMpesa follows the World mini app flow: wallet sign-in first, one-time human
-              verification only when needed, then direct entry into the trading desk.
-            </p>
-            <div className="secure-step-list">
+
+            <div className="auth-gate-copy">
+              <div>
+                <span className="tag">Wallet Auth first</span>
+                <h3>Enter TMpesa through World App</h3>
+              </div>
+              <p className="muted">
+                TMpesa follows the World mini app flow from Wallet Auth to protected trading. We
+                only request the account signals needed to recognize your wallet, route orders,
+                and unlock one-time checks when required.
+              </p>
+            </div>
+
+            <div className="auth-gate-grid">
+              <div className="auth-gate-tile">
+                <strong>Username</strong>
+                <span>Identifies your TMpesa account and crypto delivery route.</span>
+              </div>
+              <div className="auth-gate-tile">
+                <strong>Wallet</strong>
+                <span>Used for sign-in, live balances, and World Pay transfers.</span>
+              </div>
+              <div className="auth-gate-tile">
+                <strong>Human check</strong>
+                <span>Requested only when a protected trade step needs it.</span>
+              </div>
+            </div>
+
+            <div className="auth-mini-flow" aria-label="Wallet login flow">
               <div className={authStage === "wallet" ? "active" : ""}>
-                <strong>1. Connect wallet</strong>
-                <p>Approve Wallet Auth inside the official World sheet.</p>
+                <span>1</span>
+                <strong>Approve wallet</strong>
               </div>
               <div className={authStage === "unlock" ? "active" : ""}>
-                <strong>2. Open TMpesa</strong>
-                <p>TMpesa attaches your World username and wallet to the account.</p>
+                <span>2</span>
+                <strong>Open session</strong>
               </div>
               <div>
-                <strong>3. Unlock trading</strong>
-                <p>New users complete one human check only when needed.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="launch-card stack">
-            <div className="launch-card-head">
-              <div>
-                <span className="tag">World-native sign in</span>
-                <h3>Enter the exchange desk</h3>
-              </div>
-              <span className="secure-access-trust">Approval in World App</span>
-            </div>
-            <p className="muted">
-              Tap continue to open the official World approval surface. TMpesa requests only the
-              identity needed to recognize your account and settle orders safely.
-            </p>
-            <div className="launch-permissions">
-              <div>
-                <strong>World username</strong>
-                <span>Used to identify your TMpesa account and route crypto delivery.</span>
-              </div>
-              <div>
-                <strong>Wallet address</strong>
-                <span>Used for secure login, World Pay, and verification state checks.</span>
-              </div>
-              <div>
-                <strong>Human verification state</strong>
-                <span>Used only to unlock protected trading steps when needed.</span>
+                <span>3</span>
+                <strong>Start trading</strong>
               </div>
             </div>
           </div>
@@ -312,7 +310,7 @@ function LoginPage() {
             >
               {worldLoading ? "Opening World approval..." : "Continue with World App"}
             </button>
-            <div className="notice">
+            <div className="notice auth-inline-note">
               {worldApp.isInstalled
                 ? "World App detected. TMpesa will sign you in first, then ask new users for one-time verification inside the app."
                 : "Open TMpesa inside World App to continue with wallet authentication."}
@@ -324,32 +322,23 @@ function LoginPage() {
             ) : null}
           </div>
 
-          <div className="auth-feature-list">
-            <div>
+          <div className="auth-compact-benefits">
+            <div className="auth-benefit-chip">
               <span className="auth-feature-icon auth-feature-green">KES</span>
-              <div>
-                <strong>Kenya cash settlement</strong>
-                <p>M-Pesa payout, till payment, and practical trade support.</p>
-              </div>
+              <strong>Cash settlement</strong>
             </div>
-            <div>
+            <div className="auth-benefit-chip">
               <span className="auth-feature-icon auth-feature-blue">WLD</span>
-              <div>
-                <strong>Built for World users</strong>
-                <p>Wallet Auth and World notifications fit the mini app flow.</p>
-              </div>
+              <strong>World-native desk</strong>
             </div>
-            <div>
+            <div className="auth-benefit-chip">
               <span className="auth-feature-icon auth-feature-gold">PRO</span>
-              <div>
-                <strong>Ready to expand</strong>
-                <p>Structured for referrals, analytics, automation, and live ops.</p>
-              </div>
+              <strong>Operator reviewed</strong>
             </div>
           </div>
 
-          <details className="admin-access-panel">
-            <summary>Admin access</summary>
+          <details className="admin-access-panel admin-access-panel-quiet">
+            <summary>Operator sign in</summary>
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="field">
                 <label htmlFor="phone">Admin phone number</label>
@@ -392,9 +381,11 @@ function LoginPage() {
                 onClick={() => setShowNotificationPrompt(false)}
                 aria-label="Close notification prompt"
               >
-                ×
+                x
               </button>
-              <div className="notification-prompt-icon" aria-hidden="true">✦</div>
+              <div className="notification-prompt-icon" aria-hidden="true">
+                *
+              </div>
               <div className="stack">
                 <span className="brand-kicker">World notifications</span>
                 <h3>Enable TMpesa alerts</h3>
