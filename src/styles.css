@@ -584,14 +584,16 @@ button {
 }
 
 :root[data-theme="light"] .button-secondary {
-  background: linear-gradient(145deg, rgba(211, 219, 232, 0.7), rgba(243, 247, 252, 0.95));
+  background: linear-gradient(145deg, rgba(228, 233, 242, 0.92), rgba(255, 255, 255, 0.98));
   color: #11203a;
   border: 1px solid rgba(136, 150, 182, 0.22);
+  box-shadow: 0 10px 22px rgba(111, 126, 154, 0.1);
 }
 
 :root[data-theme="light"] .button-ghost {
   color: #43506a;
   border: 1px solid rgba(136, 150, 182, 0.2);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .button:hover,
@@ -804,9 +806,13 @@ button:disabled {
 }
 
 :root[data-theme="light"] .tab-bar {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 244, 251, 0.96));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(239, 244, 251, 0.98)),
+    radial-gradient(circle at top left, rgba(243, 201, 105, 0.1), transparent 36%);
   border-color: rgba(136, 150, 182, 0.22);
-  box-shadow: 0 18px 42px rgba(94, 111, 145, 0.18);
+  box-shadow:
+    0 18px 42px rgba(94, 111, 145, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .tab-bar.admin {
@@ -836,7 +842,8 @@ button:disabled {
 
 :root[data-theme="light"] .tab-link.active {
   color: #132846;
-  background: linear-gradient(145deg, rgba(49, 94, 251, 0.12), rgba(191, 138, 33, 0.12));
+  background: linear-gradient(145deg, rgba(49, 94, 251, 0.14), rgba(191, 138, 33, 0.16), rgba(255, 255, 255, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 .tab-icon {
@@ -1340,6 +1347,38 @@ button:disabled {
   border-color: rgba(71, 215, 172, 0.18);
 }
 
+:root[data-theme="light"] .support-footer-emphasis {
+  background:
+    linear-gradient(145deg, rgba(20, 35, 45, 0.97), rgba(15, 24, 37, 0.95)),
+    radial-gradient(circle at top right, rgba(243, 201, 105, 0.18), transparent 42%),
+    radial-gradient(circle at bottom left, rgba(154, 231, 255, 0.14), transparent 40%);
+  border-color: rgba(111, 126, 154, 0.18);
+  box-shadow:
+    0 18px 42px rgba(80, 98, 135, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="light"] .support-footer-emphasis strong,
+:root[data-theme="light"] .support-footer-emphasis .text-link {
+  color: #f8fbff;
+}
+
+:root[data-theme="light"] .support-footer-emphasis p {
+  color: rgba(226, 235, 248, 0.86);
+}
+
+:root[data-theme="light"] .support-footer-emphasis .button-secondary {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(238, 243, 250, 0.92));
+  color: #132846;
+  border-color: rgba(136, 150, 182, 0.18);
+}
+
+:root[data-theme="light"] .support-footer-emphasis .button-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #eef4ff;
+  border-color: rgba(226, 235, 248, 0.18);
+}
+
 .notification-prompt-overlay {
   position: fixed;
   inset: 0;
@@ -1401,6 +1440,12 @@ button:disabled {
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.12), transparent 38%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 253, 0.96));
   box-shadow: 0 24px 56px rgba(77, 93, 126, 0.18);
+}
+
+:root[data-theme="light"] .notification-prompt-card h3,
+:root[data-theme="light"] .notification-prompt-card .muted,
+:root[data-theme="light"] .notification-prompt-card .brand-kicker {
+  color: #11203a;
 }
 
 :root[data-theme="light"] .notification-prompt-close {
@@ -1858,11 +1903,11 @@ button:disabled {
 }
 
 :root[data-theme="light"] .quick-action-card strong {
-  color: #132846;
+  color: #f8fbff;
 }
 
 :root[data-theme="light"] .quick-action-card span {
-  color: #52647f;
+  color: rgba(227, 235, 248, 0.9);
 }
 
 .quick-action-card strong {
@@ -1890,6 +1935,27 @@ button:disabled {
 .quick-action-card-orders {
   background: linear-gradient(155deg, rgba(44, 31, 10, 0.96), rgba(16, 18, 31, 0.92));
   border-color: rgba(243, 201, 105, 0.18);
+}
+
+:root[data-theme="light"] .quick-action-card-buy {
+  background:
+    linear-gradient(155deg, rgba(31, 51, 84, 0.98), rgba(18, 32, 51, 0.94)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 38%);
+  border-color: rgba(79, 124, 255, 0.18);
+}
+
+:root[data-theme="light"] .quick-action-card-sell {
+  background:
+    linear-gradient(155deg, rgba(20, 48, 43, 0.98), rgba(13, 29, 35, 0.94)),
+    radial-gradient(circle at top right, rgba(71, 215, 172, 0.12), transparent 38%);
+  border-color: rgba(71, 215, 172, 0.2);
+}
+
+:root[data-theme="light"] .quick-action-card-orders {
+  background:
+    linear-gradient(155deg, rgba(58, 45, 20, 0.98), rgba(24, 26, 38, 0.94)),
+    radial-gradient(circle at top right, rgba(243, 201, 105, 0.16), transparent 38%);
+  border-color: rgba(243, 201, 105, 0.2);
 }
 
 .elevated-summary-card {
@@ -2016,6 +2082,13 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.12);
 }
 
+:root[data-theme="light"] .market-panel {
+  background:
+    linear-gradient(160deg, rgba(23, 35, 56, 0.98), rgba(16, 25, 39, 0.95)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%);
+  border-color: rgba(111, 126, 154, 0.18);
+}
+
 .market-panel-soft {
   background: linear-gradient(160deg, rgba(24, 20, 13, 0.94), rgba(11, 16, 29, 0.92));
   border-color: rgba(243, 201, 105, 0.16);
@@ -2024,6 +2097,11 @@ button:disabled {
 .market-panel-note {
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+:root[data-theme="light"] .market-panel .brand-kicker,
+:root[data-theme="light"] .market-panel-note {
+  color: rgba(227, 235, 248, 0.82);
 }
 
 .market-token-list,
