@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import StatusPill from "../../components/orders/StatusPill";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   APP_CONFIG,
   getCurrentUser,
-  getOrdersForCurrentUser,
   getReferralSummary,
   getWorldWalletPortfolio,
   isUserAccessVerified,
@@ -35,8 +33,6 @@ function DashboardPage() {
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [referralRefreshKey, setReferralRefreshKey] = useState(0);
   const exchangeRates = useExchangeRates();
-  const orders = getOrdersForCurrentUser();
-  const recentOrders = orders.slice(0, 3);
   const referralSummary = useMemo(() => getReferralSummary(user), [user, referralRefreshKey]);
   const needsFirstAccessVerification =
     user?.authMethod === "world-app" && !user?.isAdmin && !isUserAccessVerified(user);
@@ -404,34 +400,25 @@ function DashboardPage() {
       <section className="panel stack">
         <div className="split">
           <div>
-            <span className="brand-kicker">Recent orders</span>
-            <h3>Latest activity</h3>
+            <span className="brand-kicker">Coming soon</span>
+            <h3>More tools are on the way</h3>
           </div>
           <Link to="/orders" className="button-secondary">
-            View all orders
+            Open orders
           </Link>
         </div>
-        {recentOrders.length ? (
-          <div className="recent-order-list">
-            {recentOrders.map((order) => (
-              <article key={order.id} className="recent-order-card">
-                <div className="split">
-                  <div>
-                    <span className="tag">{order.type}</span>
-                    <strong>{order.cryptoAmount} {order.asset}</strong>
-                  </div>
-                  <StatusPill status={order.status} />
-                </div>
-                <div className="recent-order-meta">
-                  <span>KES {order.kesAmount.toLocaleString()}</span>
-                  <span>{order.destinationUsername ? `@${order.destinationUsername}` : order.payoutPhoneNumber || "TMpesa order"}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="notice">No orders yet. Start with Buy or Sell from the quick actions above.</div>
-        )}
+        <div className="growth-center-grid">
+          <article className="growth-center-card coming-soon-card">
+            <span>Coming soon</span>
+            <strong>Instant trade alerts</strong>
+            <small>Get clearer settlement and payout updates directly inside TMpesa.</small>
+          </article>
+          <article className="growth-center-card coming-soon-card coming-soon-card-gold">
+            <span>Coming soon</span>
+            <strong>Reward center</strong>
+            <small>Track referral milestones, claim rewards faster, and follow payout progress.</small>
+          </article>
+        </div>
       </section>
 
       <section className="support-footer support-footer-emphasis">

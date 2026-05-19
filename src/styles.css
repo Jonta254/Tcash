@@ -2216,6 +2216,40 @@ button:disabled {
   font-size: 1rem;
 }
 
+.coming-soon-card {
+  background:
+    linear-gradient(145deg, rgba(18, 31, 53, 0.94), rgba(11, 18, 31, 0.92)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.14), transparent 42%);
+  border-color: rgba(154, 231, 255, 0.16);
+}
+
+.coming-soon-card-gold {
+  background:
+    linear-gradient(145deg, rgba(47, 37, 18, 0.96), rgba(17, 18, 30, 0.92)),
+    radial-gradient(circle at top right, rgba(243, 201, 105, 0.16), transparent 42%);
+  border-color: rgba(243, 201, 105, 0.18);
+}
+
+:root[data-theme="light"] .coming-soon-card {
+  background:
+    linear-gradient(145deg, rgba(28, 45, 72, 0.98), rgba(17, 29, 47, 0.94)),
+    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 42%);
+  border-color: rgba(111, 126, 154, 0.18);
+}
+
+:root[data-theme="light"] .coming-soon-card-gold {
+  background:
+    linear-gradient(145deg, rgba(69, 54, 24, 0.98), rgba(24, 26, 40, 0.94)),
+    radial-gradient(circle at top right, rgba(243, 201, 105, 0.16), transparent 42%);
+  border-color: rgba(191, 138, 33, 0.18);
+}
+
+:root[data-theme="light"] .coming-soon-card span,
+:root[data-theme="light"] .coming-soon-card small,
+:root[data-theme="light"] .coming-soon-card strong {
+  color: #f8fbff;
+}
+
 .market-feature-list div {
   display: grid;
   gap: 4px;
