@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const WORLD_APP_ID = "app_02bd6decc052fc1dfa29487444f6c6f";
+const WORLD_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 
 function getNonceSecret() {
   return process.env.SIWE_NONCE_SECRET || process.env.DEV_PORTAL_API_KEY || WORLD_APP_ID;

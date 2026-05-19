@@ -1,4 +1,4 @@
-const FALLBACK_WORLD_APP_ID = "app_02bd6decc052fc1dfa29487444f6c6f";
+const FALLBACK_WORLD_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const RESOLVED_WORLD_APP_ID =
   (import.meta.env.VITE_WORLD_APP_ID || "").trim() || FALLBACK_WORLD_APP_ID;
 

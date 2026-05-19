@@ -1,6 +1,6 @@
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
-const FALLBACK_APP_ID = "app_02bd6decc052fc1dfa29487444f6c6f";
+const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const WORLD_NOTIFICATIONS_URL = "https://developer.world.org/api/v2/minikit/send-notification";
 
 function buildNotificationPayload({ walletAddress, title, message, miniAppPath = "/orders" }) {

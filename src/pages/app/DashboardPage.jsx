@@ -6,11 +6,15 @@ import {
   APP_CONFIG,
   getCurrentUser,
   getOrdersForCurrentUser,
+  getReferralSummary,
   getWorldWalletPortfolio,
   isUserAccessVerified,
+  markReferralShared,
+  openWorldChatInvite,
   openSupportEmail,
   openWhatsAppSupport,
   requestWorldVerification,
+  shareMiniAppInvite,
   updateCurrentUserProfile,
   waitForWorldHumanVerification,
 } from "../../services";
@@ -29,9 +33,11 @@ function DashboardPage() {
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+  const [referralRefreshKey, setReferralRefreshKey] = useState(0);
   const exchangeRates = useExchangeRates();
   const orders = getOrdersForCurrentUser();
   const recentOrders = orders.slice(0, 3);
+  const referralSummary = useMemo(() => getReferralSummary(user), [user, referralRefreshKey]);
   const needsFirstAccessVerification =
     user?.authMethod === "world-app" && !user?.isAdmin && !isUserAccessVerified(user);
 
@@ -167,6 +173,28 @@ function DashboardPage() {
     }
   };
 
+  const handleShareReferral = async () => {
+    try {
+      await shareMiniAppInvite({
+        title: "Join TMpesa",
+        text: `Join me on TMpesa with my invite code ${referralSummary.code}.`,
+        url: referralSummary.appLink,
+      });
+      markReferralShared(user);
+      setReferralRefreshKey((value) => value + 1);
+    } catch {}
+  };
+
+  const handleShareReferralToWorldChat = async () => {
+    try {
+      await openWorldChatInvite({
+        message: `Join TMpesa with my invite code ${referralSummary.code}. ${referralSummary.appLink}`,
+      });
+      markReferralShared(user);
+      setReferralRefreshKey((value) => value + 1);
+    } catch {}
+  };
+
   return (
     <div className="stack">
       {needsFirstAccessVerification ? (
@@ -222,10 +250,17 @@ function DashboardPage() {
 
       <section className="panel home-header-panel">
         <span className="brand-kicker">World settlement wallet</span>
-        <h2>Home</h2>
-        <p className="muted">
-          {user?.username ? `Connected: @${user.username}` : user?.walletAddress ? "World wallet connected" : "Connect your World wallet to view balances and start trading."}
-        </p>
+        <div className="split compact-top-row">
+          <div>
+            <h2>{user?.username ? `@${user.username}` : "TMpesa wallet"}</h2>
+            <p className="muted">
+              {user?.walletAddress ? "World wallet connected" : "Connect your World wallet to start trading."}
+            </p>
+          </div>
+          <span className={`status-pill ${isUserAccessVerified(user) ? "completed" : "pending"}`}>
+            {isUserAccessVerified(user) ? "Verified" : "Pending"}
+          </span>
+        </div>
       </section>
 
       <section className="panel stack home-balance-panel">
@@ -278,19 +313,19 @@ function DashboardPage() {
         <div className="quick-action-grid home-quick-actions">
           <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
             <strong>Buy</strong>
-            <span>Pay with M-Pesa and receive crypto after review.</span>
+            <span>Pay with M-Pesa.</span>
           </Link>
           <Link to="/trade?tab=sell" className="quick-action-card quick-action-card-sell">
             <strong>Sell</strong>
-            <span>Send crypto from World App and receive KES to M-Pesa.</span>
+            <span>Receive KES to M-Pesa.</span>
           </Link>
           <Link to="/wallet#receive" className="quick-action-card quick-action-card-orders">
             <strong>Receive</strong>
-            <span>Open your wallet tools and copy the receive address.</span>
+            <span>Copy your receive address.</span>
           </Link>
           <Link to="/orders" className="quick-action-card quick-action-card-orders">
             <strong>Orders</strong>
-            <span>Track pending, reviewing, and completed activity.</span>
+            <span>Track your latest activity.</span>
           </Link>
         </div>
       </section>
@@ -315,6 +350,47 @@ function DashboardPage() {
           </div>
         </article>
       </section>
+
+      {!user?.isAdmin ? (
+        <section className="panel stack compact-referral-card">
+          <div className="split">
+            <div>
+              <span className="brand-kicker">Referral</span>
+              <h3>Invite and earn</h3>
+              <p className="muted">
+                Share your link. Reach 6 activated users for KES 100 and 10 for KES 150.
+              </p>
+            </div>
+            <span className="status-pill paid">{referralSummary.code}</span>
+          </div>
+          <div className="profile-summary-grid">
+            <div className="profile-summary-card">
+              <span>Referred</span>
+              <strong>{referralSummary.referredUsers}</strong>
+            </div>
+            <div className="profile-summary-card">
+              <span>Activated</span>
+              <strong>{referralSummary.activatedUsers}</strong>
+            </div>
+            <div className="profile-summary-card">
+              <span>Claimable</span>
+              <strong>
+                {referralSummary.pendingMilestones.length
+                  ? referralSummary.pendingMilestones.map((milestone) => `KES ${milestone.rewardKes}`).join(", ")
+                  : "None"}
+              </strong>
+            </div>
+          </div>
+          <div className="button-row compact-actions">
+            <button type="button" className="button-secondary" onClick={handleShareReferral}>
+              Share Invite
+            </button>
+            <button type="button" className="button-ghost" onClick={handleShareReferralToWorldChat}>
+              World Chat
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="panel stack">
         <div className="split">
@@ -352,7 +428,7 @@ function DashboardPage() {
       <section className="support-footer support-footer-emphasis">
         <div>
           <strong>Need help with a payment delay?</strong>
-          <p>Use support for account questions, or open WhatsApp if a payment or payout needs fast attention.</p>
+          <p>Email support or open WhatsApp for urgent payout follow-up.</p>
         </div>
         <div className="button-row compact-actions">
           <button
@@ -392,11 +468,6 @@ function DashboardPage() {
           </button>
         </div>
         <Link to="/support" className="text-link">Open support center</Link>
-      </section>
-
-      <section className="home-footer-links">
-        <Link to="/profile" className="text-link">Profile tools</Link>
-        <Link to="/wallet" className="text-link">Wallet details</Link>
       </section>
     </div>
   );

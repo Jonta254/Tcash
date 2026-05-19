@@ -108,7 +108,7 @@ export function getReferralSummary(user) {
     code,
     shareCount: userStats.shareCount || 0,
     lastSharedAt: userStats.lastSharedAt || null,
-    appLink: `https://world.org/mini-app?app_id=${encodeURIComponent(APP_CONFIG.worldAppId)}&path=${encodeURIComponent(getInvitePath(code))}`,
+    appLink: `https://worldcoin.org/mini-app?app_id=${encodeURIComponent(APP_CONFIG.worldAppId)}&path=${encodeURIComponent(getInvitePath(code))}`,
     referredUsers: referredUsers.length,
     activatedUsers: tradingSummary.activatedUsers,
     totalReferralOrders: tradingSummary.totalOrders,

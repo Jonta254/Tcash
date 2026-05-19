@@ -203,7 +203,7 @@ export function buildWorldAppDeeplink(path = "/") {
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `https://world.org/mini-app?app_id=${encodeURIComponent(appId)}&path=${encodeURIComponent(normalizedPath)}`;
+  return `https://worldcoin.org/mini-app?app_id=${encodeURIComponent(appId)}&path=${encodeURIComponent(normalizedPath)}`;
 }
 
 export async function requestWorldPayment({ amount, asset = "WLD", description, to }) {
