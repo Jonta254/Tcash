@@ -13,10 +13,10 @@ import {
 } from "../../services";
 
 const navItems = [
-  { to: "/", label: "Home", icon: "HM" },
-  { to: "/wallet", label: "Wallet", icon: "WL" },
-  { to: "/trade", label: "Trade", icon: "TR" },
-  { to: "/orders", label: "Orders", icon: "OR" },
+  { to: "/", label: "Home", glyph: "◈", tone: "home" },
+  { to: "/wallet", label: "Wallet", glyph: "◎", tone: "wallet" },
+  { to: "/trade", label: "Trade", glyph: "⇄", tone: "trade" },
+  { to: "/orders", label: "Orders", glyph: "◷", tone: "orders" },
 ];
 
 function AppShell() {
@@ -139,16 +139,20 @@ function AppShell() {
           ) : null}
         </div>
 
-        <nav className="tab-bar">
+        <nav className="tab-bar" aria-label="Primary">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === "/"}
-              className={({ isActive }) => `tab-link${isActive ? " active" : ""}`}
+              className={({ isActive }) => `tab-link tab-link-${item.tone}${isActive ? " active" : ""}`}
             >
-              <span className="tab-icon" aria-hidden="true">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="tab-link-shell">
+                <span className="tab-icon" aria-hidden="true">
+                  {item.glyph}
+                </span>
+                <span className="tab-label">{item.label}</span>
+              </span>
             </NavLink>
           ))}
         </nav>
