@@ -156,8 +156,8 @@ function SellPage() {
             <span className="brand-kicker">Sell WLD/USDC</span>
             <h2>Sell from World App and settle to M-Pesa</h2>
             <p className="muted">
-              Keep one payout number, enter the asset amount, then complete the transfer from your
-              World wallet. TMpesa marks the order for manual payout after payment is confirmed.
+              Enter the crypto amount you want to send, review the live KES quote, then complete
+              the World wallet transfer for manual M-Pesa settlement.
             </p>
           </div>
           <div className="mini-metrics">
@@ -235,6 +235,10 @@ function SellPage() {
             </div>
 
             <div className="amount-line">
+              <span>You send</span>
+              <strong>{cryptoAmount || "0"} {asset}</strong>
+            </div>
+            <div className="amount-line">
               <span>You will receive</span>
               <strong>KES {kesAmount.toLocaleString()}</strong>
             </div>
@@ -249,10 +253,6 @@ function SellPage() {
                 Increase the sell amount to at least the live value of 3 USDC before creating this order.
               </div>
             ) : null}
-            <div className="notice">
-              TMpesa keeps this flow simple: create the order first, approve the wallet send, then
-              wait for manual KES payout to your saved M-Pesa number.
-            </div>
             {needsOrderVerification ? (
               <div className="notice">
                 This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
@@ -292,6 +292,10 @@ function SellPage() {
               </div>
             )}
 
+            <div className="amount-line">
+              <span>You send</span>
+              <strong>{currentOrder.cryptoAmount} {currentOrder.asset}</strong>
+            </div>
             <div className="amount-line">
               <span>KES payout</span>
               <strong>KES {currentOrder.kesAmount.toLocaleString()}</strong>
@@ -361,7 +365,7 @@ function SellPage() {
         <div className="flow-list">
           <div><span>1</span><p>Choose the asset and amount you want to sell.</p></div>
           <div><span>2</span><p>Confirm the M-Pesa number that should receive your KES.</p></div>
-          <div><span>3</span><p>Approve the transfer inside World App or submit the transaction hash.</p></div>
+          <div><span>3</span><p>Approve the World transfer or submit the blockchain transaction hash.</p></div>
           <div><span>4</span><p>Watch the order move from pending to paid to completed.</p></div>
         </div>
         <div className="soft-note">
