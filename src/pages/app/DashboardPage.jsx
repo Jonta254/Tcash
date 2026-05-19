@@ -79,6 +79,25 @@ function DashboardPage() {
     };
   }, [orders]);
 
+  const walletBoard = useMemo(() => {
+    const assets = walletPortfolio.assets.map((assetEntry) => {
+      const marketRate = exchangeRates[assetEntry.symbol] || 0;
+      const balance = Number(assetEntry.formattedBalance || 0);
+      const kesValue = Math.round(balance * marketRate * 100) / 100;
+
+      return {
+        ...assetEntry,
+        marketRate,
+        kesValue,
+      };
+    });
+
+    return {
+      assets,
+      totalKes: assets.reduce((sum, assetEntry) => sum + Number(assetEntry.kesValue || 0), 0),
+    };
+  }, [exchangeRates, walletPortfolio.assets]);
+
   const completeLocalVerification = (verificationLevel = "address-book") => {
     const nextUser = updateCurrentUserProfile({
       firstAccessVerified: true,
@@ -390,16 +409,30 @@ function DashboardPage() {
                 <strong>{dashboardStats.completionRate}%</strong>
               </div>
             </div>
-            <div className="dashboard-balance-card">
-              <span>Current market board</span>
-              <div className="dashboard-balance-values">
+            <div className="dashboard-balance-card crypto-balance-board">
+              <div className="crypto-balance-head">
                 <div>
-                  <strong>KES {exchangeRates.WLD}</strong>
-                  <small>per 1 WLD</small>
+                  <span>Home wallet board</span>
+                  <strong>
+                    {user?.walletAddress ? `KES ${walletBoard.totalKes.toLocaleString()}` : "Connect World wallet"}
+                  </strong>
                 </div>
-                <div>
-                  <strong>KES {exchangeRates.USDC}</strong>
-                  <small>per 1 USDC</small>
+                <small>{user?.walletAddress ? "Estimated live value" : "Wallet Auth required"}</small>
+              </div>
+              <div className="crypto-balance-grid">
+                <div className="crypto-balance-token crypto-balance-token-wld">
+                  <span>Worldcoin</span>
+                  <strong>
+                    {walletPortfolio.assets.find((assetEntry) => assetEntry.symbol === "WLD")?.formattedBalance || "0"} WLD
+                  </strong>
+                  <small>KES {exchangeRates.WLD} per 1 WLD</small>
+                </div>
+                <div className="crypto-balance-token crypto-balance-token-usdc">
+                  <span>Digital Dollars</span>
+                  <strong>
+                    {walletPortfolio.assets.find((assetEntry) => assetEntry.symbol === "USDC")?.formattedBalance || "0"} USDC
+                  </strong>
+                  <small>KES {exchangeRates.USDC} per 1 USDC</small>
                 </div>
               </div>
             </div>
@@ -524,7 +557,7 @@ function DashboardPage() {
           </div>
         </article>
         <article className="feature-story-card">
-          <span className="feature-story-icon">★</span>
+          <span className="feature-story-icon">RT</span>
           <div>
             <strong>Community rating pulse</strong>
             <p>{ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} ratings.` : "Be one of the first users to rate TMpesa."}</p>
