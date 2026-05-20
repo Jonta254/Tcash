@@ -118,8 +118,8 @@ function AppShell() {
                 {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
               </span>
               <span className="profile-launch-copy">
-                <strong>{user?.username ? `@${user.username}` : "Profile"}</strong>
-                <small>{user?.isAdmin ? "Admin profile" : "Account"}</small>
+                <strong>Account</strong>
+                <small>{user?.username ? `@${user.username}` : user?.isAdmin ? "Admin" : "Profile"}</small>
               </span>
             </NavLink>
 
@@ -131,15 +131,7 @@ function AppShell() {
 
         <div className="context-strip context-strip-compact">
           <span>{hasWorldSession ? "World account connected" : "Open in World App for wallet payments"}</span>
-          <span>
-            {user?.isAdmin
-              ? user?.username
-                ? `@${user.username} • Admin`
-                : "Admin session"
-              : user?.username
-                ? `@${user.username}`
-                : user?.phone || "TMpesa session"}
-          </span>
+          <span>{user?.isAdmin ? "Admin enabled" : "TMpesa secure session"}</span>
           {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
             <a href={worldAppLink} className="text-link">
               Open in World App

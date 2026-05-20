@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   APP_CONFIG,
+  getFeePerCoin,
   getCurrentUser,
   getReferralSummary,
   getWorldWalletPortfolio,
@@ -32,6 +33,13 @@ function DashboardPage() {
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [referralRefreshKey, setReferralRefreshKey] = useState(0);
   const exchangeRates = useExchangeRates();
+  const deskRates = useMemo(
+    () => ({
+      WLD: Math.max(0, Number(exchangeRates.WLD || 0) - Number(getFeePerCoin("WLD") || 0)),
+      USDC: Math.max(0, Number(exchangeRates.USDC || 0) - Number(getFeePerCoin("USDC") || 0)),
+    }),
+    [exchangeRates],
+  );
   const referralSummary = useMemo(() => getReferralSummary(user), [user, referralRefreshKey]);
   const needsFirstAccessVerification =
     user?.authMethod === "world-app" && !user?.isAdmin && !isUserAccessVerified(user);
@@ -241,7 +249,9 @@ function DashboardPage() {
           <div>
             <h2>{user?.username ? `@${user.username}` : "TMpesa wallet"}</h2>
             <p className="muted">
-              {user?.walletAddress ? "World wallet connected" : "Connect your World wallet to start trading."}
+              {user?.walletAddress
+                ? "Wallet connected for live balance, pricing, and settlement."
+                : "Connect your World wallet to start trading."}
             </p>
           </div>
           <span className={`status-pill ${isUserAccessVerified(user) ? "completed" : "pending"}`}>
@@ -321,20 +331,21 @@ function DashboardPage() {
         <article className="market-panel">
           <div className="split">
             <span className="brand-kicker">Rates preview</span>
-            <span className="market-panel-note">Manual desk pricing</span>
+            <span className="market-panel-note">Live World price less TMpesa fee</span>
           </div>
           <div className="market-token-list">
             <div className="market-token-card">
               <span>WLD</span>
-              <strong>KES {exchangeRates.WLD}</strong>
+              <strong>KES {deskRates.WLD.toLocaleString()}</strong>
               <small>per 1 WLD</small>
             </div>
             <div className="market-token-card">
               <span>USDC</span>
-              <strong>KES {exchangeRates.USDC}</strong>
+              <strong>KES {deskRates.USDC.toLocaleString()}</strong>
               <small>per 1 USDC</small>
             </div>
           </div>
+          <div className="soft-note">Fees are already reflected in the displayed TMpesa desk quote.</div>
         </article>
       </section>
 
