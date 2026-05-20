@@ -13,7 +13,6 @@ import {
   getWorldNotificationPermissionState,
   isUserAccessVerified,
   loginAdmin,
-  loginUser,
   loginWithWorldApp,
   notifyAdminReferralEvent,
   requestWorldNotificationPermission,
@@ -45,9 +44,7 @@ function LoginPage() {
 
     if (user.isAdmin) {
       const requestedPath = location.state?.from?.pathname;
-      return requestedPath === "/admin" || requestedPath === "/tmpesa-admin"
-        ? requestedPath
-        : "/tmpesa-admin";
+      return requestedPath === "/admin" || requestedPath === "/tmpesa-admin" ? requestedPath : "/";
     }
 
     return !isUserAccessVerified(user) ? "/" : targetPath;
@@ -156,7 +153,7 @@ function LoginPage() {
           : "Opening your TMpesa session...",
       );
 
-      const nextUser = loginWithWorldApp(profile, {
+      loginWithWorldApp(profile, {
         firstAccessVerified: existingUser?.firstAccessVerified || isAlreadyHumanVerified,
         firstAccessVerifiedAt:
           existingUser?.firstAccessVerifiedAt ||
@@ -178,9 +175,9 @@ function LoginPage() {
           referrerUsername: referrer?.username || "",
           referrerLabel: referrer?.fullName || referrer?.phone || "TMpesa referrer",
           referrerMpesaPhoneNumber: referrer?.mpesaPhoneNumber || "",
-          referredUsername: nextUser.username || "",
-          referredLabel: nextUser.fullName || nextUser.phone || "New user",
-          referredWalletAddress: nextUser.walletAddress || "",
+          referredUsername: profile.username || "",
+          referredLabel: profile.fullName || profile.username || "New user",
+          referredWalletAddress: profile.walletAddress || "",
           referredUsers: rewardState?.summary.referredUsers || 0,
           activatedUsers: rewardState?.summary.activatedUsers || 0,
           eligibleRewardKes: rewardState?.eligibleRewardKes || 0,

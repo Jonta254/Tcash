@@ -219,6 +219,17 @@ function ProfilePage() {
             <strong>{formatWorldLaunchSource(worldApp.location)}</strong>
           </div>
         </div>
+        {user?.isAdmin ? (
+          <div className="button-row compact-actions">
+            <Link to="/tmpesa-admin" className="button">
+              Open Admin Desk
+            </Link>
+            <div className="soft-note">
+              This World account is recognized as the TMpesa operator account, so the admin desk is
+              unlocked inside the same mini app.
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="panel stack">

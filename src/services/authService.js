@@ -1,18 +1,39 @@
-import { STORAGE_KEYS } from "../config/appConfig";
+import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, removeStorage, writeStorage } from "./localStorage";
 
 const seedAdminUser = {
   id: "admin-001",
   fullName: "WorldTMpesa Admin",
-  phone: "0795621901",
-  mpesaPhoneNumber: "0795621901",
+  phone: APP_CONFIG.admin.localPhone,
+  mpesaPhoneNumber: APP_CONFIG.admin.localPhone,
   password: "Jonta@2003",
-  walletAddress: "",
-  username: "tmpesa-admin",
+  walletAddress: APP_CONFIG.admin.worldWalletAddress,
+  username: APP_CONFIG.admin.worldUsername || "tmpesa-admin",
   authMethod: "local",
   isAdmin: true,
   createdAt: new Date().toISOString(),
 };
+
+function normalizeUsername(username) {
+  return String(username || "").trim().replace(/^@/, "").toLowerCase();
+}
+
+function isConfiguredWorldAdmin(profile) {
+  const configuredWallet = String(APP_CONFIG.admin.worldWalletAddress || "").trim().toLowerCase();
+  const configuredUsername = normalizeUsername(APP_CONFIG.admin.worldUsername);
+  const wallet = String(profile?.walletAddress || "").trim().toLowerCase();
+  const username = normalizeUsername(profile?.username);
+
+  if (configuredWallet && wallet && wallet === configuredWallet) {
+    return true;
+  }
+
+  if (configuredUsername && username && username === configuredUsername) {
+    return true;
+  }
+
+  return false;
+}
 
 function normalizePhone(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
@@ -89,7 +110,24 @@ export function getUsers() {
 }
 
 export function getCurrentUser() {
-  return readStorage(STORAGE_KEYS.currentUser, null);
+  const currentUser = readStorage(STORAGE_KEYS.currentUser, null);
+
+  if (!currentUser) {
+    return null;
+  }
+
+  if (currentUser.isAdmin || !isConfiguredWorldAdmin(currentUser)) {
+    return currentUser;
+  }
+
+  const nextUser = { ...currentUser, isAdmin: true };
+  const nextUsers = getUsers().map((user) =>
+    user.id === currentUser.id ? { ...user, isAdmin: true } : user,
+  );
+
+  writeStorage(STORAGE_KEYS.users, upsertSeedAdmin(nextUsers));
+  writeStorage(STORAGE_KEYS.currentUser, nextUser);
+  return nextUser;
 }
 
 export function findUserByUsername(username) {
@@ -207,6 +245,7 @@ export function loginAdmin({ phone, password }) {
 export function loginWithWorldApp(profile, changes = {}) {
   const users = getUsers();
   const existingUser = findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
+  const isWorldAdmin = isConfiguredWorldAdmin(profile) || existingUser?.isAdmin;
   const user = {
     id: existingUser?.id || crypto.randomUUID(),
     fullName: profile.fullName || profile.username || "World App user",
@@ -221,7 +260,7 @@ export function loginWithWorldApp(profile, changes = {}) {
     firstAccessVerified: existingUser?.firstAccessVerified || false,
     firstAccessVerifiedAt: existingUser?.firstAccessVerifiedAt || null,
     firstAccessVerificationLevel: existingUser?.firstAccessVerificationLevel || "",
-    isAdmin: existingUser?.isAdmin || false,
+    isAdmin: isWorldAdmin,
     createdAt: existingUser?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...changes,

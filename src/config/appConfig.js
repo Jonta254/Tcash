@@ -6,6 +6,11 @@ export const APP_CONFIG = {
   appName: "TMpesa",
   repoName: "WorldTMpesa",
   worldAppId: RESOLVED_WORLD_APP_ID,
+  admin: {
+    worldWalletAddress: "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc",
+    worldUsername: "",
+    localPhone: "0795621901",
+  },
   worldChain: {
     rpcUrl: "https://worldchain-mainnet.g.alchemy.com/public",
     chainId: 480,

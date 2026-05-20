@@ -37,7 +37,7 @@ function AppShell() {
     let active = true;
 
     const checkNotifications = async () => {
-      if (!user || user.isAdmin || !worldApp.isInstalled) {
+      if (!user || !worldApp.isInstalled) {
         return;
       }
 
@@ -113,17 +113,15 @@ function AppShell() {
               <span aria-hidden="true">{isLightTheme ? "☾" : "☀"}</span>
             </button>
 
-            {!user?.isAdmin ? (
-              <NavLink to="/profile" className="profile-launch-button">
-                <span className="profile-launch-avatar" aria-hidden="true">
-                  {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
-                </span>
-                <span className="profile-launch-copy">
-                  <strong>{user?.username ? `@${user.username}` : "Profile"}</strong>
-                  <small>Account</small>
-                </span>
-              </NavLink>
-            ) : null}
+            <NavLink to="/profile" className="profile-launch-button">
+              <span className="profile-launch-avatar" aria-hidden="true">
+                {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
+              </span>
+              <span className="profile-launch-copy">
+                <strong>{user?.username ? `@${user.username}` : "Profile"}</strong>
+                <small>{user?.isAdmin ? "Admin profile" : "Account"}</small>
+              </span>
+            </NavLink>
 
             <button type="button" className="button-ghost topbar-logout" onClick={handleLogout}>
               Exit
@@ -135,7 +133,9 @@ function AppShell() {
           <span>{hasWorldSession ? "World account connected" : "Open in World App for wallet payments"}</span>
           <span>
             {user?.isAdmin
-              ? "Operator session"
+              ? user?.username
+                ? `@${user.username} • Admin`
+                : "Admin session"
               : user?.username
                 ? `@${user.username}`
                 : user?.phone || "TMpesa session"}
@@ -147,25 +147,23 @@ function AppShell() {
           ) : null}
         </div>
 
-        {!user?.isAdmin ? (
-          <nav className="tab-bar" aria-label="Primary">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) => `tab-link tab-link-${item.tone}${isActive ? " active" : ""}`}
-              >
-                <span className="tab-link-shell">
-                  <span className="tab-icon" aria-hidden="true">
-                    {item.glyph}
-                  </span>
-                  <span className="tab-label">{item.label}</span>
+        <nav className="tab-bar" aria-label="Primary">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) => `tab-link tab-link-${item.tone}${isActive ? " active" : ""}`}
+            >
+              <span className="tab-link-shell">
+                <span className="tab-icon" aria-hidden="true">
+                  {item.glyph}
                 </span>
-              </NavLink>
-            ))}
-          </nav>
-        ) : null}
+                <span className="tab-label">{item.label}</span>
+              </span>
+            </NavLink>
+          ))}
+        </nav>
 
         <Outlet />
 
