@@ -305,7 +305,7 @@ button {
 
 :root[data-theme="light"] .auth-gate-card {
   background:
-    linear-gradient(145deg, rgba(255, 250, 241, 0.98), rgba(242, 247, 253, 0.96)),
+    linear-gradient(145deg, rgba(255, 252, 247, 0.99), rgba(239, 245, 252, 0.98)),
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.12), transparent 42%),
     radial-gradient(circle at bottom left, rgba(154, 231, 255, 0.08), transparent 42%);
   border-color: rgba(191, 138, 33, 0.2);
@@ -327,7 +327,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-gate-copy h3 {
-  color: #1b2c47;
+  color: #152844;
 }
 
 .auth-gate-copy p {
@@ -348,8 +348,9 @@ button {
 }
 
 :root[data-theme="light"] .auth-gate-tile {
-  background: rgba(255, 255, 255, 0.68);
-  border-color: rgba(191, 138, 33, 0.16);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(245, 249, 255, 0.92));
+  border-color: rgba(136, 150, 182, 0.18);
 }
 
 .auth-gate-tile strong {
@@ -358,7 +359,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-gate-tile strong {
-  color: #1f2d45;
+  color: #162846;
 }
 
 .auth-gate-tile span {
@@ -366,6 +367,10 @@ button {
   margin-top: 4px;
   color: var(--muted);
   font-size: 0.93rem;
+}
+
+:root[data-theme="light"] .auth-gate-tile span {
+  color: #55657f;
 }
 
 .auth-mini-flow {
@@ -384,7 +389,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-mini-flow div {
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.84);
   border-color: rgba(136, 150, 182, 0.18);
 }
 
@@ -436,7 +441,8 @@ button {
 }
 
 :root[data-theme="light"] .auth-benefit-chip {
-  background: rgba(255, 255, 255, 0.68);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(241, 246, 253, 0.9));
   border-color: rgba(136, 150, 182, 0.18);
 }
 
@@ -447,6 +453,12 @@ button {
 
 :root[data-theme="light"] .auth-benefit-chip strong {
   color: #162846;
+}
+
+:root[data-theme="light"] .auth-inline-note {
+  background: rgba(49, 94, 251, 0.08);
+  border: 1px solid rgba(49, 94, 251, 0.14);
+  color: #284163;
 }
 
 .launch-card {

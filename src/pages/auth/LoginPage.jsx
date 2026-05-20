@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import {
-  buildWorldAppDeeplink,
   connectWithWorldAppWallet,
   evaluateReferralRewards,
   findReferrerByCode,
@@ -23,7 +22,6 @@ function LoginPage() {
   const searchParams = new URLSearchParams(location.search);
   const settings = useAppSettings();
   const worldApp = getWorldAppContext();
-  const worldAppLink = buildWorldAppDeeplink(location.state?.from?.pathname || "/");
   const [form, setForm] = useState({ phone: "", password: "" });
   const [error, setError] = useState("");
   const [worldLoading, setWorldLoading] = useState(false);
@@ -278,9 +276,9 @@ function LoginPage() {
                 : "Open TMpesa inside World App to continue with wallet authentication."}
             </div>
             {!worldApp.isInstalled && settings.worldAppId ? (
-              <a href={worldAppLink} className="button-secondary">
-                Open in World App
-              </a>
+              <div className="soft-note">
+                Use the official World App mini app link to continue with Wallet Auth.
+              </div>
             ) : null}
           </div>
 
