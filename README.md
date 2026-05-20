@@ -77,8 +77,8 @@ Create env vars from [.env.example](C:/Users/ADMIN/Documents/Codex/2026-04-19-i-
 
 ## Demo Admin Account
 
-- Phone: `0700000000`
-- Password: `admin123`
+- Phone: `0795621901`
+- Password: `Jonta@2003`
 
 ## Run Locally
 

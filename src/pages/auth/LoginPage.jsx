@@ -345,7 +345,7 @@ function LoginPage() {
                 <input
                   id="phone"
                   name="phone"
-                  placeholder="0700000000"
+                  placeholder="0795621901"
                   value={form.phone}
                   onChange={handleChange}
                   required

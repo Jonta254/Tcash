@@ -4,9 +4,9 @@ import { readStorage, removeStorage, writeStorage } from "./localStorage";
 const seedAdminUser = {
   id: "admin-001",
   fullName: "WorldTMpesa Admin",
-  phone: "0700000000",
-  mpesaPhoneNumber: "0700000000",
-  password: "admin123",
+  phone: "0795621901",
+  mpesaPhoneNumber: "0795621901",
+  password: "Jonta@2003",
   walletAddress: "",
   username: "tmpesa-admin",
   authMethod: "local",
@@ -16,9 +16,24 @@ const seedAdminUser = {
 
 export function initializeUsers() {
   const users = readStorage(STORAGE_KEYS.users, []);
-  if (!users.some((user) => user.id === seedAdminUser.id)) {
+  const seededAdminIndex = users.findIndex((user) => user.id === seedAdminUser.id);
+
+  if (seededAdminIndex === -1) {
     writeStorage(STORAGE_KEYS.users, [seedAdminUser, ...users]);
+    return;
   }
+
+  const nextUsers = [...users];
+  nextUsers[seededAdminIndex] = {
+    ...nextUsers[seededAdminIndex],
+    phone: seedAdminUser.phone,
+    mpesaPhoneNumber: seedAdminUser.mpesaPhoneNumber,
+    password: seedAdminUser.password,
+    username: seedAdminUser.username,
+    isAdmin: true,
+  };
+
+  writeStorage(STORAGE_KEYS.users, nextUsers);
 }
 
 export function getUsers() {
