@@ -14,13 +14,19 @@ const seedAdminUser = {
   createdAt: new Date().toISOString(),
 };
 
-export function initializeUsers() {
-  const users = readStorage(STORAGE_KEYS.users, []);
+function normalizePhone(phone) {
+  return String(phone || "").trim();
+}
+
+function normalizePassword(password) {
+  return String(password || "").trim();
+}
+
+function upsertSeedAdmin(users) {
   const seededAdminIndex = users.findIndex((user) => user.id === seedAdminUser.id);
 
   if (seededAdminIndex === -1) {
-    writeStorage(STORAGE_KEYS.users, [seedAdminUser, ...users]);
-    return;
+    return [seedAdminUser, ...users];
   }
 
   const nextUsers = [...users];
@@ -33,7 +39,26 @@ export function initializeUsers() {
     isAdmin: true,
   };
 
+  return nextUsers;
+}
+
+export function initializeUsers() {
+  const users = readStorage(STORAGE_KEYS.users, []);
+  const nextUsers = upsertSeedAdmin(users);
   writeStorage(STORAGE_KEYS.users, nextUsers);
+
+  const currentUser = getCurrentUser();
+
+  if (currentUser?.id === seedAdminUser.id) {
+    writeStorage(STORAGE_KEYS.currentUser, {
+      ...currentUser,
+      phone: seedAdminUser.phone,
+      mpesaPhoneNumber: seedAdminUser.mpesaPhoneNumber,
+      password: seedAdminUser.password,
+      username: seedAdminUser.username,
+      isAdmin: true,
+    });
+  }
 }
 
 export function getUsers() {
@@ -107,7 +132,26 @@ export function signupUser(payload) {
 }
 
 export function loginUser({ phone, password }) {
-  const user = getUsers().find((entry) => entry.phone === phone && entry.password === password);
+  const normalizedPhone = normalizePhone(phone);
+  const normalizedPassword = normalizePassword(password);
+  const users = upsertSeedAdmin(getUsers());
+
+  writeStorage(STORAGE_KEYS.users, users);
+
+  const user = users.find(
+    (entry) =>
+      normalizePhone(entry.phone) === normalizedPhone &&
+      normalizePassword(entry.password) === normalizedPassword,
+  );
+
+  if (
+    !user &&
+    normalizedPhone === seedAdminUser.phone &&
+    normalizedPassword === seedAdminUser.password
+  ) {
+    writeStorage(STORAGE_KEYS.currentUser, seedAdminUser);
+    return seedAdminUser;
+  }
 
   if (!user) {
     throw new Error("Invalid phone number or password.");
