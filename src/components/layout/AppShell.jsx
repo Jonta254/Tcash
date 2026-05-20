@@ -101,6 +101,7 @@ function AppShell() {
               <small>{hasWorldSession ? "Settlement wallet connected" : "Kenya settlement wallet"}</small>
             </div>
           </div>
+
           <div className="topbar-actions">
             <button
               type="button"
@@ -111,15 +112,19 @@ function AppShell() {
               <span className="theme-toggle-orb" aria-hidden="true" />
               <span aria-hidden="true">{isLightTheme ? "☾" : "☀"}</span>
             </button>
-            <NavLink to="/profile" className="profile-launch-button">
-              <span className="profile-launch-avatar" aria-hidden="true">
-                {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
-              </span>
-              <span className="profile-launch-copy">
-                <strong>{user?.username ? `@${user.username}` : "Profile"}</strong>
-                <small>Account</small>
-              </span>
-            </NavLink>
+
+            {!user?.isAdmin ? (
+              <NavLink to="/profile" className="profile-launch-button">
+                <span className="profile-launch-avatar" aria-hidden="true">
+                  {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
+                </span>
+                <span className="profile-launch-copy">
+                  <strong>{user?.username ? `@${user.username}` : "Profile"}</strong>
+                  <small>Account</small>
+                </span>
+              </NavLink>
+            ) : null}
+
             <button type="button" className="button-ghost topbar-logout" onClick={handleLogout}>
               Exit
             </button>
@@ -128,7 +133,13 @@ function AppShell() {
 
         <div className="context-strip context-strip-compact">
           <span>{hasWorldSession ? "World account connected" : "Open in World App for wallet payments"}</span>
-          <span>{user?.username ? `@${user.username}` : user?.phone || "TMpesa session"}</span>
+          <span>
+            {user?.isAdmin
+              ? "Operator session"
+              : user?.username
+                ? `@${user.username}`
+                : user?.phone || "TMpesa session"}
+          </span>
           {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
             <a href={worldAppLink} className="text-link">
               Open in World App
@@ -136,23 +147,25 @@ function AppShell() {
           ) : null}
         </div>
 
-        <nav className="tab-bar" aria-label="Primary">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) => `tab-link tab-link-${item.tone}${isActive ? " active" : ""}`}
-            >
-              <span className="tab-link-shell">
-                <span className="tab-icon" aria-hidden="true">
-                  {item.glyph}
+        {!user?.isAdmin ? (
+          <nav className="tab-bar" aria-label="Primary">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) => `tab-link tab-link-${item.tone}${isActive ? " active" : ""}`}
+              >
+                <span className="tab-link-shell">
+                  <span className="tab-icon" aria-hidden="true">
+                    {item.glyph}
+                  </span>
+                  <span className="tab-label">{item.label}</span>
                 </span>
-                <span className="tab-label">{item.label}</span>
-              </span>
-            </NavLink>
-          ))}
-        </nav>
+              </NavLink>
+            ))}
+          </nav>
+        ) : null}
 
         <Outlet />
 
@@ -167,7 +180,9 @@ function AppShell() {
               >
                 ×
               </button>
-              <div className="notification-prompt-icon" aria-hidden="true">✦</div>
+              <div className="notification-prompt-icon" aria-hidden="true">
+                ✦
+              </div>
               <div className="stack">
                 <span className="brand-kicker">World notifications</span>
                 <h3>Stay updated on every TMpesa order</h3>

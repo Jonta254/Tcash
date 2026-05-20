@@ -37,6 +37,21 @@ function LoginPage() {
   const targetPath = location.state?.from?.pathname || "/";
   const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
 
+  const getPostLoginPath = (user) => {
+    if (!user) {
+      return targetPath;
+    }
+
+    if (user.isAdmin) {
+      const requestedPath = location.state?.from?.pathname;
+      return requestedPath === "/admin" || requestedPath === "/tmpesa-admin"
+        ? requestedPath
+        : "/tmpesa-admin";
+    }
+
+    return !isUserAccessVerified(user) ? "/" : targetPath;
+  };
+
   const finalizeSessionRedirect = () => {
     const currentUser = getCurrentUser();
 
@@ -55,15 +70,15 @@ function LoginPage() {
       return;
     }
 
-    navigate(targetPath, { replace: true });
+    const nextPath = getPostLoginPath(currentUser);
+
+    navigate(nextPath, { replace: true });
 
     window.setTimeout(() => {
       const latestUser = getCurrentUser();
 
       if (latestUser && window.location.pathname === "/login") {
-        window.location.replace(
-          !latestUser.isAdmin && !isUserAccessVerified(latestUser) ? "/" : targetPath,
-        );
+        window.location.replace(getPostLoginPath(latestUser));
       }
     }, 120);
   };
@@ -72,10 +87,7 @@ function LoginPage() {
     const currentUser = getCurrentUser();
 
     if (currentUser) {
-      navigate(
-        !currentUser.isAdmin && !isUserAccessVerified(currentUser) ? "/" : targetPath,
-        { replace: true },
-      );
+      navigate(getPostLoginPath(currentUser), { replace: true });
     }
   }, [navigate, targetPath]);
 
