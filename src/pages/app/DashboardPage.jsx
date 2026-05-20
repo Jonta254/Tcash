@@ -33,6 +33,7 @@ function DashboardPage() {
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [referralRefreshKey, setReferralRefreshKey] = useState(0);
   const exchangeRates = useExchangeRates();
+  const showReferralCard = !user?.isAdmin;
   const deskRates = useMemo(
     () => ({
       WLD: Math.max(0, Number(exchangeRates.WLD || 0) - Number(getFeePerCoin("WLD") || 0)),
@@ -327,7 +328,7 @@ function DashboardPage() {
         </div>
       </section>
 
-      <section className="market-board-grid">
+      <section className="content-grid home-content-grid">
         <article className="market-panel">
           <div className="split">
             <span className="brand-kicker">Rates preview</span>
@@ -335,112 +336,116 @@ function DashboardPage() {
           </div>
           <div className="market-token-list">
             <div className="market-token-card">
-              <span>WLD</span>
+              <span>WLD desk rate</span>
               <strong>KES {deskRates.WLD.toLocaleString()}</strong>
               <small>per 1 WLD</small>
             </div>
             <div className="market-token-card">
-              <span>USDC</span>
+              <span>USDC desk rate</span>
               <strong>KES {deskRates.USDC.toLocaleString()}</strong>
               <small>per 1 USDC</small>
             </div>
           </div>
           <div className="soft-note">Fees are already reflected in the displayed TMpesa desk quote.</div>
         </article>
-      </section>
 
-      {!user?.isAdmin ? (
-        <section className="panel stack compact-referral-card">
-          <div className="split">
-            <div>
-              <span className="brand-kicker">Referral</span>
-              <h3>Invite and earn</h3>
-              <p className="muted">
-                Share your link. Reach 6 activated users for KES 100 and 10 for KES 150.
-              </p>
-            </div>
-            <span className="status-pill paid">{referralSummary.code}</span>
-          </div>
-          <div className="compact-referral-metrics">
-            <div className="compact-referral-metric">
-              <span>Activated</span>
-              <strong>{referralSummary.activatedUsers}</strong>
-            </div>
-            <div className="compact-referral-metric">
-              <span>Referred</span>
-              <strong>{referralSummary.referredUsers}</strong>
-            </div>
-            <div className="compact-referral-metric">
-              <span>Claimable</span>
-              <strong>
+        <div className="stack home-side-stack">
+          {showReferralCard ? (
+            <section className="panel stack compact-referral-card">
+              <div className="split">
+                <div>
+                  <span className="brand-kicker">Referral</span>
+                  <h3>Invite and earn</h3>
+                  <p className="muted">
+                    Share your link. Reach 6 activated users for KES 100 and 10 for KES 150.
+                  </p>
+                </div>
+                <span className="status-pill paid">{referralSummary.code}</span>
+              </div>
+              <div className="compact-referral-metrics">
+                <div className="compact-referral-metric">
+                  <span>Activated</span>
+                  <strong>{referralSummary.activatedUsers}</strong>
+                </div>
+                <div className="compact-referral-metric">
+                  <span>Referred</span>
+                  <strong>{referralSummary.referredUsers}</strong>
+                </div>
+                <div className="compact-referral-metric">
+                  <span>Claimable</span>
+                  <strong>
+                    {referralSummary.pendingMilestones.length
+                      ? referralSummary.pendingMilestones
+                          .map((milestone) => `KES ${milestone.rewardKes}`)
+                          .join(", ")
+                      : "None"}
+                  </strong>
+                </div>
+              </div>
+              <div className="button-row compact-actions">
+                <button type="button" className="button-secondary" onClick={handleShareReferral}>
+                  Share Invite
+                </button>
+                <Link to="/profile" className="button-ghost">
+                  Open referral center
+                </Link>
+              </div>
+              <div className="soft-note">
                 {referralSummary.pendingMilestones.length
-                  ? referralSummary.pendingMilestones.map((milestone) => `KES ${milestone.rewardKes}`).join(", ")
-                  : "None"}
-              </strong>
-            </div>
-          </div>
-          <div className="button-row compact-actions">
-            <button type="button" className="button-secondary" onClick={handleShareReferral}>
-              Share Invite
-            </button>
-            <Link to="/profile" className="button-ghost">
-              Open referral center
-            </Link>
-          </div>
-          <div className="soft-note">
-            {referralSummary.pendingMilestones.length
-              ? `Reward unlocked. Open Profile to claim ${referralSummary.pendingMilestones
-                  .map((milestone) => `KES ${milestone.rewardKes}`)
-                  .join(" and ")} to your saved M-Pesa number.`
-              : "Keep sharing your TMpesa invite. Rewards unlock after referred users complete trades."}
-          </div>
-        </section>
-      ) : null}
+                  ? `Reward unlocked. Open Profile to claim ${referralSummary.pendingMilestones
+                      .map((milestone) => `KES ${milestone.rewardKes}`)
+                      .join(" and ")} to your saved M-Pesa number.`
+                  : "Keep sharing your TMpesa invite. Rewards unlock after referred users complete trades."}
+              </div>
+            </section>
+          ) : null}
 
-      <section className="support-footer support-footer-compact support-footer-emphasis">
-        <div className="support-footer-copy">
-          <span className="brand-kicker">Support</span>
-          <strong>Payment delay or account help</strong>
-          <p>Email support or open WhatsApp for urgent payout follow-up.</p>
+          <section className="support-footer support-footer-compact support-footer-emphasis">
+            <div className="support-footer-copy">
+              <span className="brand-kicker">Support</span>
+              <strong>Payment delay or account help</strong>
+              <p>Email support or open WhatsApp for urgent payout follow-up.</p>
+            </div>
+            <div className="button-row compact-actions support-footer-actions">
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() =>
+                  openSupportEmail({
+                    subject: "TMpesa support request",
+                    body: [
+                      "Hello TMpesa support,",
+                      "",
+                      "I need help with my account or order.",
+                      "",
+                      `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                    ].join("\n"),
+                  })
+                }
+              >
+                Email Support
+              </button>
+              <button
+                type="button"
+                className="button-ghost"
+                onClick={() =>
+                  openWhatsAppSupport({
+                    message: [
+                      "Hello TMpesa support,",
+                      "",
+                      "My payment or settlement is delayed and I need assistance.",
+                      "",
+                      `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                    ].join("\n"),
+                  })
+                }
+              >
+                Payment Delay
+              </button>
+            </div>
+            <Link to="/support" className="text-link support-footer-link">Open support center</Link>
+          </section>
         </div>
-        <div className="button-row compact-actions support-footer-actions">
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() =>
-              openSupportEmail({
-                subject: "TMpesa support request",
-                body: [
-                  "Hello TMpesa support,",
-                  "",
-                  "I need help with my account or order.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
-              })
-            }
-          >
-            Email Support
-          </button>
-          <button
-            type="button"
-            className="button-ghost"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: [
-                  "Hello TMpesa support,",
-                  "",
-                  "My payment or settlement is delayed and I need assistance.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
-              })
-            }
-          >
-            Payment Delay
-          </button>
-        </div>
-        <Link to="/support" className="text-link support-footer-link">Open support center</Link>
       </section>
     </div>
   );

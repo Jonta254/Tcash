@@ -2066,6 +2066,12 @@ button:disabled {
   gap: 16px;
 }
 
+.home-content-grid,
+.home-side-stack {
+  display: grid;
+  gap: 16px;
+}
+
 .home-trade-panel {
   display: grid;
   gap: 14px;
@@ -2102,6 +2108,10 @@ button:disabled {
 
 .compact-top-row h2 {
   margin: 0 0 6px;
+}
+
+.compact-top-row .muted {
+  max-width: 420px;
 }
 
 .home-balance-hero {
@@ -2993,6 +3003,11 @@ button:disabled {
 
   .content-grid {
     grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    align-items: start;
+  }
+
+  .home-content-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
     align-items: start;
   }
 
