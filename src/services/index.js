@@ -5,6 +5,7 @@ export {
   getCurrentUser,
   initializeUsers,
   isUserAccessVerified,
+  loginAdmin,
   loginUser,
   loginWithWorldApp,
   logoutUser,

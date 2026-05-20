@@ -56,6 +56,15 @@ function upsertSeedAdmin(users) {
   return nextUsers;
 }
 
+function getAdminPhoneAliases() {
+  return new Set([
+    seedAdminUser.phone,
+    normalizePhone(seedAdminUser.phone),
+    normalizePhone(`+254${seedAdminUser.phone.slice(1)}`),
+    normalizePhone(seedAdminUser.phone.slice(1)),
+  ]);
+}
+
 export function initializeUsers() {
   const users = readStorage(STORAGE_KEYS.users, []);
   const nextUsers = upsertSeedAdmin(users);
@@ -149,12 +158,7 @@ export function loginUser({ phone, password }) {
   const normalizedPhone = normalizePhone(phone);
   const normalizedPassword = normalizePassword(password);
   const users = upsertSeedAdmin(getUsers());
-  const adminPhoneAliases = new Set([
-    seedAdminUser.phone,
-    normalizePhone(seedAdminUser.phone),
-    normalizePhone(`+254${seedAdminUser.phone.slice(1)}`),
-    normalizePhone(seedAdminUser.phone.slice(1)),
-  ]);
+  const adminPhoneAliases = getAdminPhoneAliases();
 
   writeStorage(STORAGE_KEYS.users, users);
 
@@ -179,6 +183,25 @@ export function loginUser({ phone, password }) {
 
   writeStorage(STORAGE_KEYS.currentUser, user);
   return user;
+}
+
+export function loginAdmin({ phone, password }) {
+  const normalizedPhone = normalizePhone(phone);
+  const normalizedPassword = normalizePassword(password);
+  const adminPhoneAliases = getAdminPhoneAliases();
+
+  const isValidAdmin =
+    adminPhoneAliases.has(normalizedPhone) &&
+    normalizedPassword === normalizePassword(seedAdminUser.password);
+
+  if (!isValidAdmin) {
+    throw new Error("Invalid admin phone number or password.");
+  }
+
+  const nextUsers = upsertSeedAdmin(getUsers());
+  writeStorage(STORAGE_KEYS.users, nextUsers);
+  writeStorage(STORAGE_KEYS.currentUser, seedAdminUser);
+  return seedAdminUser;
 }
 
 export function loginWithWorldApp(profile, changes = {}) {

@@ -12,6 +12,7 @@ import {
   getWorldAppContext,
   getWorldNotificationPermissionState,
   isUserAccessVerified,
+  loginAdmin,
   loginUser,
   loginWithWorldApp,
   notifyAdminReferralEvent,
@@ -123,7 +124,7 @@ function LoginPage() {
     setError("");
 
     try {
-      loginUser(form);
+      loginAdmin(form);
       finalizeSessionRedirect();
     } catch (err) {
       setError(err.message);
