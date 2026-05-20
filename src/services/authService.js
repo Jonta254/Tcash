@@ -15,7 +15,21 @@ const seedAdminUser = {
 };
 
 function normalizePhone(phone) {
-  return String(phone || "").trim();
+  const digits = String(phone || "").replace(/\D/g, "");
+
+  if (!digits) {
+    return "";
+  }
+
+  if (digits.startsWith("254") && digits.length === 12) {
+    return `0${digits.slice(3)}`;
+  }
+
+  if (digits.length === 9) {
+    return `0${digits}`;
+  }
+
+  return digits;
 }
 
 function normalizePassword(password) {
@@ -135,6 +149,12 @@ export function loginUser({ phone, password }) {
   const normalizedPhone = normalizePhone(phone);
   const normalizedPassword = normalizePassword(password);
   const users = upsertSeedAdmin(getUsers());
+  const adminPhoneAliases = new Set([
+    seedAdminUser.phone,
+    normalizePhone(seedAdminUser.phone),
+    normalizePhone(`+254${seedAdminUser.phone.slice(1)}`),
+    normalizePhone(seedAdminUser.phone.slice(1)),
+  ]);
 
   writeStorage(STORAGE_KEYS.users, users);
 
@@ -146,7 +166,7 @@ export function loginUser({ phone, password }) {
 
   if (
     !user &&
-    normalizedPhone === seedAdminUser.phone &&
+    adminPhoneAliases.has(normalizedPhone) &&
     normalizedPassword === seedAdminUser.password
   ) {
     writeStorage(STORAGE_KEYS.currentUser, seedAdminUser);
