@@ -350,6 +350,25 @@ function DashboardPage() {
         </article>
 
         <div className="stack home-side-stack">
+          <section className="panel stack compact-referral-card">
+            <div className="split">
+              <div>
+                <span className="brand-kicker">Account</span>
+                <h3>Open your profile</h3>
+                <p className="muted">
+                  Update your payout number, manage referrals, check notifications, and open
+                  support from one place.
+                </p>
+              </div>
+              <span className="status-pill completed">Profile</span>
+            </div>
+            <div className="button-row compact-actions">
+              <Link to="/profile" className="button">
+                Open Account
+              </Link>
+            </div>
+          </section>
+
           {showReferralCard ? (
             <section className="panel stack compact-referral-card">
               <div className="split">

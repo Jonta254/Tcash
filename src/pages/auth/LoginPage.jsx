@@ -10,12 +10,10 @@ import {
   findUserByWalletAddress,
   getCurrentUser,
   getWorldAppContext,
-  getWorldNotificationPermissionState,
   isUserAccessVerified,
   loginAdmin,
   loginWithWorldApp,
   notifyAdminReferralEvent,
-  requestWorldNotificationPermission,
   waitForWorldHumanVerification,
 } from "../../services";
 
@@ -31,9 +29,6 @@ function LoginPage() {
   const [worldLoading, setWorldLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState("");
   const [authStage, setAuthStage] = useState("idle");
-  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
-  const [notificationPromptLoading, setNotificationPromptLoading] = useState(false);
-  const [notificationPromptError, setNotificationPromptError] = useState("");
   const targetPath = location.state?.from?.pathname || "/";
   const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
 
@@ -88,28 +83,6 @@ function LoginPage() {
       navigate(getPostLoginPath(currentUser), { replace: true });
     }
   }, [navigate, targetPath]);
-
-  useEffect(() => {
-    let active = true;
-
-    const checkNotifications = async () => {
-      if (!worldApp.isInstalled) {
-        return;
-      }
-
-      const permissionState = await getWorldNotificationPermissionState();
-
-      if (active && !permissionState.granted) {
-        setShowNotificationPrompt(true);
-      }
-    };
-
-    checkNotifications();
-
-    return () => {
-      active = false;
-    };
-  }, [worldApp.isInstalled]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -192,27 +165,6 @@ function LoginPage() {
       setAuthStage("idle");
       setAuthStatus("");
       setWorldLoading(false);
-    }
-  };
-
-  const handleEnableNotifications = async () => {
-    setNotificationPromptError("");
-    setNotificationPromptLoading(true);
-
-    try {
-      const permissionState = await requestWorldNotificationPermission();
-
-      if (!permissionState.granted) {
-        throw new Error("World notification permission was not granted.");
-      }
-
-      setShowNotificationPrompt(false);
-    } catch (err) {
-      setNotificationPromptError(
-        err instanceof Error ? err.message : "TMpesa could not enable notifications.",
-      );
-    } finally {
-      setNotificationPromptLoading(false);
     }
   };
 
@@ -382,49 +334,6 @@ function LoginPage() {
           </details>
         </section>
 
-        {showNotificationPrompt ? (
-          <div className="notification-prompt-overlay" role="dialog" aria-modal="true">
-            <div className="notification-prompt-card">
-              <button
-                type="button"
-                className="notification-prompt-close"
-                onClick={() => setShowNotificationPrompt(false)}
-                aria-label="Close notification prompt"
-              >
-                x
-              </button>
-              <div className="notification-prompt-icon" aria-hidden="true">
-                *
-              </div>
-              <div className="stack">
-                <span className="brand-kicker">World notifications</span>
-                <h3>Enable TMpesa alerts</h3>
-                <p className="muted">
-                  Turn on notifications to receive a World alert when your order is placed,
-                  reviewed, or completed.
-                </p>
-              </div>
-              {notificationPromptError ? <div className="error">{notificationPromptError}</div> : null}
-              <div className="button-row compact-actions">
-                <button
-                  type="button"
-                  className="button"
-                  onClick={handleEnableNotifications}
-                  disabled={notificationPromptLoading}
-                >
-                  {notificationPromptLoading ? "Opening World permission..." : "Enable notifications"}
-                </button>
-                <button
-                  type="button"
-                  className="button-secondary"
-                  onClick={() => setShowNotificationPrompt(false)}
-                >
-                  Not now
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
     </div>
   );

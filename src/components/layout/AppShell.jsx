@@ -12,6 +12,8 @@ import {
   requestWorldNotificationPermission,
 } from "../../services";
 
+const NOTIFICATION_PROMPT_SESSION_KEY = "worldtmpesa_notification_prompt_shown";
+
 const navItems = [
   { to: "/", label: "Home", glyph: "◈", tone: "home" },
   { to: "/wallet", label: "Wallet", glyph: "◎", tone: "wallet" },
@@ -43,7 +45,12 @@ function AppShell() {
 
       const permissionState = await getWorldNotificationPermissionState();
 
-      if (active && !permissionState.granted) {
+      if (
+        active &&
+        !permissionState.granted &&
+        window.sessionStorage.getItem(NOTIFICATION_PROMPT_SESSION_KEY) !== "true"
+      ) {
+        window.sessionStorage.setItem(NOTIFICATION_PROMPT_SESSION_KEY, "true");
         setShowNotificationPrompt(true);
       }
     };
@@ -56,6 +63,7 @@ function AppShell() {
   }, [user, worldApp.isInstalled, location.pathname]);
 
   const handleLogout = () => {
+    window.sessionStorage.removeItem(NOTIFICATION_PROMPT_SESSION_KEY);
     logoutUser();
     navigate("/login");
   };
