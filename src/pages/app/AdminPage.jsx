@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 import OrderCard from "../../components/orders/OrderCard";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   getAllReferralClaims,
   getAllOrders,
+  loginAdmin,
   getFeePerCoin,
   getCurrentUser,
   openOrderSupportEmail,
@@ -16,15 +16,14 @@ import {
 } from "../../services";
 
 function AdminPage() {
-  const user = getCurrentUser();
+  const [user, setUser] = useState(() => getCurrentUser());
+  const [operatorForm, setOperatorForm] = useState({
+    phone: "0795621901",
+    password: "",
+  });
+  const [operatorError, setOperatorError] = useState("");
   const liveRates = useExchangeRates();
   const liveSettings = useAppSettings();
-
-  // TODO: Replace this temporary admin gate with real authentication before production.
-  if (!user?.isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-
   const [orders, setOrders] = useState(getAllOrders());
   const [referralClaims, setReferralClaims] = useState(getAllReferralClaims());
   const [feeInputs, setFeeInputs] = useState(() => ({
@@ -42,8 +41,109 @@ function AdminPage() {
   const [rateError, setRateError] = useState("");
   const [settingsMessage, setSettingsMessage] = useState("");
   const [settingsError, setSettingsError] = useState("");
-  const payoutQueue = orders.filter((order) => order.type === "sell" && order.status === "paid");
-  const referralQueue = referralClaims.filter((claim) => ["pending", "approved"].includes(claim.status));
+  const payoutQueue = useMemo(
+    () => orders.filter((order) => order.type === "sell" && order.status === "paid"),
+    [orders],
+  );
+  const referralQueue = useMemo(
+    () => referralClaims.filter((claim) => ["pending", "approved"].includes(claim.status)),
+    [referralClaims],
+  );
+
+  // TODO: Replace this temporary admin gate with real authentication before production.
+  if (!user?.isAdmin) {
+    return (
+      <div className="stack">
+        <section className="panel stack task-panel auth-layout-single">
+          <div className="page-section-head">
+            <div>
+              <span className="brand-kicker">Operator access</span>
+              <h2>Open the TMpesa admin desk</h2>
+              <p className="muted">
+                Sign in here to review orders, manage payouts, and update live trading settings.
+              </p>
+            </div>
+          </div>
+
+          <div className="auth-gate-card">
+            <div className="auth-gate-head">
+              <div className="auth-gate-copy">
+                <div>
+                  <span className="brand-kicker">Private operator route</span>
+                  <h3>Admin access stays outside the normal user wallet flow.</h3>
+                </div>
+              </div>
+              <span className="secure-access-trust">Protected desk</span>
+            </div>
+
+            <div className="auth-mini-flow">
+              <div className="active">
+                <span>1</span>
+                <strong>Sign in</strong>
+              </div>
+              <div>
+                <span>2</span>
+                <strong>Review queue</strong>
+              </div>
+              <div>
+                <span>3</span>
+                <strong>Confirm payouts</strong>
+              </div>
+            </div>
+
+            {operatorError ? <div className="error">{operatorError}</div> : null}
+
+            <form
+              className="stack"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setOperatorError("");
+
+                try {
+                  const nextUser = loginAdmin(operatorForm);
+                  setUser(nextUser);
+                  setOperatorForm((current) => ({ ...current, password: "" }));
+                } catch (error) {
+                  setOperatorError(error.message);
+                }
+              }}
+            >
+              <div className="field">
+                <label htmlFor="adminPhoneNumber">Admin phone number</label>
+                <input
+                  id="adminPhoneNumber"
+                  value={operatorForm.phone}
+                  onChange={(event) =>
+                    setOperatorForm((current) => ({ ...current, phone: event.target.value }))
+                  }
+                  placeholder="0795621901"
+                  autoComplete="username"
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="adminPassword">Admin password</label>
+                <input
+                  id="adminPassword"
+                  type="password"
+                  value={operatorForm.password}
+                  onChange={(event) =>
+                    setOperatorForm((current) => ({ ...current, password: event.target.value }))
+                  }
+                  placeholder="Enter operator password"
+                  autoComplete="current-password"
+                />
+              </div>
+
+              <button type="submit" className="button">
+                Open Admin
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   const handleStatusUpdate = (orderId, status) => {
     updateOrder(orderId, { status });
