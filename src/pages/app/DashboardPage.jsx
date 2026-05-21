@@ -39,6 +39,7 @@ function DashboardPage() {
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
   const [referralMessage, setReferralMessage] = useState("");
   const [referralError, setReferralError] = useState("");
+  const [showReferralLink, setShowReferralLink] = useState(false);
   const liveRates = useExchangeRates();
 
   const needsFirstAccessVerification =
@@ -210,6 +211,7 @@ function DashboardPage() {
         url: referralSummary.appLink,
       });
       setReferralSummary(markReferralShared(user));
+      setShowReferralLink(true);
       setReferralMessage("Invite link ready. Share TMpesa with new users using your code.");
     } catch (error) {
       setReferralError(error instanceof Error ? error.message : "Unable to open the TMpesa invite link.");
@@ -222,6 +224,7 @@ function DashboardPage() {
 
     try {
       await navigator.clipboard.writeText(referralSummary.appLink);
+      setShowReferralLink(true);
       setReferralMessage("Referral link copied. Share it with new users to grow your TMpesa rewards.");
     } catch {
       setReferralError("TMpesa could not copy the invite link on this device.");
@@ -401,13 +404,19 @@ function DashboardPage() {
           <span className="status-pill paid">{referralSummary.code}</span>
         </div>
         <p className="muted compact-referral-copy">
-          Share your TMpesa link. Rewards unlock when referred users become active traders.
+          Share your TMpesa invite. Rewards unlock when referred users become active traders.
         </p>
         {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
-        <div className="referral-link-row">
-          <code>{referralSummary.appLink}</code>
-        </div>
+        {showReferralLink ? (
+          <div className="referral-link-row">
+            <code>{referralSummary.appLink}</code>
+          </div>
+        ) : (
+          <div className="referral-link-placeholder">
+            The TMpesa invite link stays hidden until you share or copy it.
+          </div>
+        )}
         <div className="referral-milestone-grid">
           {referralSummary.rewardMilestones.map((milestone) => (
             <div key={milestone.users} className="referral-mini-card">

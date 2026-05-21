@@ -13,6 +13,7 @@ import {
 } from "../../services";
 
 const NOTIFICATION_PROMPT_SESSION_KEY = "worldtmpesa_notification_prompt_shown";
+const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
 
 const navItems = [
   { to: "/", label: "Home", glyph: "\u25C8", tone: "home" },
@@ -43,15 +44,24 @@ function AppShell() {
         return;
       }
 
+      if (window.localStorage.getItem(NOTIFICATION_ALLOWED_STORAGE_KEY) === "true") {
+        return;
+      }
+
       const permissionState = await getWorldNotificationPermissionState();
 
       if (
         active &&
+        permissionState.available &&
         !permissionState.granted &&
         window.sessionStorage.getItem(NOTIFICATION_PROMPT_SESSION_KEY) !== "true"
       ) {
         window.sessionStorage.setItem(NOTIFICATION_PROMPT_SESSION_KEY, "true");
         setShowNotificationPrompt(true);
+      }
+
+      if (active && permissionState.granted) {
+        window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
       }
     };
 
@@ -79,6 +89,7 @@ function AppShell() {
         throw new Error("World notification permission was not granted.");
       }
 
+      window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
       setShowNotificationPrompt(false);
     } catch (error) {
       setNotificationPromptError(

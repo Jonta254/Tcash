@@ -30,6 +30,7 @@ function BuyPage() {
     currentOrder,
     error,
     setError,
+    exchangeRate,
     kesAmount,
     buyRateKes,
     buyKesMin,
@@ -75,10 +76,10 @@ function BuyPage() {
             <h2>Pay with M-Pesa and receive crypto</h2>
             <p className="muted">Enter the KES amount, review the quote, then return with your M-Pesa code.</p>
           </div>
-          <div className="mini-metrics">
+            <div className="mini-metrics">
             <div>
-              <span>Live rate</span>
-              <strong>{formatKES(buyRateKes)}</strong>
+              <span>Live market</span>
+              <strong>{formatKES(exchangeRate)}</strong>
             </div>
             <div>
               <span>Asset</span>

@@ -8,6 +8,7 @@ import {
   verifyHighValueOrder,
 } from "./backendService";
 
+const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
 const TOKEN_DECIMALS = {
   WLD: 18,
   USDC: 6,
@@ -289,13 +290,27 @@ export async function getWorldNotificationPermissionState() {
   try {
     const { data } = await runMiniKitCommand("getPermissions");
 
+    const granted = permissionGranted(data, "notifications");
+
+    if (granted && typeof window !== "undefined") {
+      window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+    }
+
     return {
-      granted: permissionGranted(data, "notifications"),
+      granted,
       available: true,
       permissions: data?.permissions || data || {},
     };
   } catch {
-    return { granted: false, available: false, permissions: {} };
+    const grantedFromStorage =
+      typeof window !== "undefined" &&
+      window.localStorage.getItem(NOTIFICATION_ALLOWED_STORAGE_KEY) === "true";
+
+    return {
+      granted: grantedFromStorage,
+      available: grantedFromStorage,
+      permissions: {},
+    };
   }
 }
 
@@ -314,8 +329,14 @@ export async function requestWorldNotificationPermission() {
     permission: "notifications",
   });
 
+  const granted = permissionGranted(data, "notifications");
+
+  if (granted && typeof window !== "undefined") {
+    window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+  }
+
   return {
-    granted: permissionGranted(data, "notifications"),
+    granted,
     available: true,
     permissions: data,
   };

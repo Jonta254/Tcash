@@ -1,3 +1,5 @@
+import { updateExchangeRates } from "./settingsService";
+
 export async function fetchWorldMarketRates() {
   const response = await fetch("/api/world-prices").catch(() => {
     throw new Error("TMpesa could not load live market prices.");
@@ -16,10 +18,20 @@ export async function fetchWorldMarketRates() {
     throw new Error("TMpesa received an incomplete live market quote.");
   }
 
+  const rates = {
+    WLD: wldRate,
+    USDC: usdcRate,
+  };
+
+  try {
+    updateExchangeRates(rates);
+  } catch {
+    // Keep the live response even if local persistence fails.
+  }
+
   return {
     rates: {
-      WLD: wldRate,
-      USDC: usdcRate,
+      ...rates,
     },
     source: payload?.source || "world-official-public-prices",
     fetchedAt: payload?.fetchedAt || null,
