@@ -299,8 +299,8 @@ function DashboardPage() {
         <div className="home-wallet-head">
           <div>
             <span className="brand-kicker">TMpesa</span>
-            <h2>Wallet overview</h2>
-            <small>{user?.walletAddress ? "Live wallet balance and market read" : "Open in World App to connect"}</small>
+            <h2>Wallet</h2>
+            <small>{user?.walletAddress ? "Live balance and market price" : "Open in World App to connect"}</small>
           </div>
           <div className="home-wallet-actions">
             <span className={`status-pill ${user?.walletAddress ? "completed" : "pending"}`}>
@@ -412,11 +412,7 @@ function DashboardPage() {
           <div className="referral-link-row">
             <code>{referralSummary.appLink}</code>
           </div>
-        ) : (
-          <div className="referral-link-placeholder">
-            The TMpesa invite link stays hidden until you share or copy it.
-          </div>
-        )}
+        ) : null}
         <div className="referral-milestone-grid">
           {referralSummary.rewardMilestones.map((milestone) => (
             <div key={milestone.users} className="referral-mini-card">

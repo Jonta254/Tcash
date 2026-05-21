@@ -42,7 +42,6 @@ function SellPage() {
     kesAmount,
     grossKesAmount,
     exchangeRate,
-    sellRateKes,
     sellMinKesEquivalent,
     sellMinAssetAmount,
     placeOrder,
@@ -234,10 +233,6 @@ function SellPage() {
               </span>
             </div>
 
-            <div className="amount-line">
-              <span>Rate</span>
-              <strong>{formatKES(sellRateKes)}</strong>
-            </div>
             <div className="amount-line">
               <span>You send</span>
               <strong>{cryptoAmount || "0"} {asset}</strong>

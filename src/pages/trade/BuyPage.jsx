@@ -32,7 +32,6 @@ function BuyPage() {
     setError,
     exchangeRate,
     kesAmount,
-    buyRateKes,
     buyKesMin,
     buyKesMax,
     placeOrder,
@@ -142,10 +141,6 @@ function BuyPage() {
               </div>
             ) : null}
 
-            <div className="amount-line">
-              <span>Rate</span>
-              <strong>{formatKES(buyRateKes)}</strong>
-            </div>
             <div className="amount-line">
               <span>You will receive</span>
               <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
