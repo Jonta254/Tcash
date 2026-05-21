@@ -8,9 +8,12 @@ import {
   formatKES,
   getCurrentUser,
   getOrdersForCurrentUser,
+  getReferralSummary,
   getWorldWalletPortfolio,
   isUserAccessVerified,
+  markReferralShared,
   openSupportEmail,
+  shareMiniAppInvite,
   openWhatsAppSupport,
   requestWorldVerification,
   updateCurrentUserProfile,
@@ -33,6 +36,9 @@ function DashboardPage() {
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+  const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
+  const [referralMessage, setReferralMessage] = useState("");
+  const [referralError, setReferralError] = useState("");
   const liveRates = useExchangeRates();
 
   const needsFirstAccessVerification =
@@ -191,6 +197,35 @@ function DashboardPage() {
 
   const handleRefreshWallet = () => {
     setWalletRefreshKey((value) => value + 1);
+  };
+
+  const handleShareInvite = async () => {
+    setReferralError("");
+    setReferralMessage("");
+
+    try {
+      await shareMiniAppInvite({
+        title: "Join TMpesa",
+        text: `Use my TMpesa invite code ${referralSummary.code} to join the World mini app and trade WLD or USDC with M-Pesa settlement.`,
+        url: referralSummary.appLink,
+      });
+      setReferralSummary(markReferralShared(user));
+      setReferralMessage("Invite link ready. Share TMpesa with new users using your code.");
+    } catch (error) {
+      setReferralError(error instanceof Error ? error.message : "Unable to open the TMpesa invite link.");
+    }
+  };
+
+  const handleCopyInvite = async () => {
+    setReferralError("");
+    setReferralMessage("");
+
+    try {
+      await navigator.clipboard.writeText(referralSummary.appLink);
+      setReferralMessage("Referral link copied. Share it with new users to grow your TMpesa rewards.");
+    } catch {
+      setReferralError("TMpesa could not copy the invite link on this device.");
+    }
   };
 
   const balanceLabel = useMemo(() => {
@@ -354,6 +389,40 @@ function DashboardPage() {
             <strong>Support</strong>
             <span>Get help fast.</span>
           </Link>
+        </div>
+      </section>
+
+      <section className="panel stack home-referral-panel">
+        <div className="split compact-panel-head">
+          <div>
+            <span className="brand-kicker">Referral</span>
+            <h3>Invite friends to TMpesa</h3>
+          </div>
+          <span className="status-pill paid">{referralSummary.code}</span>
+        </div>
+        <p className="muted compact-referral-copy">
+          Share your TMpesa link. Rewards unlock when referred users become active traders.
+        </p>
+        {referralMessage ? <div className="notice">{referralMessage}</div> : null}
+        {referralError ? <div className="error">{referralError}</div> : null}
+        <div className="referral-link-row">
+          <code>{referralSummary.appLink}</code>
+        </div>
+        <div className="referral-milestone-grid">
+          {referralSummary.rewardMilestones.map((milestone) => (
+            <div key={milestone.users} className="referral-mini-card">
+              <span>{milestone.users} users</span>
+              <strong>{formatKES(milestone.rewardKes)}</strong>
+            </div>
+          ))}
+        </div>
+        <div className="button-row compact-actions">
+          <button type="button" className="button" onClick={handleShareInvite}>
+            Share invite
+          </button>
+          <button type="button" className="button-secondary" onClick={handleCopyInvite}>
+            Copy link
+          </button>
         </div>
       </section>
 

@@ -50,7 +50,7 @@ function TradePage() {
         <div className="trade-toggle trade-toggle-premium">
           <button
             type="button"
-            className={`trade-toggle-button${activeTab === "buy" ? " active" : ""}`}
+            className={`trade-toggle-button trade-toggle-button-buy${activeTab === "buy" ? " active" : ""}`}
             onClick={() => switchTab("buy")}
           >
             <span className="trade-toggle-label">Buy</span>
@@ -58,7 +58,7 @@ function TradePage() {
           </button>
           <button
             type="button"
-            className={`trade-toggle-button${activeTab === "sell" ? " active" : ""}`}
+            className={`trade-toggle-button trade-toggle-button-sell${activeTab === "sell" ? " active" : ""}`}
             onClick={() => switchTab("sell")}
           >
             <span className="trade-toggle-label">Sell</span>

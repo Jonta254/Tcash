@@ -287,8 +287,8 @@ function ProfilePage() {
             <span className="brand-kicker">Referral center</span>
             <h3>Invite new World users to TMpesa</h3>
             <p className="muted">
-              Share TMpesa using native World mini app sharing so referral growth and reward claims
-              stay attached to the same TMpesa account.
+              Share your TMpesa link, track active traders, and claim referral rewards when a
+              milestone is unlocked.
             </p>
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
