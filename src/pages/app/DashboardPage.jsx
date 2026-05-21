@@ -23,7 +23,9 @@ function DashboardPage() {
   const navigate = useNavigate();
   const initialUser = getCurrentUser();
   const [user, setUser] = useState(initialUser);
-  const [profilePhone, setProfilePhone] = useState(initialUser?.mpesaPhoneNumber || initialUser?.phone || "");
+  const [profilePhone, setProfilePhone] = useState(
+    initialUser?.mpesaPhoneNumber || initialUser?.phone || "",
+  );
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
   const [verificationError, setVerificationError] = useState("");
@@ -55,13 +57,10 @@ function DashboardPage() {
   );
 
   const walletBoard = useMemo(() => {
-    const assets = walletPortfolio.assets.map((assetEntry) => {
-      const marketPriceKes = Number(liveRates[assetEntry.symbol] || 0);
-      return {
-        ...assetEntry,
-        marketPriceKes,
-      };
-    });
+    const assets = walletPortfolio.assets.map((assetEntry) => ({
+      ...assetEntry,
+      marketPriceKes: Number(liveRates[assetEntry.symbol] || 0),
+    }));
 
     return {
       assets,
@@ -162,6 +161,7 @@ function DashboardPage() {
         signal: `first-access:${user.walletAddress.toLowerCase()}`,
         verificationLevel: "device",
       });
+
       const nextUser = updateCurrentUserProfile({
         firstAccessVerified: true,
         firstAccessVerifiedAt: new Date().toISOString(),
@@ -173,7 +173,9 @@ function DashboardPage() {
       navigate(nextPath && nextPath !== "/" ? nextPath : "/", { replace: true });
     } catch (error) {
       setVerificationError(
-        error instanceof Error ? error.message : "TMpesa could not complete your first-access verification.",
+        error instanceof Error
+          ? error.message
+          : "TMpesa could not complete your first-access verification.",
       );
     } finally {
       setVerificationLoading(false);
@@ -266,7 +268,7 @@ function DashboardPage() {
               aria-label="Refresh wallet balances and prices"
               title="Refresh wallet balances and prices"
             >
-              ↻
+              {"\u21BB"}
             </button>
           </div>
         </div>
@@ -283,11 +285,15 @@ function DashboardPage() {
           <div className="home-asset-rows">
             <div className="asset-row">
               <span>WLD</span>
-              <strong>{walletBoard.wld ? formatCryptoAmount(walletBoard.wld.formattedBalance) : "0"}</strong>
+              <strong>
+                {walletBoard.wld ? formatCryptoAmount(walletBoard.wld.formattedBalance) : "0"}
+              </strong>
             </div>
             <div className="asset-row">
               <span>USDC</span>
-              <strong>{walletBoard.usdc ? formatCryptoAmount(walletBoard.usdc.formattedBalance) : "0"}</strong>
+              <strong>
+                {walletBoard.usdc ? formatCryptoAmount(walletBoard.usdc.formattedBalance) : "0"}
+              </strong>
             </div>
           </div>
         </div>
@@ -365,7 +371,9 @@ function DashboardPage() {
             {recentActivity.map((order) => (
               <div key={order.id} className="recent-activity-item">
                 <div>
-                  <strong>{order.type === "buy" ? "Buy" : "Sell"} {order.asset}</strong>
+                  <strong>
+                    {order.type === "buy" ? "Buy" : "Sell"} {order.asset}
+                  </strong>
                   <small>{new Date(order.createdAt).toLocaleDateString()}</small>
                 </div>
                 <div>
