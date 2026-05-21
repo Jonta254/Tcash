@@ -15,10 +15,10 @@ import {
 const NOTIFICATION_PROMPT_SESSION_KEY = "worldtmpesa_notification_prompt_shown";
 
 const navItems = [
-  { to: "/", label: "Home", glyph: "◈", tone: "home" },
-  { to: "/wallet", label: "Wallet", glyph: "◎", tone: "wallet" },
-  { to: "/trade", label: "Trade", glyph: "⇄", tone: "trade" },
-  { to: "/orders", label: "Orders", glyph: "◷", tone: "orders" },
+  { to: "/", label: "Home", glyph: "\u25C8", tone: "home" },
+  { to: "/wallet", label: "Wallet", glyph: "\u25CE", tone: "wallet" },
+  { to: "/trade", label: "Trade", glyph: "\u21C4", tone: "trade" },
+  { to: "/orders", label: "History", glyph: "\u25F7", tone: "orders" },
 ];
 
 function AppShell() {
@@ -106,7 +106,7 @@ function AppShell() {
             </div>
             <div className="brand-headline">
               <h1>{APP_CONFIG.appName}</h1>
-              <small>{hasWorldSession ? "Settlement wallet connected" : "Kenya settlement wallet"}</small>
+              <small>{hasWorldSession ? "Settlement wallet" : "Kenya settlement wallet"}</small>
             </div>
           </div>
 
@@ -118,7 +118,7 @@ function AppShell() {
               aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
             >
               <span className="theme-toggle-orb" aria-hidden="true" />
-              <span aria-hidden="true">{isLightTheme ? "☾" : "☀"}</span>
+              <span aria-hidden="true">{isLightTheme ? "\u263E" : "\u2600"}</span>
             </button>
 
             <NavLink to="/profile" className="profile-launch-button">
@@ -127,7 +127,7 @@ function AppShell() {
               </span>
               <span className="profile-launch-copy">
                 <strong>Account</strong>
-                <small>{user?.username ? `@${user.username}` : user?.isAdmin ? "Admin" : "Profile"}</small>
+                <small>{user?.username ? `@${user.username}` : "Profile"}</small>
               </span>
             </NavLink>
 
@@ -138,8 +138,8 @@ function AppShell() {
         </header>
 
         <div className="context-strip context-strip-compact">
-          <span>{hasWorldSession ? "World account connected" : "Open in World App for wallet payments"}</span>
-          <span>{user?.isAdmin ? "Admin enabled" : "TMpesa secure session"}</span>
+          <span>{hasWorldSession ? "Wallet connected" : "Open in World App for wallet payments"}</span>
+          <span>TMpesa secure session</span>
           {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
             <a href={worldAppLink} className="text-link">
               Open in World App
@@ -176,10 +176,10 @@ function AppShell() {
                 onClick={() => setShowNotificationPrompt(false)}
                 aria-label="Close notification prompt"
               >
-                ×
+                {"\u00D7"}
               </button>
               <div className="notification-prompt-icon" aria-hidden="true">
-                ✦
+                {"\u2726"}
               </div>
               <div className="stack">
                 <span className="brand-kicker">World notifications</span>

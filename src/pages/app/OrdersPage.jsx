@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import OrderCard from "../../components/orders/OrderCard";
 import {
@@ -11,6 +11,7 @@ import {
 
 function OrdersPage() {
   const [orders, setOrders] = useState(getOrdersForCurrentUser());
+  const [activeTab, setActiveTab] = useState("all");
   const [paymentCodes, setPaymentCodes] = useState({});
   const [message, setMessage] = useState("");
   const user = getCurrentUser();
@@ -32,49 +33,58 @@ function OrdersPage() {
     setMessage("Payment code submitted. Admin will confirm and send your crypto.");
   };
 
-  const pendingCount = orders.filter((order) => order.status === "pending").length;
-  const paidCount = orders.filter((order) => order.status === "paid").length;
-  const completedCount = orders.filter((order) => order.status === "completed").length;
+  const filteredOrders = useMemo(() => {
+    if (activeTab === "pending") {
+      return orders.filter((order) => order.status === "pending" || order.status === "paid");
+    }
+
+    if (activeTab === "completed") {
+      return orders.filter((order) => order.status === "completed");
+    }
+
+    if (activeTab === "failed") {
+      return orders.filter((order) => order.status === "rejected" || order.status === "cancelled");
+    }
+
+    return orders;
+  }, [activeTab, orders]);
 
   return (
     <div className="stack">
       <section className="panel stack task-panel">
-        <div className="page-section-head">
+        <div className="page-section-head compact-page-head">
           <div>
-            <span className="brand-kicker">Orders</span>
-            <h2>Order history and tracking</h2>
-            <p className="muted">
-              Track every buy and sell order here. Orders move from pending to manual review and
-              then completed after admin confirmation.
-            </p>
-          </div>
-          <div className="mini-metrics">
-            <div>
-              <span>Pending</span>
-              <strong>{pendingCount}</strong>
-            </div>
-            <div>
-              <span>Reviewing</span>
-              <strong>{paidCount}</strong>
-            </div>
-            <div>
-              <span>Completed</span>
-              <strong>{completedCount}</strong>
-            </div>
+            <span className="brand-kicker">History</span>
+            <h2>Transaction history</h2>
+            <p className="muted">Your buy and sell orders appear here.</p>
           </div>
         </div>
         {message ? <div className="notice">{message}</div> : null}
-        {user?.isAdmin ? <Link to="/admin" className="button-secondary">Open Admin</Link> : null}
+        <div className="history-tab-row">
+          {[
+            { id: "all", label: "All" },
+            { id: "pending", label: "Pending" },
+            { id: "completed", label: "Completed" },
+            { id: "failed", label: "Failed" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`history-tab${activeTab === tab.id ? " active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        {user?.isAdmin ? <Link to="/tmpesa-admin" className="button-secondary">Open Admin</Link> : null}
       </section>
 
       {orders.length ? (
         <section className="support-footer support-footer-emphasis">
           <div>
-            <strong>Delayed payment or payout?</strong>
-            <p>
-              Open WhatsApp support right away. TMpesa will prefill a delay message so you can send
-              it quickly after placing an order.
-            </p>
+            <strong>Payment delay support</strong>
+            <p>Open WhatsApp for urgent help with a delayed payment or payout.</p>
           </div>
           <button
             type="button"
@@ -96,9 +106,9 @@ function OrdersPage() {
         </section>
       ) : null}
 
-      {orders.length ? (
+      {filteredOrders.length ? (
         <section className="order-grid">
-          {orders.map((order) => (
+          {filteredOrders.map((order) => (
             <OrderCard key={order.id} order={order}>
               {order.type === "buy" && order.status === "pending" ? (
                 <div className="inline-payment-form">
@@ -141,14 +151,14 @@ function OrdersPage() {
         </section>
       ) : (
         <section className="panel empty-state stack">
-          <h3>No orders yet</h3>
-          <p className="muted">Your buy and sell requests will appear here once you place one.</p>
+          <h3>No transactions yet</h3>
+          <p className="muted">Your buy and sell history will appear here.</p>
           <div className="action-grid">
-            <Link to="/trade?tab=sell" className="button">
-              Start Sell Order
+            <Link to="/trade?tab=buy" className="button">
+              Buy crypto
             </Link>
-            <Link to="/trade?tab=buy" className="button-secondary">
-              Start Buy Order
+            <Link to="/trade?tab=sell" className="button-secondary">
+              Sell crypto
             </Link>
           </div>
         </section>

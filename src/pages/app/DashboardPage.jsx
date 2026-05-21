@@ -3,16 +3,17 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   APP_CONFIG,
-  getFeePerCoin,
+  calculateKesWalletBalance,
+  formatCryptoAmount,
+  formatKES,
+  getAssetPricing,
   getCurrentUser,
-  getReferralSummary,
+  getOrdersForCurrentUser,
   getWorldWalletPortfolio,
   isUserAccessVerified,
-  markReferralShared,
   openSupportEmail,
   openWhatsAppSupport,
   requestWorldVerification,
-  shareMiniAppInvite,
   updateCurrentUserProfile,
   waitForWorldHumanVerification,
 } from "../../services";
@@ -31,42 +32,44 @@ function DashboardPage() {
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
-  const [referralRefreshKey, setReferralRefreshKey] = useState(0);
-  const exchangeRates = useExchangeRates();
-  const showReferralCard = !user?.isAdmin;
-  const deskRates = useMemo(
-    () => ({
-      WLD: Math.max(0, Number(exchangeRates.WLD || 0) - Number(getFeePerCoin("WLD") || 0)),
-      USDC: Math.max(0, Number(exchangeRates.USDC || 0) - Number(getFeePerCoin("USDC") || 0)),
-    }),
-    [exchangeRates],
-  );
-  const referralSummary = useMemo(() => getReferralSummary(user), [user, referralRefreshKey]);
+  const liveRates = useExchangeRates();
+
   const needsFirstAccessVerification =
     user?.authMethod === "world-app" && !user?.isAdmin && !isUserAccessVerified(user);
 
+  const recentActivity = useMemo(
+    () =>
+      getOrdersForCurrentUser()
+        .slice()
+        .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+        .slice(0, 2),
+    [user],
+  );
+
+  const assetPricing = useMemo(
+    () => ({
+      WLD: getAssetPricing("WLD", liveRates),
+      USDC: getAssetPricing("USDC", liveRates),
+    }),
+    [liveRates],
+  );
+
   const walletBoard = useMemo(() => {
     const assets = walletPortfolio.assets.map((assetEntry) => {
-      const marketRate = exchangeRates[assetEntry.symbol] || 0;
-      const balance = Number(assetEntry.formattedBalance || 0);
-      const kesValue = Math.round(balance * marketRate * 100) / 100;
-
+      const marketPriceKes = Number(liveRates[assetEntry.symbol] || 0);
       return {
         ...assetEntry,
-        marketRate,
-        kesValue,
+        marketPriceKes,
       };
     });
 
-    const findAsset = (symbol) => assets.find((entry) => entry.symbol === symbol);
-
     return {
       assets,
-      totalKes: assets.reduce((sum, assetEntry) => sum + Number(assetEntry.kesValue || 0), 0),
-      wld: findAsset("WLD"),
-      usdc: findAsset("USDC"),
+      totalKes: calculateKesWalletBalance(assets, liveRates),
+      wld: assets.find((entry) => entry.symbol === "WLD"),
+      usdc: assets.find((entry) => entry.symbol === "USDC"),
     };
-  }, [exchangeRates, walletPortfolio.assets]);
+  }, [liveRates, walletPortfolio.assets]);
 
   useEffect(() => {
     if (!user?.walletAddress) {
@@ -141,7 +144,7 @@ function DashboardPage() {
 
     const nextUser = updateCurrentUserProfile({ mpesaPhoneNumber: profilePhone.trim() });
     setUser(nextUser);
-    setProfileMessage("Payout phone saved. Sell orders will use this number.");
+    setProfileMessage("Payout number saved.");
   };
 
   const handleFirstAccessVerification = async () => {
@@ -177,17 +180,21 @@ function DashboardPage() {
     }
   };
 
-  const handleShareReferral = async () => {
-    try {
-      await shareMiniAppInvite({
-        title: "Join TMpesa",
-        text: `Join me on TMpesa with my invite code ${referralSummary.code}.`,
-        url: referralSummary.appLink,
-      });
-      markReferralShared(user);
-      setReferralRefreshKey((value) => value + 1);
-    } catch {}
+  const handleRefreshWallet = () => {
+    setWalletRefreshKey((value) => value + 1);
   };
+
+  const balanceLabel = useMemo(() => {
+    if (!user?.walletAddress) {
+      return "Connect wallet to view balance";
+    }
+
+    if (walletLoading) {
+      return "Loading balance...";
+    }
+
+    return formatKES(walletBoard.totalKes);
+  }, [user?.walletAddress, walletBoard.totalKes, walletLoading]);
 
   return (
     <div className="stack">
@@ -199,10 +206,7 @@ function DashboardPage() {
           </div>
           <div>
             <h3>Unlock trading</h3>
-            <p className="muted">
-              Your World sign-in is complete. Finish one human verification before placing buy or
-              sell orders.
-            </p>
+            <p className="muted">Finish one World verification before placing buy or sell orders.</p>
           </div>
           {verificationError ? <div className="error">{verificationError}</div> : null}
           <button
@@ -217,19 +221,20 @@ function DashboardPage() {
       ) : null}
 
       {!user?.isAdmin && !user?.mpesaPhoneNumber ? (
-        <section className="panel stack">
-          <span className="brand-kicker">Payout setup</span>
-          <div>
-            <h3>Add your M-Pesa payout number</h3>
-            <p className="muted">
-              TMpesa uses this number whenever a sell order is reviewed and released in KES. You
-              can change it anytime from Profile.
-            </p>
+        <section className="panel stack compact-setup-panel">
+          <div className="split">
+            <div>
+              <span className="brand-kicker">Payout setup</span>
+              <h3>Save your M-Pesa number</h3>
+            </div>
+            <Link to="/profile" className="text-link">
+              Profile
+            </Link>
           </div>
           {profileError ? <div className="error">{profileError}</div> : null}
           {profileMessage ? <div className="notice">{profileMessage}</div> : null}
           <div className="field">
-            <label htmlFor="profileMpesaPhone">M-Pesa phone number</label>
+            <label htmlFor="profileMpesaPhone">M-Pesa payout number</label>
             <input
               id="profileMpesaPhone"
               value={profilePhone}
@@ -240,230 +245,180 @@ function DashboardPage() {
           <button type="button" className="button" onClick={handleProfileSave}>
             Save payout number
           </button>
-          <Link to="/profile" className="text-link">Manage payout settings</Link>
         </section>
       ) : null}
 
-      <section className="panel home-header-panel">
-        <span className="brand-kicker">World settlement wallet</span>
-        <div className="split compact-top-row">
+      <section className="panel home-wallet-board">
+        <div className="home-wallet-head">
           <div>
-            <h2>{user?.username ? `@${user.username}` : "TMpesa wallet"}</h2>
-            <p className="muted">
-              {user?.walletAddress
-                ? "Wallet connected for live balance, pricing, and settlement."
-                : "Connect your World wallet to start trading."}
-            </p>
+            <span className="brand-kicker">Settlement wallet</span>
+            <h2>TMpesa</h2>
+            <small>{user?.username ? `@${user.username}` : "Wallet connected"}</small>
           </div>
-          <span className={`status-pill ${isUserAccessVerified(user) ? "completed" : "pending"}`}>
-            {isUserAccessVerified(user) ? "Verified" : "Pending"}
-          </span>
+          <div className="home-wallet-actions">
+            <span className={`status-pill ${user?.walletAddress ? "completed" : "pending"}`}>
+              {user?.walletAddress ? "Connected" : "Not connected"}
+            </span>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={handleRefreshWallet}
+              aria-label="Refresh wallet balances and prices"
+              title="Refresh wallet balances and prices"
+            >
+              ↻
+            </button>
+          </div>
+        </div>
+
+        {walletError ? <div className="error">{walletError}</div> : null}
+
+        <div className="home-balance-card">
+          <div className="home-balance-main">
+            <span>Balance in KES</span>
+            <strong>{balanceLabel}</strong>
+            {!user?.walletAddress ? <small>Connect your World wallet to start.</small> : null}
+          </div>
+
+          <div className="home-asset-rows">
+            <div className="asset-row">
+              <span>WLD</span>
+              <strong>{walletBoard.wld ? formatCryptoAmount(walletBoard.wld.formattedBalance) : "0"}</strong>
+            </div>
+            <div className="asset-row">
+              <span>USDC</span>
+              <strong>{walletBoard.usdc ? formatCryptoAmount(walletBoard.usdc.formattedBalance) : "0"}</strong>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="panel stack home-balance-panel">
-        <div className="split">
+      <section className="panel stack home-rates-panel">
+        <div className="split compact-panel-head">
           <div>
-            <span className="brand-kicker">Wallet balance</span>
-            <h3>Estimated total balance</h3>
+            <span className="brand-kicker">Live rates</span>
+            <h3>TMpesa desk price</h3>
           </div>
-          <button
-            type="button"
-            className="button-ghost"
-            onClick={() => setWalletRefreshKey((value) => value + 1)}
-          >
-            {user?.walletAddress ? "Refresh balance" : "Connect wallet"}
-          </button>
+          <small className="market-panel-note">TMpesa fee included</small>
         </div>
-        {walletError ? <div className="error">{walletError}</div> : null}
-        {walletLoading ? <div className="notice">Refreshing wallet balances...</div> : null}
-        <div className="home-balance-hero">
-          <span>Total Balance</span>
-          <strong>KES {walletBoard.totalKes.toLocaleString()}</strong>
-          <small>Live read from your World wallet session</small>
-        </div>
-        <div className="wallet-asset-grid">
-          <div className="wallet-asset-card">
-            <span>Worldcoin</span>
-            <strong>{walletBoard.wld?.formattedBalance || "0"}</strong>
-            <small>WLD</small>
-          </div>
-          <div className="wallet-asset-card">
-            <span>Digital Dollars</span>
-            <strong>{walletBoard.usdc?.formattedBalance || "0"}</strong>
-            <small>USDC</small>
-          </div>
-          <div className="wallet-asset-card">
-            <span>KES equivalent</span>
-            <strong>KES {walletBoard.totalKes.toLocaleString()}</strong>
-            <small>Manual desk preview</small>
-          </div>
+        <div className="rates-board-compact">
+          {Object.values(assetPricing).map((rateCard) => (
+            <div key={rateCard.asset} className="rate-quote-card">
+              <div className="rate-quote-head">
+                <strong>{rateCard.asset}</strong>
+                <small>Live rate</small>
+              </div>
+              <div className="rate-quote-values">
+                <div>
+                  <span>Buy</span>
+                  <strong>{formatKES(rateCard.buyRateKes)}</strong>
+                </div>
+                <div>
+                  <span>Sell</span>
+                  <strong>{formatKES(rateCard.sellRateKes)}</strong>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       <section className="panel stack">
-        <div className="split">
+        <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Quick actions</span>
-            <h3>Start an action quickly</h3>
+            <h3>Start quickly</h3>
           </div>
         </div>
-        <div className="quick-action-grid home-quick-actions">
+        <div className="quick-action-grid home-quick-actions compact-home-actions">
           <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
-            <strong>Buy</strong>
-            <span>Pay with M-Pesa.</span>
+            <strong>Buy &amp; Sell</strong>
+            <span>Trade WLD or USDC.</span>
           </Link>
-          <Link to="/trade?tab=sell" className="quick-action-card quick-action-card-sell">
-            <strong>Sell</strong>
-            <span>Receive KES to M-Pesa.</span>
-          </Link>
-          <Link to="/wallet#receive" className="quick-action-card quick-action-card-orders">
+          <Link to="/wallet#receive" className="quick-action-card quick-action-card-sell">
             <strong>Receive</strong>
-            <span>Copy your receive address.</span>
+            <span>Copy wallet address.</span>
           </Link>
           <Link to="/orders" className="quick-action-card quick-action-card-orders">
-            <strong>Orders</strong>
-            <span>Track your latest activity.</span>
+            <strong>History</strong>
+            <span>Track your orders.</span>
+          </Link>
+          <Link to="/support" className="quick-action-card quick-action-card-orders">
+            <strong>Support</strong>
+            <span>Get help fast.</span>
           </Link>
         </div>
       </section>
 
-      <section className="content-grid home-content-grid">
-        <article className="market-panel">
-          <div className="split">
-            <span className="brand-kicker">Rates preview</span>
-            <span className="market-panel-note">Live World price less TMpesa fee</span>
+      {recentActivity.length ? (
+        <section className="panel stack compact-activity-panel">
+          <div className="split compact-panel-head">
+            <div>
+              <span className="brand-kicker">Recent activity</span>
+              <h3>Latest orders</h3>
+            </div>
+            <Link to="/orders" className="text-link">
+              View history
+            </Link>
           </div>
-          <div className="market-token-list">
-            <div className="market-token-card">
-              <span>WLD desk rate</span>
-              <strong>KES {deskRates.WLD.toLocaleString()}</strong>
-              <small>per 1 WLD</small>
-            </div>
-            <div className="market-token-card">
-              <span>USDC desk rate</span>
-              <strong>KES {deskRates.USDC.toLocaleString()}</strong>
-              <small>per 1 USDC</small>
-            </div>
-          </div>
-          <div className="soft-note">Fees are already reflected in the displayed TMpesa desk quote.</div>
-        </article>
-
-        <div className="stack home-side-stack">
-          <section className="panel stack compact-referral-card">
-            <div className="split">
-              <div>
-                <span className="brand-kicker">Account</span>
-                <h3>Open your profile</h3>
-                <p className="muted">
-                  Update your payout number, manage referrals, check notifications, and open
-                  support from one place.
-                </p>
-              </div>
-              <span className="status-pill completed">Profile</span>
-            </div>
-            <div className="button-row compact-actions">
-              <Link to="/profile" className="button">
-                Open Account
-              </Link>
-            </div>
-          </section>
-
-          {showReferralCard ? (
-            <section className="panel stack compact-referral-card">
-              <div className="split">
+          <div className="recent-activity-list">
+            {recentActivity.map((order) => (
+              <div key={order.id} className="recent-activity-item">
                 <div>
-                  <span className="brand-kicker">Referral</span>
-                  <h3>Invite and earn</h3>
-                  <p className="muted">
-                    Share your link. Reach 6 activated users for KES 100 and 10 for KES 150.
-                  </p>
+                  <strong>{order.type === "buy" ? "Buy" : "Sell"} {order.asset}</strong>
+                  <small>{new Date(order.createdAt).toLocaleDateString()}</small>
                 </div>
-                <span className="status-pill paid">{referralSummary.code}</span>
-              </div>
-              <div className="compact-referral-metrics">
-                <div className="compact-referral-metric">
-                  <span>Activated</span>
-                  <strong>{referralSummary.activatedUsers}</strong>
-                </div>
-                <div className="compact-referral-metric">
-                  <span>Referred</span>
-                  <strong>{referralSummary.referredUsers}</strong>
-                </div>
-                <div className="compact-referral-metric">
-                  <span>Claimable</span>
-                  <strong>
-                    {referralSummary.pendingMilestones.length
-                      ? referralSummary.pendingMilestones
-                          .map((milestone) => `KES ${milestone.rewardKes}`)
-                          .join(", ")
-                      : "None"}
-                  </strong>
+                <div>
+                  <strong>{formatKES(order.kesAmount)}</strong>
+                  <small>{order.status}</small>
                 </div>
               </div>
-              <div className="button-row compact-actions">
-                <button type="button" className="button-secondary" onClick={handleShareReferral}>
-                  Share Invite
-                </button>
-                <Link to="/profile" className="button-ghost">
-                  Open referral center
-                </Link>
-              </div>
-              <div className="soft-note">
-                {referralSummary.pendingMilestones.length
-                  ? `Reward unlocked. Open Profile to claim ${referralSummary.pendingMilestones
-                      .map((milestone) => `KES ${milestone.rewardKes}`)
-                      .join(" and ")} to your saved M-Pesa number.`
-                  : "Keep sharing your TMpesa invite. Rewards unlock after referred users complete trades."}
-              </div>
-            </section>
-          ) : null}
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-          <section className="support-footer support-footer-compact support-footer-emphasis">
-            <div className="support-footer-copy">
-              <span className="brand-kicker">Support</span>
-              <strong>Payment delay or account help</strong>
-              <p>Email support or open WhatsApp for urgent payout follow-up.</p>
-            </div>
-            <div className="button-row compact-actions support-footer-actions">
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={() =>
-                  openSupportEmail({
-                    subject: "TMpesa support request",
-                    body: [
-                      "Hello TMpesa support,",
-                      "",
-                      "I need help with my account or order.",
-                      "",
-                      `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                    ].join("\n"),
-                  })
-                }
-              >
-                Email Support
-              </button>
-              <button
-                type="button"
-                className="button-ghost"
-                onClick={() =>
-                  openWhatsAppSupport({
-                    message: [
-                      "Hello TMpesa support,",
-                      "",
-                      "My payment or settlement is delayed and I need assistance.",
-                      "",
-                      `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                    ].join("\n"),
-                  })
-                }
-              >
-                Payment Delay
-              </button>
-            </div>
-            <Link to="/support" className="text-link support-footer-link">Open support center</Link>
-          </section>
+      <section className="panel compact-support-strip">
+        <div className="compact-support-copy">
+          <strong>Need help?</strong>
+          <small>Payment delay or account support</small>
+        </div>
+        <div className="compact-support-actions">
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() =>
+              openSupportEmail({
+                subject: "TMpesa support request",
+                body: [
+                  "Hello TMpesa support,",
+                  "",
+                  "I need help with my account or order.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Email
+          </button>
+          <button
+            type="button"
+            className="button-ghost"
+            onClick={() =>
+              openWhatsAppSupport({
+                message: [
+                  "Hello TMpesa support,",
+                  "",
+                  "My payment or settlement is delayed and I need assistance.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Delay
+          </button>
         </div>
       </section>
     </div>

@@ -2,6 +2,8 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
   APP_CONFIG,
+  formatCryptoAmount,
+  formatKES,
   getCurrentUser,
   getWorldAppContext,
   isUserAccessVerified,
@@ -29,7 +31,7 @@ function BuyPage() {
     error,
     setError,
     kesAmount,
-    exchangeRate,
+    buyRateKes,
     buyKesMin,
     buyKesMax,
     placeOrder,
@@ -71,16 +73,12 @@ function BuyPage() {
           <div>
             <span className="brand-kicker">Buy WLD/USDC</span>
             <h2>Pay with M-Pesa and receive crypto</h2>
-            <p className="muted">
-              Enter the KES amount you want to pay, review the live crypto quote, then settle with
-              M-Pesa and return with your payment code. TMpesa keeps your World username or wallet
-              attached to the order.
-            </p>
+            <p className="muted">Enter the KES amount, review the quote, then return with your M-Pesa code.</p>
           </div>
           <div className="mini-metrics">
             <div>
-              <span>Current rate</span>
-              <strong>KES {exchangeRate}</strong>
+              <span>Live rate</span>
+              <strong>{formatKES(buyRateKes)}</strong>
             </div>
             <div>
               <span>Asset</span>
@@ -95,10 +93,10 @@ function BuyPage() {
           <div className="stack">
             {currentUser?.walletAddress || currentUser?.username ? (
               <div className="info-box receipt-card">
-                <strong>World destination detected</strong>
-                <span>Admin will use this to send your crypto after M-Pesa confirmation.</span>
+                <strong>Destination ready</strong>
+                <span>Used for crypto delivery after review.</span>
                 {currentUser?.username ? <code>Username: @{currentUser.username}</code> : null}
-                {currentUser?.walletAddress ? <code>Wallet: {currentUser.walletAddress}</code> : null}
+                {currentUser?.walletAddress ? <code>Wallet connected</code> : null}
               </div>
             ) : null}
             <div className="field">
@@ -124,7 +122,7 @@ function BuyPage() {
                 placeholder="600"
               />
               <span className="muted field-hint">
-                Buy orders must stay between KES {buyKesMin.toLocaleString()} and KES {buyKesMax.toLocaleString()} at the live rate.
+                Buy limits: {formatKES(buyKesMin)} to {formatKES(buyKesMax)}.
               </span>
             </div>
 
@@ -144,20 +142,21 @@ function BuyPage() {
             ) : null}
 
             <div className="amount-line">
+              <span>Rate</span>
+              <strong>{formatKES(buyRateKes)}</strong>
+            </div>
+            <div className="amount-line">
               <span>You will receive</span>
-              <strong>{quotedCryptoAmount ? `${quotedCryptoAmount.toFixed(4)} ${asset}` : `0 ${asset}`}</strong>
+              <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
             </div>
             <div className="amount-line">
               <span>You will pay</span>
-              <strong>KES {kesAmount.toLocaleString()}</strong>
+              <strong>{formatKES(kesAmount)}</strong>
             </div>
-            <div className="soft-note">
-              Fees are excluded from the displayed market rate. TMpesa shows the final M-Pesa
-              amount automatically.
-            </div>
+            <div className="soft-note">TMpesa fee included. Manual review required.</div>
             {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput ? (
               <div className="notice">
-                Adjust the KES amount so your final buy total stays between KES {buyKesMin.toLocaleString()} and KES {buyKesMax.toLocaleString()}.
+                Adjust the amount so the final buy total stays between {formatKES(buyKesMin)} and {formatKES(buyKesMax)}.
               </div>
             ) : null}
             {needsOrderVerification ? (
@@ -183,15 +182,15 @@ function BuyPage() {
             <div className="payment-card">
               <span>Pay to till</span>
               <strong>{settings.mpesaPaybillNumber}</strong>
-              <p>KES {currentOrder.kesAmount.toLocaleString()}</p>
+              <p>{formatKES(currentOrder.kesAmount)}</p>
             </div>
-            <div className="soft-note">Fees are excluded from the displayed market rate.</div>
+            <div className="soft-note">TMpesa fee included.</div>
 
             <div className="info-box receipt-card">
               <strong>Crypto delivery destination</strong>
               <span>Admin will send after your M-Pesa code is confirmed.</span>
               {currentOrder.destinationUsername ? <code>@{currentOrder.destinationUsername}</code> : null}
-              {currentOrder.walletAddress ? <code>{currentOrder.walletAddress}</code> : null}
+              {currentOrder.walletAddress ? <code>Wallet connected</code> : null}
             </div>
 
             <div className="notice">
@@ -224,10 +223,9 @@ function BuyPage() {
 
             {step === 3 ? (
               <div className="success-panel">
-                <strong>M-Pesa payment submitted</strong>
-                <p>
-                  The admin will verify your code and send {currentOrder.asset} to your recorded
-                  World destination.
+              <strong>M-Pesa payment submitted</strong>
+              <p>
+                  The admin will verify your code and send {currentOrder.asset} to your recorded destination.
                 </p>
               </div>
             ) : null}
@@ -238,15 +236,11 @@ function BuyPage() {
       <aside className="summary-card stack guide-panel">
         <h3>Buy guide</h3>
         <div className="flow-list">
-          <div><span>1</span><p>Choose the asset and enter the KES amount you want to pay.</p></div>
-          <div><span>2</span><p>TMpesa records your World username or destination wallet.</p></div>
-          <div><span>3</span><p>Pay the shown KES amount to till {settings.mpesaPaybillNumber}.</p></div>
-          <div><span>4</span><p>Submit your M-Pesa code so the admin can release the quoted crypto.</p></div>
+          <div><span>1</span><p>Choose the asset and enter the KES amount.</p></div>
+          <div><span>2</span><p>Pay the shown amount to till {settings.mpesaPaybillNumber}.</p></div>
+          <div><span>3</span><p>Submit your M-Pesa code for review.</p></div>
         </div>
-        <div className="soft-note">
-          If TMpesa detects your World username automatically, that is the preferred destination
-          for delivery.
-        </div>
+        <div className="soft-note">TMpesa fee included. Manual review required.</div>
         <div className="support-card">
           <strong>Need help?</strong>
           <p className="muted">Use Gmail for support questions or WhatsApp for delayed crypto delivery.</p>

@@ -4,6 +4,8 @@ import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
   APP_CONFIG,
   canUseWorldPay,
+  formatCryptoAmount,
+  formatKES,
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
@@ -39,7 +41,7 @@ function SellPage() {
     setError,
     kesAmount,
     grossKesAmount,
-    exchangeRate,
+    sellRateKes,
     sellMinKesEquivalent,
     sellMinAssetAmount,
     placeOrder,
@@ -155,15 +157,12 @@ function SellPage() {
           <div>
             <span className="brand-kicker">Sell WLD/USDC</span>
             <h2>Sell from World App and settle to M-Pesa</h2>
-            <p className="muted">
-              Enter the crypto amount you want to send, review the live KES quote, then complete
-              the World wallet transfer for manual M-Pesa settlement.
-            </p>
+            <p className="muted">Enter the crypto amount, approve the transfer, then receive KES after review.</p>
           </div>
           <div className="mini-metrics">
             <div>
-              <span>Current rate</span>
-              <strong>KES {exchangeRate}</strong>
+              <span>Live rate</span>
+              <strong>{formatKES(sellRateKes)}</strong>
             </div>
             <div>
               <span>Asset</span>
@@ -204,7 +203,7 @@ function SellPage() {
                 placeholder="10"
               />
               <span className="muted field-hint">
-                Minimum sell size is 3 USDC equivalent. Current minimum: {sellMinAssetAmount ? `${sellMinAssetAmount.toFixed(4)} ${asset}` : `live ${asset} equivalent`} .
+                Minimum sell size: {sellMinAssetAmount ? `${formatCryptoAmount(sellMinAssetAmount)} ${asset}` : `live ${asset} equivalent`}.
               </span>
               {selectedAssetBalance ? (
                 <div className="inline-payment-form">
@@ -235,19 +234,20 @@ function SellPage() {
             </div>
 
             <div className="amount-line">
+              <span>Rate</span>
+              <strong>{formatKES(sellRateKes)}</strong>
+            </div>
+            <div className="amount-line">
               <span>You send</span>
               <strong>{cryptoAmount || "0"} {asset}</strong>
             </div>
             <div className="amount-line">
               <span>You will receive</span>
-              <strong>KES {kesAmount.toLocaleString()}</strong>
+              <strong>{formatKES(kesAmount)}</strong>
             </div>
             {walletError ? <div className="error">{walletError}</div> : null}
             {walletLoading ? <div className="notice">Loading your sellable wallet balance...</div> : null}
-            <div className="soft-note">
-              Fees are excluded from the displayed market rate. TMpesa shows your final KES payout
-              automatically.
-            </div>
+            <div className="soft-note">TMpesa fee included. Manual review required.</div>
             {grossKesAmount < sellMinKesEquivalent && cryptoAmount ? (
               <div className="notice">
                 Increase the sell amount to at least the live value of 3 USDC before creating this order.
@@ -297,10 +297,10 @@ function SellPage() {
               <strong>{currentOrder.cryptoAmount} {currentOrder.asset}</strong>
             </div>
             <div className="amount-line">
-              <span>KES payout</span>
-              <strong>KES {currentOrder.kesAmount.toLocaleString()}</strong>
+              <span>You will receive</span>
+              <strong>{formatKES(currentOrder.kesAmount)}</strong>
             </div>
-            <div className="soft-note">Fees are excluded from the displayed market rate.</div>
+            <div className="soft-note">TMpesa fee included.</div>
             <div className="info-box receipt-card">
               <strong>M-Pesa payout destination</strong>
               <span>This number is used when the admin sends your KES settlement.</span>
@@ -365,13 +365,10 @@ function SellPage() {
         <div className="flow-list">
           <div><span>1</span><p>Choose the asset and amount you want to sell.</p></div>
           <div><span>2</span><p>Confirm the M-Pesa number that should receive your KES.</p></div>
-          <div><span>3</span><p>Approve the World transfer or submit the blockchain transaction hash.</p></div>
-          <div><span>4</span><p>Watch the order move from pending to paid to completed.</p></div>
+          <div><span>3</span><p>Approve the transfer or submit the blockchain transaction hash.</p></div>
+          <div><span>4</span><p>Track the order until payout is completed.</p></div>
         </div>
-        <div className="soft-note">
-          TMpesa uses your World username for identity and your saved payout phone for cash
-          settlement.
-        </div>
+        <div className="soft-note">TMpesa fee included. Manual review required.</div>
         <div className="support-card">
           <strong>Need help?</strong>
           <p className="muted">Use Gmail for support questions or WhatsApp for delayed payout follow-up.</p>

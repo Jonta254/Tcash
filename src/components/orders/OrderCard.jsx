@@ -34,6 +34,12 @@ function OrderCard({ order, children }) {
           <span>{isSell ? "KES payout" : "KES to pay"}</span>
           <strong>KES {order.kesAmount.toLocaleString()}</strong>
         </div>
+        <div className="detail-item">
+          <span>Asset amount</span>
+          <strong>
+            {order.cryptoAmount} {order.asset}
+          </strong>
+        </div>
         {order.userLabel ? (
           <div className="detail-item">
             <span>User</span>
@@ -58,7 +64,7 @@ function OrderCard({ order, children }) {
             <strong>{order.paymentReference}</strong>
           </div>
         ) : null}
-        {order.humanVerificationStatus ? (
+        {user?.isAdmin && order.humanVerificationStatus ? (
           <div className="detail-item">
             <span>Human check</span>
             <strong>
@@ -70,12 +76,12 @@ function OrderCard({ order, children }) {
       </div>
 
       <div className="order-meta">
-        {order.userPhone ? <span>Login phone: {order.userPhone}</span> : null}
+        {user?.isAdmin && order.userPhone ? <span>Login phone: {order.userPhone}</span> : null}
         {user?.isAdmin && order.userWalletAddress ? <span>User wallet: {order.userWalletAddress}</span> : null}
-        {order.walletAddress ? <span>Delivery wallet: {order.walletAddress}</span> : null}
-        {order.paymentMethod ? <span>Method: {order.paymentMethod}</span> : null}
-        {order.paymentSummary ? <span>Payment note: {order.paymentSummary}</span> : null}
-        {order.paymentVerificationStatus ? <span>Verification: {order.paymentVerificationStatus}</span> : null}
+        {user?.isAdmin && order.walletAddress ? <span>Delivery wallet: {order.walletAddress}</span> : null}
+        {user?.isAdmin && order.paymentMethod ? <span>Method: {order.paymentMethod}</span> : null}
+        {user?.isAdmin && order.paymentSummary ? <span>Payment note: {order.paymentSummary}</span> : null}
+        {user?.isAdmin && order.paymentVerificationStatus ? <span>Verification: {order.paymentVerificationStatus}</span> : null}
         <span>Created: {formatDate(order.createdAt)}</span>
       </div>
 

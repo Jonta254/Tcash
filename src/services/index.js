@@ -52,6 +52,14 @@ export {
 export { getWorldWalletPortfolio } from "./walletPortfolioService";
 export { fetchWorldMarketRates } from "./marketRateService";
 export {
+  calculateBuyRate,
+  calculateKesWalletBalance,
+  calculateSellRate,
+  formatCryptoAmount,
+  formatKES,
+  getAssetPricing,
+} from "./pricingService";
+export {
   buildWorldAppDeeplink,
   checkWorldHumanVerification,
   canUseWorldPay,

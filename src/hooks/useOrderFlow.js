@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
-import { APP_CONFIG, createOrder, getCurrentUser, updateCurrentUserProfile, updateOrder } from "../services";
+import {
+  APP_CONFIG,
+  calculateBuyRate,
+  calculateSellRate,
+  createOrder,
+  getCurrentUser,
+  updateCurrentUserProfile,
+  updateOrder,
+} from "../services";
 import { useAppSettings } from "./useAppSettings";
 import { useExchangeRate } from "./useExchangeRate";
 
@@ -40,6 +48,15 @@ export function useOrderFlow(type, initialAsset = "WLD") {
 
     return parsedBuyKesAmount / effectiveRate;
   }, [exchangeRate, feePerCoinKes, parsedBuyKesAmount, parsedSellAmount, type]);
+
+  const buyRateKes = useMemo(
+    () => calculateBuyRate(exchangeRate, feePerCoinKes),
+    [exchangeRate, feePerCoinKes],
+  );
+  const sellRateKes = useMemo(
+    () => calculateSellRate(exchangeRate, feePerCoinKes),
+    [exchangeRate, feePerCoinKes],
+  );
 
   const grossKesAmount = useMemo(() => {
     if (type === "buy") {
@@ -202,6 +219,8 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     grossKesAmount,
     feeKesAmount,
     feePerCoinKes,
+    buyRateKes,
+    sellRateKes,
     buyKesMin,
     buyKesMax,
     sellMinKesEquivalent,
