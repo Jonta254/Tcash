@@ -76,9 +76,9 @@ function BuyPage() {
             <h2>Pay with M-Pesa and receive crypto</h2>
             <p className="muted">Enter the KES amount, review the quote, then return with your M-Pesa code.</p>
           </div>
-            <div className="mini-metrics">
+          <div className="mini-metrics">
             <div>
-              <span>Live market</span>
+              <span>Live price</span>
               <strong>{formatKES(exchangeRate)}</strong>
             </div>
             <div>

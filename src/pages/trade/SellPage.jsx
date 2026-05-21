@@ -160,9 +160,9 @@ function SellPage() {
             <h2>Sell from World App and settle to M-Pesa</h2>
             <p className="muted">Enter the crypto amount, approve the transfer, then receive KES after review.</p>
           </div>
-            <div className="mini-metrics">
+          <div className="mini-metrics">
             <div>
-              <span>Live market</span>
+              <span>Live price</span>
               <strong>{formatKES(exchangeRate)}</strong>
             </div>
             <div>

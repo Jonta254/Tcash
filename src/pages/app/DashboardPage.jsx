@@ -347,17 +347,17 @@ function DashboardPage() {
       <section className="panel stack home-rates-panel">
         <div className="split compact-panel-head">
           <div>
-            <span className="brand-kicker">Live rates</span>
-            <h3>WLD and USDC market price</h3>
+            <span className="brand-kicker">Live prices</span>
+            <h3>WLD and USDC price</h3>
           </div>
-          <small className="market-panel-note">Actual market rate in KES</small>
+          <small className="market-panel-note">Official live market price in KES</small>
         </div>
         <div className="rates-board-compact">
           {homeMarketRates.map((rateCard) => (
             <div key={rateCard.asset} className="rate-quote-card rate-quote-card-compact">
               <div className="rate-quote-head">
                 <strong>{rateCard.asset}</strong>
-                <small>Market</small>
+                <small>Live price</small>
               </div>
               <div className="rate-quote-market">
                 <strong>{formatKES(rateCard.priceKes)}</strong>
