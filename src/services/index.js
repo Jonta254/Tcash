@@ -41,9 +41,12 @@ export {
   markReferralShared,
   updateReferralClaim,
 } from "./referralService";
-export { getRatingSummary, saveUserRating } from "./feedbackService";
+export { getRatingSummary, openWorldMiniAppRating, saveUserRating } from "./feedbackService";
 export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./supportService";
 export {
+  clearAdminAlerts,
+  getAdminAlerts,
+  markAdminAlertRead,
   notifyAdminOrderCreated,
   notifyAdminReferralEvent,
   notifyWorldUserOrderCreated,

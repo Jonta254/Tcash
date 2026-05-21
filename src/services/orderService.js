@@ -84,8 +84,8 @@ export function createOrder(payload) {
   };
 
   writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
-  notifyAdminOrderCreated(order);
-  notifyWorldUserOrderCreated(order);
+  void notifyAdminOrderCreated(order).catch(() => null);
+  void notifyWorldUserOrderCreated(order).catch(() => null);
   return order;
 }
 
@@ -105,7 +105,7 @@ export function updateOrder(orderId, changes) {
     previousOrder?.status !== changes.status &&
     ["paid", "completed", "rejected"].includes(changes.status)
   ) {
-    notifyWorldUserOrderStatus(updatedOrder, changes.status);
+    void notifyWorldUserOrderStatus(updatedOrder, changes.status).catch(() => null);
   }
 
   if (
@@ -121,7 +121,7 @@ export function updateOrder(orderId, changes) {
       const rewardState = evaluateReferralRewards(resolvedReferrer);
 
       if (rewardState.unannouncedMilestones.length) {
-        notifyAdminReferralEvent({
+        void notifyAdminReferralEvent({
           eventType: "milestone",
           referralCode: updatedOrder.referredByCode,
           referrerUsername: resolvedReferrer.username || "",
@@ -137,7 +137,7 @@ export function updateOrder(orderId, changes) {
             0,
           ),
           createdAt: new Date().toISOString(),
-        });
+        }).catch(() => null);
         markReferralMilestonesAnnounced(
           updatedOrder.referredByCode,
           rewardState.unannouncedMilestones.map((milestone) => milestone.users),

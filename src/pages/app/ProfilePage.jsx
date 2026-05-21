@@ -13,10 +13,10 @@ import {
   markReferralShared,
   notifyAdminReferralEvent,
   openSupportEmail,
+  openWorldMiniAppRating,
   openWhatsAppSupport,
   openWorldChatInvite,
   requestWorldNotificationPermission,
-  saveUserRating,
   shareMiniAppInvite,
   updateCurrentUserProfile,
 } from "../../services";
@@ -157,13 +157,13 @@ function ProfilePage() {
     }
   };
 
-  const handleRateTmPesa = (rating) => {
+  const handleOpenRating = () => {
     setRatingError("");
 
     try {
-      setRatingSummary(saveUserRating(user, rating));
+      openWorldMiniAppRating();
     } catch (error) {
-      setRatingError(error instanceof Error ? error.message : "Unable to save your rating.");
+      setRatingError(error instanceof Error ? error.message : "Unable to open the TMpesa rating page.");
     }
   };
 
@@ -435,10 +435,10 @@ function ProfilePage() {
         <div className="split">
           <div>
             <span className="brand-kicker">Rate TMpesa</span>
-            <h3>Leave a quick product rating</h3>
+            <h3>Rate the live mini app</h3>
             <p className="muted">
-              There is no official World mini app rating command in the docs yet, so TMpesa keeps
-              an in-app rating pulse and can also open support for deeper feedback.
+              Open the official TMpesa World mini app entry to leave your rating in the live app
+              experience.
             </p>
           </div>
           <span className="status-pill completed">
@@ -446,20 +446,15 @@ function ProfilePage() {
           </span>
         </div>
         {ratingError ? <div className="error">{ratingError}</div> : null}
-        <div className="rating-button-row">
-          {[5, 4, 3, 2, 1].map((rating) => (
-            <button
-              key={rating}
-              type="button"
-              className="button-secondary"
-              onClick={() => handleRateTmPesa(rating)}
-            >
-              {`${rating} Star${rating > 1 ? "s" : ""}`}
-            </button>
-          ))}
+        <div className="button-row compact-actions">
+          <button type="button" className="button" onClick={handleOpenRating}>
+            Rate in World App
+          </button>
         </div>
         <div className="notice">
-          Current pulse: {ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} user ratings.` : "No ratings yet."}
+          {ratingSummary.totalRatings
+            ? `TMpesa pulse: ${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} stored ratings.`
+            : "This opens the official TMpesa World mini app entry for rating and feedback."}
         </div>
       </section>
 

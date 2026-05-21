@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import OrderCard from "../../components/orders/OrderCard";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
+  getAdminAlerts,
   getAllReferralClaims,
   getAllOrders,
   loginAdmin,
+  markAdminAlertRead,
   getFeePerCoin,
   getCurrentUser,
   openOrderSupportEmail,
@@ -25,6 +27,7 @@ function AdminPage() {
   const liveRates = useExchangeRates();
   const liveSettings = useAppSettings();
   const [orders, setOrders] = useState(getAllOrders());
+  const [adminAlerts, setAdminAlerts] = useState(getAdminAlerts());
   const [referralClaims, setReferralClaims] = useState(getAllReferralClaims());
   const [feeInputs, setFeeInputs] = useState(() => ({
     WLD: String(getFeePerCoin("WLD")),
@@ -49,6 +52,27 @@ function AdminPage() {
     () => referralClaims.filter((claim) => ["pending", "approved"].includes(claim.status)),
     [referralClaims],
   );
+  const unreadAlerts = useMemo(
+    () => adminAlerts.filter((alert) => !alert.read),
+    [adminAlerts],
+  );
+
+  useEffect(() => {
+    const syncAdminData = () => {
+      setUser(getCurrentUser());
+      setOrders(getAllOrders());
+      setReferralClaims(getAllReferralClaims());
+      setAdminAlerts(getAdminAlerts());
+    };
+
+    window.addEventListener("focus", syncAdminData);
+    window.addEventListener("storage", syncAdminData);
+
+    return () => {
+      window.removeEventListener("focus", syncAdminData);
+      window.removeEventListener("storage", syncAdminData);
+    };
+  }, []);
 
   // TODO: Replace this temporary admin gate with real authentication before production.
   if (!user?.isAdmin) {
@@ -210,12 +234,51 @@ function AdminPage() {
               <strong>{orders.length}</strong>
             </div>
             <div>
-              <span>Payout queue</span>
-              <strong>{payoutQueue.length}</strong>
+              <span>Unread alerts</span>
+              <strong>{unreadAlerts.length}</strong>
             </div>
           </div>
         </div>
       </section>
+
+      {adminAlerts.length ? (
+        <section className="panel stack task-panel">
+          <div className="split">
+            <div>
+              <span className="brand-kicker">Admin alerts</span>
+              <h3>Order and referral notifications</h3>
+              <p className="muted">
+                TMpesa records admin alerts here and also attempts Gmail and World push delivery when configured.
+              </p>
+            </div>
+            <span className={`status-pill ${unreadAlerts.length ? "pending" : "completed"}`}>
+              {unreadAlerts.length ? `${unreadAlerts.length} unread` : "All seen"}
+            </span>
+          </div>
+          <div className="stack">
+            {adminAlerts.slice(0, 6).map((alert) => (
+              <div key={alert.id} className="info-box stack">
+                <div className="split">
+                  <strong>{alert.title}</strong>
+                  <small>{new Date(alert.createdAt).toLocaleString()}</small>
+                </div>
+                <span className="muted">{alert.message}</span>
+                {!alert.read ? (
+                  <div className="button-row compact-actions">
+                    <button
+                      type="button"
+                      className="button-secondary"
+                      onClick={() => setAdminAlerts(markAdminAlertRead(alert.id))}
+                    >
+                      Mark seen
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="panel stack task-panel">
         <div className="split">

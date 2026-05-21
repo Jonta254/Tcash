@@ -66,6 +66,7 @@ export const STORAGE_KEYS = {
   users: "worldtmpesa_users",
   currentUser: "worldtmpesa_current_user",
   orders: "worldtmpesa_orders",
+  adminAlerts: "worldtmpesa_admin_alerts",
   settings: "worldtmpesa_settings",
   referralStats: "worldtmpesa_referral_stats",
   referralClaims: "worldtmpesa_referral_claims",

@@ -1,9 +1,11 @@
-import { STORAGE_KEYS } from "../config/appConfig";
+import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
 
 export function getRatingSummary() {
   const ratings = readStorage(STORAGE_KEYS.ratings, {});
-  const values = Object.values(ratings).map((entry) => Number(entry?.rating || 0)).filter(Boolean);
+  const values = Object.values(ratings)
+    .map((entry) => Number(entry?.rating || 0))
+    .filter(Boolean);
   const totalRatings = values.length;
   const averageRating = totalRatings
     ? Math.round((values.reduce((sum, value) => sum + value, 0) / totalRatings) * 10) / 10
@@ -34,4 +36,10 @@ export function saveUserRating(user, rating) {
 
   writeStorage(STORAGE_KEYS.ratings, ratings);
   return getRatingSummary();
+}
+
+export function openWorldMiniAppRating() {
+  const ratingUrl = `https://worldcoin.org/mini-app?app_id=${encodeURIComponent(APP_CONFIG.worldAppId)}`;
+  window.location.href = ratingUrl;
+  return { opened: true, url: ratingUrl };
 }
