@@ -1,7 +1,88 @@
+import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser, openSupportEmail, openWhatsAppSupport } from "../../services";
+
+const GUIDE_SECTIONS = [
+  {
+    id: "getting-started",
+    title: "Getting started",
+    summary: "How to begin using TMpesa",
+    points: [
+      "Connect your World wallet first so TMpesa can read your username and wallet session.",
+      "Save your M-Pesa payout number in Profile before placing sell orders or claiming referral rewards.",
+      "Use Home to view your KES balance, live WLD and USDC rates, and quick actions.",
+    ],
+  },
+  {
+    id: "buy-guide",
+    title: "Buy crypto",
+    summary: "Pay M-Pesa and receive WLD or USDC",
+    points: [
+      "Open Trade, choose Buy, and enter the KES amount you want to pay.",
+      "TMpesa shows the live quote with fee included before you submit the order.",
+      "After M-Pesa payment is confirmed, the crypto is sent to your connected World wallet.",
+    ],
+  },
+  {
+    id: "sell-guide",
+    title: "Sell crypto",
+    summary: "Send WLD or USDC and receive KES",
+    points: [
+      "Open Trade, choose Sell, then enter the crypto amount you want to send.",
+      "TMpesa shows the live KES payout quote with fee included before submission.",
+      "After manual review, KES is sent to the M-Pesa number saved on your TMpesa profile.",
+    ],
+  },
+  {
+    id: "delay-help",
+    title: "Payment delay help",
+    summary: "What to do if an order is delayed",
+    points: [
+      "Check the History page first to confirm whether the order is pending, reviewing, or completed.",
+      "Use WhatsApp support for urgent payout or payment follow-up.",
+      "Use email support for account questions, privacy requests, or detailed order help.",
+    ],
+  },
+];
 
 function SupportPage() {
   const user = getCurrentUser();
+  const [openGuideId, setOpenGuideId] = useState("getting-started");
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const hash = window.location.hash.replace("#", "").trim();
+
+    if (hash === "guide") {
+      setOpenGuideId("getting-started");
+    }
+  }, []);
+
+  const supportEmailBody = useMemo(
+    () =>
+      [
+        "Hello TMpesa support,",
+        "",
+        "I need help with my account or order.",
+        "",
+        `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+      ].join("\n"),
+    [user?.username],
+  );
+
+  const whatsappBody = useMemo(
+    () =>
+      [
+        "Hello TMpesa support,",
+        "",
+        "My payment or settlement is delayed and I need assistance.",
+        "",
+        `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+      ].join("\n"),
+    [user?.username],
+  );
 
   return (
     <div className="stack">
@@ -9,12 +90,59 @@ function SupportPage() {
         <div className="profile-hero-head">
           <div>
             <span className="brand-kicker">Support</span>
-            <h2>Support and delay follow-up</h2>
+            <h2>Support and help center</h2>
             <p className="muted">
-              Use email for account questions, or open WhatsApp if a payment or payout needs fast
-              attention.
+              Get quick answers, payment-delay support, and direct contact options from one clean place.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section id="guide" className="panel stack">
+        <div className="split">
+          <div>
+            <span className="brand-kicker">TMpesa guide</span>
+            <h3>Simple answers for every user</h3>
+            <p className="muted">
+              Open a topic below to learn how TMpesa works without reading long instructions.
+            </p>
+          </div>
+          <span className="status-pill completed">Quick help</span>
+        </div>
+
+        <div className="help-guide-list">
+          {GUIDE_SECTIONS.map((section) => {
+            const isOpen = openGuideId === section.id;
+
+            return (
+              <div key={section.id} className={`help-guide-card${isOpen ? " active" : ""}`}>
+                <button
+                  type="button"
+                  className="help-guide-toggle"
+                  onClick={() => setOpenGuideId(isOpen ? "" : section.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span>
+                    <strong>{section.title}</strong>
+                    <small>{section.summary}</small>
+                  </span>
+                  <span className="help-guide-arrow" aria-hidden="true">
+                    {isOpen ? "\u2212" : "+"}
+                  </span>
+                </button>
+
+                {isOpen ? (
+                  <div className="help-guide-answer">
+                    <ul className="help-guide-points">
+                      {section.points.map((point) => (
+                        <li key={point}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -27,13 +155,7 @@ function SupportPage() {
             onClick={() =>
               openSupportEmail({
                 subject: "TMpesa support request",
-                body: [
-                  "Hello TMpesa support,",
-                  "",
-                  "I need help with my account or order.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
+                body: supportEmailBody,
               })
             }
           >
@@ -45,29 +167,13 @@ function SupportPage() {
             className="profile-link-card"
             onClick={() =>
               openWhatsAppSupport({
-                message: [
-                  "Hello TMpesa support,",
-                  "",
-                  "My payment or settlement is delayed and I need assistance.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
+                message: whatsappBody,
               })
             }
           >
             <strong>Payment delay support</strong>
             <span>Open WhatsApp when a payment, payout, or crypto delivery needs quick follow-up.</span>
           </button>
-        </div>
-      </section>
-
-      <section className="panel stack">
-        <span className="brand-kicker">Help guide</span>
-        <div className="flow-list">
-          <div><span>1</span><p>Check your order status from the Orders page first.</p></div>
-          <div><span>2</span><p>If the status is still pending or reviewing, open support with the order details.</p></div>
-          <div><span>3</span><p>Use WhatsApp for urgent payout or payment-delay follow-up.</p></div>
-          <div><span>4</span><p>Use email for account, privacy, or general support requests.</p></div>
         </div>
       </section>
     </div>

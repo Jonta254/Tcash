@@ -381,9 +381,12 @@ function DashboardPage() {
       <section className="panel compact-support-strip">
         <div className="compact-support-copy">
           <strong>Need help?</strong>
-          <small>Payment delay or account support</small>
+          <small>Payment delay, account support, or quick guide</small>
         </div>
         <div className="compact-support-actions">
+          <Link to="/support#guide" className="button-ghost">
+            Guide
+          </Link>
           <button
             type="button"
             className="button-secondary"
