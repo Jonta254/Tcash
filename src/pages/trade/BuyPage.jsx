@@ -82,6 +82,10 @@ function BuyPage() {
               <strong>{formatKES(exchangeRate)}</strong>
             </div>
             <div>
+              <span>TMpesa rate</span>
+              <strong>{formatKES(buyRateKes)}</strong>
+            </div>
+            <div>
               <span>Asset</span>
               <strong>{asset}</strong>
             </div>

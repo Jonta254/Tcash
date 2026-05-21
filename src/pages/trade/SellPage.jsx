@@ -166,6 +166,10 @@ function SellPage() {
               <strong>{formatKES(exchangeRate)}</strong>
             </div>
             <div>
+              <span>TMpesa rate</span>
+              <strong>{formatKES(sellRateKes)}</strong>
+            </div>
+            <div>
               <span>Asset</span>
               <strong>{asset}</strong>
             </div>

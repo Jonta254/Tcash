@@ -4,6 +4,7 @@ import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   APP_CONFIG,
   calculateKesWalletBalance,
+  fetchWorldMarketRates,
   formatCryptoAmount,
   formatKES,
   getCurrentUser,
@@ -36,6 +37,7 @@ function DashboardPage() {
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+  const [marketRefreshError, setMarketRefreshError] = useState("");
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
   const [referralMessage, setReferralMessage] = useState("");
   const [referralError, setReferralError] = useState("");
@@ -196,7 +198,15 @@ function DashboardPage() {
     }
   };
 
-  const handleRefreshWallet = () => {
+  const handleRefreshWallet = async () => {
+    setMarketRefreshError("");
+    try {
+      await fetchWorldMarketRates();
+    } catch (error) {
+      setMarketRefreshError(
+        error instanceof Error ? error.message : "Unable to refresh live market prices.",
+      );
+    }
     setWalletRefreshKey((value) => value + 1);
   };
 
@@ -319,6 +329,7 @@ function DashboardPage() {
         </div>
 
         {walletError ? <div className="error">{walletError}</div> : null}
+        {marketRefreshError ? <div className="error">{marketRefreshError}</div> : null}
 
         <div className="home-balance-card">
           <div className="home-balance-main">
