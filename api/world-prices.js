@@ -26,14 +26,24 @@ export default async function handler(req, res) {
     }
 
     const prices = payload?.result?.prices || {};
+    const wldKes = Number(prices?.WLD?.KES || 0);
+    const usdcKes = Number(prices?.USDC?.KES || 0);
+
+    if (wldKes <= 0 || usdcKes <= 0) {
+      sendJson(res, 502, {
+        success: false,
+        error: "World price source returned an incomplete quote.",
+      });
+      return;
+    }
 
     sendJson(res, 200, {
       success: true,
       prices: {
-        WLD: Number(prices?.WLD?.KES || 0),
-        USDC: Number(prices?.USDC?.KES || 0),
+        WLD: wldKes,
+        USDC: usdcKes,
       },
-      source: "world-public-prices",
+      source: "world-official-public-prices",
       fetchedAt: new Date().toISOString(),
     });
   } catch (error) {

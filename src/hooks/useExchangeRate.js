@@ -30,7 +30,7 @@ export function useExchangeRate(asset = "WLD") {
     };
 
     syncLiveRates();
-    const interval = window.setInterval(syncLiveRates, 60000);
+    const interval = window.setInterval(syncLiveRates, 30000);
     const unsubscribe = subscribeToRateUpdates(() => {
       if (active) {
         setExchangeRates(getExchangeRates());
@@ -72,7 +72,7 @@ export function useExchangeRates() {
     };
 
     syncLiveRates();
-    const interval = window.setInterval(syncLiveRates, 60000);
+    const interval = window.setInterval(syncLiveRates, 30000);
     const unsubscribe = subscribeToRateUpdates(() => {
       if (active) {
         setExchangeRates(getExchangeRates());
