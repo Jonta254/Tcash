@@ -6,7 +6,6 @@ import {
   calculateKesWalletBalance,
   formatCryptoAmount,
   formatKES,
-  getAssetPricing,
   getCurrentUser,
   getOrdersForCurrentUser,
   getWorldWalletPortfolio,
@@ -48,11 +47,19 @@ function DashboardPage() {
     [user],
   );
 
-  const assetPricing = useMemo(
-    () => ({
-      WLD: getAssetPricing("WLD", liveRates),
-      USDC: getAssetPricing("USDC", liveRates),
-    }),
+  const homeMarketRates = useMemo(
+    () => [
+      {
+        asset: "WLD",
+        priceKes:
+          Number(liveRates?.WLD) || Number(APP_CONFIG.defaultSettings.ratesKes?.WLD) || 0,
+      },
+      {
+        asset: "USDC",
+        priceKes:
+          Number(liveRates?.USDC) || Number(APP_CONFIG.defaultSettings.ratesKes?.USDC) || 0,
+      },
+    ],
     [liveRates],
   );
 
@@ -253,9 +260,9 @@ function DashboardPage() {
       <section className="panel home-wallet-board">
         <div className="home-wallet-head">
           <div>
-            <span className="brand-kicker">Settlement wallet</span>
-            <h2>TMpesa</h2>
-            <small>{user?.username ? `@${user.username}` : "Wallet connected"}</small>
+            <span className="brand-kicker">Balance in KES</span>
+            <h2>{user?.username ? `@${user.username}` : "Wallet connected"}</h2>
+            <small>{user?.walletAddress ? "World wallet connected" : "Open in World App to connect"}</small>
           </div>
           <div className="home-wallet-actions">
             <span className={`status-pill ${user?.walletAddress ? "completed" : "pending"}`}>
@@ -303,26 +310,20 @@ function DashboardPage() {
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Live rates</span>
-            <h3>TMpesa desk price</h3>
+            <h3>WLD and USDC market price</h3>
           </div>
-          <small className="market-panel-note">TMpesa fee included</small>
+          <small className="market-panel-note">Actual market rate in KES</small>
         </div>
         <div className="rates-board-compact">
-          {Object.values(assetPricing).map((rateCard) => (
-            <div key={rateCard.asset} className="rate-quote-card">
+          {homeMarketRates.map((rateCard) => (
+            <div key={rateCard.asset} className="rate-quote-card rate-quote-card-compact">
               <div className="rate-quote-head">
                 <strong>{rateCard.asset}</strong>
-                <small>Live rate</small>
+                <small>Market</small>
               </div>
-              <div className="rate-quote-values">
-                <div>
-                  <span>Buy</span>
-                  <strong>{formatKES(rateCard.buyRateKes)}</strong>
-                </div>
-                <div>
-                  <span>Sell</span>
-                  <strong>{formatKES(rateCard.sellRateKes)}</strong>
-                </div>
+              <div className="rate-quote-market">
+                <strong>{formatKES(rateCard.priceKes)}</strong>
+                <span>{`per 1 ${rateCard.asset}`}</span>
               </div>
             </div>
           ))}

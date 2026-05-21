@@ -830,7 +830,7 @@ button:disabled {
 }
 
 .topbar-shell {
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-radius: 24px;
   background:
     linear-gradient(145deg, rgba(15, 22, 36, 0.96), rgba(10, 16, 28, 0.94)),
@@ -855,12 +855,12 @@ button:disabled {
 
 .brand-block {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .brand-headline {
   display: grid;
-  gap: 4px;
+  gap: 0;
 }
 
 .brand-headline small {
@@ -909,7 +909,7 @@ button:disabled {
 
 .brand-block h1 {
   margin: 0;
-  font-size: 1.55rem;
+  font-size: 1.42rem;
   overflow-wrap: anywhere;
   background: linear-gradient(135deg, #ffffff 0%, var(--silver) 32%, #b4ffde 62%, #c9f7ff 100%);
   -webkit-background-clip: text;
@@ -1016,8 +1016,8 @@ button:disabled {
 }
 
 .context-strip-compact {
-  padding-block: 10px;
-  font-size: 0.86rem;
+  padding-block: 9px;
+  font-size: 0.82rem;
 }
 
 .context-strip span,
@@ -2172,7 +2172,7 @@ button:disabled {
 .home-rates-panel,
 .compact-setup-panel,
 .compact-activity-panel {
-  gap: 14px;
+  gap: 12px;
 }
 
 .home-wallet-head,
@@ -2201,8 +2201,8 @@ button:disabled {
 }
 
 .home-wallet-head h2 {
-  font-size: clamp(2rem, 7vw, 2.7rem);
-  letter-spacing: -0.035em;
+  font-size: clamp(1.75rem, 6.5vw, 2.3rem);
+  letter-spacing: -0.03em;
 }
 
 .home-wallet-head small {
@@ -2235,8 +2235,8 @@ button:disabled {
 
 .home-balance-card {
   display: grid;
-  gap: 14px;
-  padding: 18px 18px 16px;
+  gap: 12px;
+  padding: 16px 16px 14px;
   border-radius: 22px;
   background:
     linear-gradient(145deg, rgba(8, 14, 24, 0.96), rgba(15, 28, 37, 0.9)),
@@ -2254,7 +2254,7 @@ button:disabled {
 
 .home-balance-main {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .home-balance-main span,
@@ -2322,10 +2322,30 @@ button:disabled {
   border-color: rgba(136, 150, 182, 0.16);
 }
 
+.rate-quote-card-compact {
+  gap: 8px;
+}
+
 .rate-quote-head small,
 .rate-quote-values span,
 .recent-activity-item small {
   color: var(--muted);
+}
+
+.rate-quote-market {
+  display: grid;
+  gap: 6px;
+}
+
+.rate-quote-market strong {
+  color: #f5f9ff;
+  font-size: clamp(1.65rem, 6vw, 2rem);
+  line-height: 1;
+}
+
+.rate-quote-market span {
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .rate-quote-values strong,
@@ -2339,6 +2359,7 @@ button:disabled {
 }
 
 :root[data-theme="light"] .rate-quote-values strong,
+:root[data-theme="light"] .rate-quote-market strong,
 :root[data-theme="light"] .recent-activity-item strong,
 :root[data-theme="light"] .asset-row strong {
   color: #132846;
@@ -3217,7 +3238,7 @@ button:disabled {
   }
 
   .topbar-shell {
-    padding: 14px 14px 12px;
+    padding: 12px 14px 10px;
   }
 
   .brand-shell {

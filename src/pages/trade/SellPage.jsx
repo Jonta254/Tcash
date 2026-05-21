@@ -250,7 +250,8 @@ function SellPage() {
             <div className="soft-note">TMpesa fee included. Manual review required.</div>
             {grossKesAmount < sellMinKesEquivalent && cryptoAmount ? (
               <div className="notice">
-                Increase the sell amount to at least the live value of 3 USDC before creating this order.
+                Increase the sell amount to at least the live value of{" "}
+                {APP_CONFIG.tradeLimits.sellMinUsdcEquivalent} USDC before creating this order.
               </div>
             ) : null}
             {needsOrderVerification ? (
