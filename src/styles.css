@@ -1437,6 +1437,7 @@ button:disabled {
   font-size: 0.88rem;
   font-weight: 600;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .status-pill.pending {
@@ -2209,11 +2210,14 @@ button:disabled {
 
 .home-wallet-head small {
   color: var(--muted);
+  max-width: 300px;
+  display: block;
 }
 
 .home-wallet-actions {
   justify-content: flex-end;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .icon-button {

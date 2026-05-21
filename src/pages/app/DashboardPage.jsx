@@ -295,9 +295,9 @@ function DashboardPage() {
       <section className="panel home-wallet-board">
         <div className="home-wallet-head">
           <div>
-            <span className="brand-kicker">Balance in KES</span>
-            <h2>{user?.username ? `@${user.username}` : "Wallet connected"}</h2>
-            <small>{user?.walletAddress ? "World wallet connected" : "Open in World App to connect"}</small>
+            <span className="brand-kicker">TMpesa</span>
+            <h2>Wallet overview</h2>
+            <small>{user?.walletAddress ? "Live wallet balance and market read" : "Open in World App to connect"}</small>
           </div>
           <div className="home-wallet-actions">
             <span className={`status-pill ${user?.walletAddress ? "completed" : "pending"}`}>
