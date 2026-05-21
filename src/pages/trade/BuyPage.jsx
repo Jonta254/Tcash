@@ -32,6 +32,7 @@ function BuyPage() {
     setError,
     exchangeRate,
     kesAmount,
+    feeKesAmount,
     buyKesMin,
     buyKesMax,
     placeOrder,
@@ -73,7 +74,7 @@ function BuyPage() {
           <div>
             <span className="brand-kicker">Buy WLD/USDC</span>
             <h2>Pay with M-Pesa and receive crypto</h2>
-            <p className="muted">Enter the KES amount, review the quote, then return with your M-Pesa code.</p>
+            <p className="muted">Enter the KES amount and confirm the quote.</p>
           </div>
           <div className="mini-metrics">
             <div>
@@ -142,12 +143,16 @@ function BuyPage() {
             ) : null}
 
             <div className="amount-line">
+              <span>You pay</span>
+              <strong>{formatKES(kesAmount)}</strong>
+            </div>
+            <div className="amount-line">
               <span>You will receive</span>
               <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
             </div>
             <div className="amount-line">
-              <span>You will pay</span>
-              <strong>{formatKES(kesAmount)}</strong>
+              <span>TMpesa fee</span>
+              <strong>{formatKES(feeKesAmount)}</strong>
             </div>
             <div className="soft-note">TMpesa fee included. Manual review required.</div>
             {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput ? (
@@ -180,18 +185,12 @@ function BuyPage() {
               <strong>{settings.mpesaPaybillNumber}</strong>
               <p>{formatKES(currentOrder.kesAmount)}</p>
             </div>
-            <div className="soft-note">TMpesa fee included.</div>
 
             <div className="info-box receipt-card">
               <strong>Crypto delivery destination</strong>
-              <span>Admin will send after your M-Pesa code is confirmed.</span>
+              <span>Used for crypto delivery after review.</span>
               {currentOrder.destinationUsername ? <code>@{currentOrder.destinationUsername}</code> : null}
               {currentOrder.walletAddress ? <code>Wallet connected</code> : null}
-            </div>
-
-            <div className="notice">
-              Copy the till number, complete the M-Pesa payment, then come back and mark the order
-              as paid using your transaction code.
             </div>
 
             <div className="sr-only">

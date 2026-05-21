@@ -42,6 +42,7 @@ function SellPage() {
     kesAmount,
     grossKesAmount,
     exchangeRate,
+    feeKesAmount,
     sellMinKesEquivalent,
     sellMinAssetAmount,
     placeOrder,
@@ -157,7 +158,7 @@ function SellPage() {
           <div>
             <span className="brand-kicker">Sell WLD/USDC</span>
             <h2>Sell from World App and settle to M-Pesa</h2>
-            <p className="muted">Enter the crypto amount, approve the transfer, then receive KES after review.</p>
+            <p className="muted">Enter the crypto amount and confirm the quote.</p>
           </div>
           <div className="mini-metrics">
             <div>
@@ -241,6 +242,10 @@ function SellPage() {
               <span>You will receive</span>
               <strong>{formatKES(kesAmount)}</strong>
             </div>
+            <div className="amount-line">
+              <span>TMpesa fee</span>
+              <strong>{formatKES(feeKesAmount)}</strong>
+            </div>
             {walletError ? <div className="error">{walletError}</div> : null}
             {walletLoading ? <div className="notice">Loading your sellable wallet balance...</div> : null}
             <div className="soft-note">TMpesa fee included. Manual review required.</div>
@@ -297,7 +302,6 @@ function SellPage() {
               <span>You will receive</span>
               <strong>{formatKES(currentOrder.kesAmount)}</strong>
             </div>
-            <div className="soft-note">TMpesa fee included.</div>
             <div className="info-box receipt-card">
               <strong>M-Pesa payout destination</strong>
               <span>This number is used when the admin sends your KES settlement.</span>

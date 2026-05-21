@@ -300,7 +300,7 @@ function DashboardPage() {
           <div>
             <span className="brand-kicker">TMpesa</span>
             <h2>Wallet</h2>
-            <small>{user?.walletAddress ? "Live balance and market price" : "Open in World App to connect"}</small>
+            <small>{user?.walletAddress ? "Connected" : "Open in World App to connect"}</small>
           </div>
           <div className="home-wallet-actions">
             <span className={`status-pill ${user?.walletAddress ? "completed" : "pending"}`}>
@@ -322,7 +322,7 @@ function DashboardPage() {
 
         <div className="home-balance-card">
           <div className="home-balance-main">
-            <span>Balance in KES</span>
+            <span>Estimated balance</span>
             <strong>{balanceLabel}</strong>
             {!user?.walletAddress ? <small>Connect your World wallet to start.</small> : null}
           </div>
@@ -348,9 +348,9 @@ function DashboardPage() {
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Live prices</span>
-            <h3>WLD and USDC price</h3>
+            <h3>WLD and USDC</h3>
           </div>
-          <small className="market-panel-note">Official live market price in KES</small>
+          <small className="market-panel-note">Live market price in KES</small>
         </div>
         <div className="rates-board-compact">
           {homeMarketRates.map((rateCard) => (
