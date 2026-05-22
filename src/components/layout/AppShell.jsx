@@ -148,7 +148,7 @@ function AppShell() {
         </header>
 
         <div className="context-strip context-strip-compact">
-          <span>{hasWorldSession ? "TMpesa secure session" : "Open in World App for wallet payments"}</span>
+          <span>{hasWorldSession ? "Secure session" : "Open in World App"}</span>
           {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
             <a href={worldAppLink} className="text-link">
               Open in World App

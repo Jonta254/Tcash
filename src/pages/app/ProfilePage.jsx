@@ -199,10 +199,7 @@ function ProfilePage() {
           <div>
             <span className="brand-kicker">Account</span>
             <h2>{user?.username ? `@${user.username}` : user?.fullName || "TMpesa user"}</h2>
-            <p className="muted">
-              Your TMpesa profile keeps payout details, order history, World notification status,
-              and trading progress in one place.
-            </p>
+            <p className="muted">Payout details, rewards, and account tools.</p>
           </div>
         </div>
         <div className="profile-summary-grid">
@@ -224,10 +221,7 @@ function ProfilePage() {
             <Link to="/tmpesa-admin" className="button">
               Open Admin Desk
             </Link>
-            <div className="soft-note">
-              This World account is recognized as the TMpesa operator account, so the admin desk is
-              unlocked inside the same mini app.
-            </div>
+            <div className="soft-note">Available only on the TMpesa operator account.</div>
           </div>
         ) : null}
       </section>

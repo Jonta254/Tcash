@@ -78,7 +78,7 @@ function WalletPage() {
           <div>
             <span className="brand-kicker">Wallet</span>
             <h2>Wallet</h2>
-            <p className="muted">Live balances, receive address, and wallet status.</p>
+            <p className="muted">Live balances and receive address.</p>
           </div>
           <span className="live-badge">{user?.walletAddress ? "Connected" : "Not connected"}</span>
         </div>

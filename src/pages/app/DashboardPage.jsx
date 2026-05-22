@@ -399,19 +399,19 @@ function DashboardPage() {
         <div className="quick-action-grid home-quick-actions compact-home-actions">
           <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
             <strong>Buy &amp; Sell</strong>
-            <span>Trade WLD or USDC.</span>
+            <span>Trade now.</span>
           </Link>
           <Link to="/wallet#receive" className="quick-action-card quick-action-card-sell">
             <strong>Receive</strong>
-            <span>Copy wallet address.</span>
+            <span>Copy address.</span>
           </Link>
           <Link to="/orders" className="quick-action-card quick-action-card-orders">
             <strong>History</strong>
-            <span>Track your orders.</span>
+            <span>Track orders.</span>
           </Link>
           <Link to="/support" className="quick-action-card quick-action-card-orders">
             <strong>Support</strong>
-            <span>Get help fast.</span>
+            <span>Get help.</span>
           </Link>
         </div>
       </section>
@@ -425,7 +425,7 @@ function DashboardPage() {
           <span className="status-pill paid">Code {referralSummary.code}</span>
         </div>
         <p className="muted compact-referral-copy">
-          Share TMpesa with new users and unlock rewards when they become active traders.
+          Share TMpesa and unlock rewards as invited users start trading.
         </p>
         {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
@@ -480,7 +480,7 @@ function DashboardPage() {
       <section className="panel compact-support-strip">
         <div className="compact-support-copy">
           <strong>Need help?</strong>
-          <small>Guide, email, or urgent payout support</small>
+          <small>Guide, email, or urgent payout help</small>
         </div>
         <div className="compact-support-actions">
           <Link to="/support#guide" className="button-ghost">
