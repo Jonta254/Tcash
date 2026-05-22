@@ -13,6 +13,7 @@ import {
 } from "../../services";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
+const NOTIFICATION_ENTRY_PROMPT_KEY = "worldtmpesa_notification_prompt_entry";
 
 const navItems = [
   { to: "/", label: "Home", glyph: "\u25C8", tone: "home" },
@@ -34,6 +35,9 @@ function AppShell() {
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [notificationPromptLoading, setNotificationPromptLoading] = useState(false);
   const [notificationPromptError, setNotificationPromptError] = useState("");
+  const [entryPromptKey] = useState(
+    () => `${user?.id || user?.username || "tmpesa"}:${Date.now()}`,
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -49,6 +53,10 @@ function AppShell() {
         return;
       }
 
+      const hasPromptedThisEntry =
+        typeof window !== "undefined" &&
+        window.sessionStorage.getItem(NOTIFICATION_ENTRY_PROMPT_KEY) === entryPromptKey;
+
       const permissionState = await getWorldNotificationPermissionState();
 
       if (active && permissionState.granted) {
@@ -61,7 +69,10 @@ function AppShell() {
         window.localStorage.removeItem(NOTIFICATION_ALLOWED_STORAGE_KEY);
       }
 
-      if (active && !permissionState.granted) {
+      if (active && !permissionState.granted && !hasPromptedThisEntry) {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(NOTIFICATION_ENTRY_PROMPT_KEY, entryPromptKey);
+        }
         setShowNotificationPrompt(true);
       }
     };
@@ -71,7 +82,7 @@ function AppShell() {
     return () => {
       active = false;
     };
-  }, [user, worldApp.isInstalled]);
+  }, [entryPromptKey, user, worldApp.isInstalled]);
 
   const handleLogout = () => {
     logoutUser();
