@@ -1,7 +1,9 @@
 import { updateExchangeRates } from "./settingsService";
 
 export async function fetchWorldMarketRates() {
-  const response = await fetch("/api/world-prices").catch(() => {
+  const response = await fetch(`/api/world-prices?ts=${Date.now()}`, {
+    cache: "no-store",
+  }).catch(() => {
     throw new Error("TMpesa could not load live market prices.");
   });
 
