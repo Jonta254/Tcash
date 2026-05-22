@@ -31,6 +31,7 @@ function BuyPage() {
     error,
     setError,
     exchangeRate,
+    buyRateKes,
     kesAmount,
     feeKesAmount,
     buyKesMin,

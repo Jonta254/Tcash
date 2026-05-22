@@ -42,6 +42,7 @@ function SellPage() {
     kesAmount,
     grossKesAmount,
     exchangeRate,
+    sellRateKes,
     feeKesAmount,
     sellMinKesEquivalent,
     sellMinAssetAmount,
