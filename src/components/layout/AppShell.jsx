@@ -12,7 +12,6 @@ import {
   requestWorldNotificationPermission,
 } from "../../services";
 
-const NOTIFICATION_PROMPT_SESSION_KEY = "worldtmpesa_notification_prompt_shown";
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
 
 const navItems = [
@@ -50,24 +49,20 @@ function AppShell() {
         return;
       }
 
-      if (window.localStorage.getItem(NOTIFICATION_ALLOWED_STORAGE_KEY) === "true") {
-        return;
-      }
-
       const permissionState = await getWorldNotificationPermissionState();
-
-      if (
-        active &&
-        permissionState.available &&
-        !permissionState.granted &&
-        window.sessionStorage.getItem(NOTIFICATION_PROMPT_SESSION_KEY) !== "true"
-      ) {
-        window.sessionStorage.setItem(NOTIFICATION_PROMPT_SESSION_KEY, "true");
-        setShowNotificationPrompt(true);
-      }
 
       if (active && permissionState.granted) {
         window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+        setShowNotificationPrompt(false);
+        return;
+      }
+
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(NOTIFICATION_ALLOWED_STORAGE_KEY);
+      }
+
+      if (active && !permissionState.granted) {
+        setShowNotificationPrompt(true);
       }
     };
 
@@ -76,10 +71,9 @@ function AppShell() {
     return () => {
       active = false;
     };
-  }, [user, worldApp.isInstalled, location.pathname]);
+  }, [user, worldApp.isInstalled]);
 
   const handleLogout = () => {
-    window.sessionStorage.removeItem(NOTIFICATION_PROMPT_SESSION_KEY);
     logoutUser();
     navigate("/login");
   };
