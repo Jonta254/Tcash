@@ -7,8 +7,6 @@ import {
   getCurrentUser,
   getWorldAppContext,
   isUserAccessVerified,
-  openWhatsAppSupport,
-  openSupportEmail,
   requestWorldVerification,
 } from "../../services";
 
@@ -30,10 +28,7 @@ function BuyPage() {
     currentOrder,
     error,
     setError,
-    exchangeRate,
-    buyRateKes,
     kesAmount,
-    feeKesAmount,
     buyKesMin,
     buyKesMax,
     placeOrder,
@@ -77,20 +72,6 @@ function BuyPage() {
             <h2>Pay with M-Pesa and receive crypto</h2>
             <p className="muted">Enter the KES amount and confirm the quote.</p>
           </div>
-          <div className="mini-metrics">
-            <div>
-              <span>Live price</span>
-              <strong>{formatKES(exchangeRate)}</strong>
-            </div>
-            <div>
-              <span>TMpesa rate</span>
-              <strong>{formatKES(buyRateKes)}</strong>
-            </div>
-            <div>
-              <span>Asset</span>
-              <strong>{asset}</strong>
-            </div>
-          </div>
         </div>
 
         {error ? <div className="error">{error}</div> : null}
@@ -102,7 +83,7 @@ function BuyPage() {
                 <strong>Destination ready</strong>
                 <span>Used for crypto delivery after review.</span>
                 {currentUser?.username ? <code>Username: @{currentUser.username}</code> : null}
-                {currentUser?.walletAddress ? <code>Wallet connected</code> : null}
+                {currentUser?.walletAddress ? <code>✓ Wallet connected</code> : null}
               </div>
             ) : null}
             <div className="field">
@@ -154,10 +135,6 @@ function BuyPage() {
             <div className="amount-line">
               <span>You will receive</span>
               <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
-            </div>
-            <div className="amount-line">
-              <span>TMpesa fee</span>
-              <strong>{formatKES(feeKesAmount)}</strong>
             </div>
             <div className="soft-note">TMpesa fee included. Manual review required.</div>
             {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput ? (
@@ -232,43 +209,6 @@ function BuyPage() {
           </div>
         ) : null}
       </section>
-
-      <aside className="summary-card stack guide-panel">
-        <h3>Buy guide</h3>
-        <div className="flow-list">
-          <div><span>1</span><p>Choose the asset and enter the KES amount.</p></div>
-          <div><span>2</span><p>Pay the shown amount to till {settings.mpesaPaybillNumber}.</p></div>
-          <div><span>3</span><p>Submit your M-Pesa code for review.</p></div>
-        </div>
-        <div className="soft-note">TMpesa fee included. Manual review required.</div>
-        <div className="support-card">
-          <strong>Need help?</strong>
-          <p className="muted">Use Gmail for support questions or WhatsApp for delayed crypto delivery.</p>
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() =>
-              openSupportEmail({
-                subject: "TMpesa buy support",
-                body: "Hello TMpesa team,\n\nI need help with my buy order.",
-              })
-            }
-          >
-            Support
-          </button>
-          <button
-            type="button"
-            className="button-ghost"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: "Hello TMpesa team,\n\nMy buy order is delayed. Please assist.",
-              })
-            }
-          >
-            Delay on WhatsApp
-          </button>
-        </div>
-      </aside>
     </div>
   );
 }

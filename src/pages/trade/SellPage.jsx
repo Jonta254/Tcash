@@ -10,8 +10,6 @@ import {
   getWorldAppContext,
   getWorldWalletPortfolio,
   isUserAccessVerified,
-  openWhatsAppSupport,
-  openSupportEmail,
   requestWorldPayment,
   requestWorldVerification,
   updateOrder,
@@ -41,9 +39,6 @@ function SellPage() {
     setError,
     kesAmount,
     grossKesAmount,
-    exchangeRate,
-    sellRateKes,
-    feeKesAmount,
     sellMinKesEquivalent,
     sellMinAssetAmount,
     placeOrder,
@@ -161,32 +156,20 @@ function SellPage() {
             <h2>Sell from World App and settle to M-Pesa</h2>
             <p className="muted">Enter the crypto amount and confirm the quote.</p>
           </div>
-          <div className="mini-metrics">
-            <div>
-              <span>Live price</span>
-              <strong>{formatKES(exchangeRate)}</strong>
-            </div>
-            <div>
-              <span>TMpesa rate</span>
-              <strong>{formatKES(sellRateKes)}</strong>
-            </div>
-            <div>
-              <span>Asset</span>
-              <strong>{asset}</strong>
-            </div>
-            <div>
-              <span>Available</span>
-              <strong>
-                {selectedAssetBalance ? `${selectedAssetBalance.formattedBalance} ${asset}` : "Syncing"}
-              </strong>
-            </div>
-          </div>
         </div>
 
         {error ? <div className="error">{error}</div> : null}
 
         {step === 1 ? (
           <div className="stack">
+            {currentUser?.walletAddress || currentUser?.username ? (
+              <div className="info-box receipt-card">
+                <strong>Payout ready</strong>
+                <span>World wallet and username are linked to this sell order.</span>
+                {currentUser?.username ? <code>Username: @{currentUser.username}</code> : null}
+                {currentUser?.walletAddress ? <code>✓ Wallet connected</code> : null}
+              </div>
+            ) : null}
             <div className="field">
               <label htmlFor="asset">Asset</label>
               <select id="asset" value={asset} onChange={(event) => setAsset(event.target.value)}>
@@ -246,10 +229,6 @@ function SellPage() {
             <div className="amount-line">
               <span>You will receive</span>
               <strong>{formatKES(kesAmount)}</strong>
-            </div>
-            <div className="amount-line">
-              <span>TMpesa fee</span>
-              <strong>{formatKES(feeKesAmount)}</strong>
             </div>
             {walletError ? <div className="error">{walletError}</div> : null}
             {walletLoading ? <div className="notice">Loading your sellable wallet balance...</div> : null}
@@ -365,44 +344,6 @@ function SellPage() {
           </div>
         ) : null}
       </section>
-
-      <aside className="summary-card stack guide-panel">
-        <h3>Sell guide</h3>
-        <div className="flow-list">
-          <div><span>1</span><p>Choose the asset and amount you want to sell.</p></div>
-          <div><span>2</span><p>Confirm the M-Pesa number that should receive your KES.</p></div>
-          <div><span>3</span><p>Approve the transfer or submit the blockchain transaction hash.</p></div>
-          <div><span>4</span><p>Track the order until payout is completed.</p></div>
-        </div>
-        <div className="soft-note">TMpesa fee included. Manual review required.</div>
-        <div className="support-card">
-          <strong>Need help?</strong>
-          <p className="muted">Use Gmail for support questions or WhatsApp for delayed payout follow-up.</p>
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() =>
-              openSupportEmail({
-                subject: "TMpesa sell support",
-                body: "Hello TMpesa team,\n\nI need help with my sell flow.",
-              })
-            }
-          >
-            Support
-          </button>
-          <button
-            type="button"
-            className="button-ghost"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: "Hello TMpesa team,\n\nMy sell payout seems delayed. Please assist.",
-              })
-            }
-          >
-            Delay on WhatsApp
-          </button>
-        </div>
-      </aside>
     </div>
   );
 }
