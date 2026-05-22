@@ -20,7 +20,6 @@ function BuyPage() {
     buyKesInput,
     setBuyKesInput,
     quotedCryptoAmount,
-    buyRateKes,
     walletAddress,
     setWalletAddress,
     paymentReference,
@@ -126,10 +125,6 @@ function BuyPage() {
               </div>
             ) : null}
 
-            <div className="amount-line">
-              <span>Rate</span>
-              <strong>{formatKES(buyRateKes)} per {asset}</strong>
-            </div>
             <div className="amount-line">
               <span>You pay</span>
               <strong>{formatKES(kesAmount)}</strong>

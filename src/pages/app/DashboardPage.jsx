@@ -38,6 +38,8 @@ function DashboardPage() {
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [marketRefreshError, setMarketRefreshError] = useState("");
+  const [marketRefreshing, setMarketRefreshing] = useState(false);
+  const [walletRefreshing, setWalletRefreshing] = useState(false);
   const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
   const [referralMessage, setReferralMessage] = useState("");
   const [referralError, setReferralError] = useState("");
@@ -59,17 +61,17 @@ function DashboardPage() {
     () => [
       {
         asset: "WLD",
-        priceKes:
-          Number(liveRates?.WLD) || Number(APP_CONFIG.defaultSettings.ratesKes?.WLD) || 0,
+        priceKes: Number(liveRates?.WLD) || 0,
       },
       {
         asset: "USDC",
-        priceKes:
-          Number(liveRates?.USDC) || Number(APP_CONFIG.defaultSettings.ratesKes?.USDC) || 0,
+        priceKes: Number(liveRates?.USDC) || 0,
       },
     ],
     [liveRates],
   );
+
+  const hasLiveMarketRates = homeMarketRates.every((entry) => entry.priceKes > 1);
 
   const walletBoard = useMemo(() => {
     const assets = walletPortfolio.assets.map((assetEntry) => ({
@@ -197,16 +199,24 @@ function DashboardPage() {
     }
   };
 
-  const handleRefreshWallet = async () => {
+  const handleRefreshWalletBalances = async () => {
+    setWalletRefreshing(true);
+    setWalletRefreshKey((value) => value + 1);
+    window.setTimeout(() => setWalletRefreshing(false), 600);
+  };
+
+  const handleRefreshMarketRates = async () => {
     setMarketRefreshError("");
+    setMarketRefreshing(true);
     try {
       await fetchWorldMarketRates();
     } catch (error) {
       setMarketRefreshError(
         error instanceof Error ? error.message : "Unable to refresh live market prices.",
       );
+    } finally {
+      setMarketRefreshing(false);
     }
-    setWalletRefreshKey((value) => value + 1);
   };
 
   const handleShareInvite = async () => {
@@ -235,8 +245,12 @@ function DashboardPage() {
       return "Loading balance...";
     }
 
+    if (!hasLiveMarketRates) {
+      return "Loading balance...";
+    }
+
     return formatKES(walletBoard.totalKes);
-  }, [user?.walletAddress, walletBoard.totalKes, walletLoading]);
+  }, [hasLiveMarketRates, user?.walletAddress, walletBoard.totalKes, walletLoading]);
 
   return (
     <div className="stack">
@@ -303,11 +317,11 @@ function DashboardPage() {
             <button
               type="button"
               className="icon-button"
-              onClick={handleRefreshWallet}
-              aria-label="Refresh wallet balances and prices"
-              title="Refresh wallet balances and prices"
+              onClick={handleRefreshWalletBalances}
+              aria-label="Refresh wallet balance"
+              title="Refresh wallet balance"
             >
-              {"\u21BB"}
+              {walletRefreshing ? "..." : "\u21BB"}
             </button>
           </div>
         </div>
@@ -346,7 +360,18 @@ function DashboardPage() {
             <span className="brand-kicker">Live prices</span>
             <h3>WLD and USDC</h3>
           </div>
-          <small className="market-panel-note">Market prices update live</small>
+          <div className="home-wallet-actions home-wallet-actions-compact">
+            <small className="market-panel-note">Market prices update live</small>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={handleRefreshMarketRates}
+              aria-label="Refresh live prices"
+              title="Refresh live prices"
+            >
+              {marketRefreshing ? "..." : "\u21BB"}
+            </button>
+          </div>
         </div>
         <div className="rates-board-compact">
           {homeMarketRates.map((rateCard) => (
@@ -356,8 +381,8 @@ function DashboardPage() {
                 <small>Live price</small>
               </div>
               <div className="rate-quote-market">
-                <strong>{formatKES(rateCard.priceKes)}</strong>
-                <span>{`per 1 ${rateCard.asset}`}</span>
+                <strong>{rateCard.priceKes > 1 ? formatKES(rateCard.priceKes) : "Loading..."}</strong>
+                <span>{rateCard.priceKes > 1 ? `per 1 ${rateCard.asset}` : "Waiting for market feed"}</span>
               </div>
             </div>
           ))}

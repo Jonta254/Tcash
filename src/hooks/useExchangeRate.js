@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import {
   fetchWorldMarketRates,
-  getExchangeRate,
-  getExchangeRates,
+  getLastLiveMarketRates,
   subscribeToRateUpdates,
 } from "../services";
 
 const LIVE_RATE_REFRESH_MS = 15000;
 
 function useLiveRateState() {
-  const [exchangeRates, setExchangeRates] = useState(getExchangeRates());
+  const [exchangeRates, setExchangeRates] = useState(() => getLastLiveMarketRates() || {});
 
   useEffect(() => {
     let active = true;
@@ -26,7 +25,18 @@ function useLiveRateState() {
         }
       } catch {
         if (active) {
-          setExchangeRates(getExchangeRates());
+          setExchangeRates((current) => {
+            const lastLiveRates = getLastLiveMarketRates();
+
+            if (lastLiveRates) {
+              return {
+                ...current,
+                ...lastLiveRates,
+              };
+            }
+
+            return current;
+          });
         }
       }
     };
@@ -65,7 +75,8 @@ function useLiveRateState() {
 
 export function useExchangeRate(asset = "WLD") {
   const exchangeRates = useLiveRateState();
-  return exchangeRates[asset] || getExchangeRate(asset);
+  const lastLiveRates = getLastLiveMarketRates();
+  return exchangeRates[asset] || lastLiveRates?.[asset] || 0;
 }
 
 export function useExchangeRates() {

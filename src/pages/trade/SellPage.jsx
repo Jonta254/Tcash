@@ -39,7 +39,6 @@ function SellPage() {
     setError,
     kesAmount,
     grossKesAmount,
-    sellRateKes,
     sellMinKesEquivalent,
     sellMinAssetAmount,
     placeOrder,
@@ -228,10 +227,6 @@ function SellPage() {
               />
             </div>
 
-            <div className="amount-line">
-              <span>Rate</span>
-              <strong>{formatKES(sellRateKes)} per {asset}</strong>
-            </div>
             <div className="amount-line">
               <span>You send</span>
               <strong>

@@ -53,7 +53,7 @@ export {
   notifyWorldUserOrderStatus,
 } from "./notificationService";
 export { getWorldWalletPortfolio } from "./walletPortfolioService";
-export { fetchWorldMarketRates } from "./marketRateService";
+export { fetchWorldMarketRates, getLastLiveMarketRates } from "./marketRateService";
 export {
   calculateBuyRate,
   calculateKesWalletBalance,

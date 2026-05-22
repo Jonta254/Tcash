@@ -23,28 +23,10 @@ function TradePage() {
           <div className="trade-desk-copy">
             <span className="brand-kicker">Trade desk</span>
             <h2>Buy or sell WLD and USDC</h2>
-            <p className="muted">
-              One compact desk for live quotes, M-Pesa settlement, and World wallet trading.
-            </p>
           </div>
           <Link to="/orders" className="button-secondary">
             Orders
           </Link>
-        </div>
-
-        <div className="trade-desk-meta">
-          <div>
-            <span>Flow</span>
-            <strong>Wallet to cash</strong>
-          </div>
-          <div>
-            <span>Pricing</span>
-            <strong>Live market</strong>
-          </div>
-          <div>
-            <span>Settlement</span>
-            <strong>Manual desk</strong>
-          </div>
         </div>
 
         <div className="trade-toggle trade-toggle-premium">
