@@ -307,8 +307,8 @@ function DashboardPage() {
       <section className="panel home-wallet-board">
         <div className="home-wallet-head">
           <div>
-            <span className="brand-kicker">Portfolio</span>
-            <h2>Wallet</h2>
+            <span className="brand-kicker">Wallet</span>
+            <h2>Portfolio</h2>
           </div>
           <div className="home-wallet-actions home-wallet-actions-compact">
             <span className={`live-badge${user?.walletAddress ? "" : " muted-badge"}`}>
@@ -358,10 +358,10 @@ function DashboardPage() {
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Live prices</span>
-            <h3>WLD and USDC</h3>
+            <h3>Market</h3>
           </div>
           <div className="home-wallet-actions home-wallet-actions-compact">
-            <small className="market-panel-note">Market prices update live</small>
+            <small className="market-panel-note">Live KES market</small>
             <button
               type="button"
               className="icon-button"
@@ -392,8 +392,8 @@ function DashboardPage() {
       <section className="panel stack">
         <div className="split compact-panel-head">
           <div>
-            <span className="brand-kicker">Quick actions</span>
-            <h3>Start quickly</h3>
+            <span className="brand-kicker">Actions</span>
+            <h3>Quick actions</h3>
           </div>
         </div>
         <div className="quick-action-grid home-quick-actions compact-home-actions">
@@ -420,12 +420,12 @@ function DashboardPage() {
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Referral</span>
-            <h3>Invite friends</h3>
+            <h3>Invite</h3>
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
         </div>
         <p className="muted compact-referral-copy">
-          Share TMpesa and unlock rewards as invited users start trading.
+          Share TMpesa and unlock referral rewards.
         </p>
         {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
@@ -479,8 +479,8 @@ function DashboardPage() {
 
       <section className="panel compact-support-strip">
         <div className="compact-support-copy">
-          <strong>Need help?</strong>
-          <small>Guide, email, or urgent payout help</small>
+          <strong>Help</strong>
+          <small>Guide, email, or payout follow-up</small>
         </div>
         <div className="compact-support-actions">
           <Link to="/support#guide" className="button-ghost">

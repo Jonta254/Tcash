@@ -37,6 +37,12 @@ function AppShell() {
   const [notificationPromptError, setNotificationPromptError] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
     let active = true;
 
     const checkNotifications = async () => {
