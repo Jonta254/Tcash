@@ -232,11 +232,17 @@ function DashboardPage() {
     setMarketRefreshError("");
     setMarketRefreshing(true);
     try {
-      await fetchWorldMarketRates();
+      const result = await fetchWorldMarketRates();
+
+      if (!result?.isFallback) {
+        setMarketRefreshError("");
+      }
     } catch (error) {
-      setMarketRefreshError(
-        error instanceof Error ? error.message : "Unable to refresh live market prices.",
-      );
+      if (!hasLiveMarketRates) {
+        setMarketRefreshError(
+          error instanceof Error ? error.message : "Unable to refresh live market prices.",
+        );
+      }
     } finally {
       setMarketRefreshing(false);
     }

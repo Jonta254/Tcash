@@ -2,6 +2,23 @@ import { updateExchangeRates } from "./settingsService";
 
 const LAST_LIVE_RATES_SESSION_KEY = "worldtmpesa_last_live_rates";
 
+function buildCachedResponse(source = "session-last-live-rates") {
+  const lastRates = getLastLiveMarketRates();
+
+  if (!lastRates) {
+    return null;
+  }
+
+  return {
+    rates: {
+      ...lastRates,
+    },
+    source,
+    fetchedAt: new Date().toISOString(),
+    isFallback: true,
+  };
+}
+
 function rememberRates(rates) {
   try {
     if (typeof window !== "undefined") {
@@ -45,16 +62,16 @@ export async function fetchWorldMarketRates() {
   const response = await fetch(`/api/world-prices?ts=${Date.now()}`, {
     cache: "no-store",
   }).catch(() => {
-    const lastRates = getLastLiveMarketRates();
+    const cachedResponse = buildCachedResponse();
 
-    if (lastRates) {
+    if (cachedResponse) {
       return {
         ok: true,
         json: async () => ({
           success: true,
-          prices: lastRates,
-          source: "session-last-live-rates",
-          fetchedAt: new Date().toISOString(),
+          prices: cachedResponse.rates,
+          source: cachedResponse.source,
+          fetchedAt: cachedResponse.fetchedAt,
           fallback: true,
         }),
       };
@@ -66,6 +83,12 @@ export async function fetchWorldMarketRates() {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || !payload?.success) {
+    const cachedResponse = buildCachedResponse("session-last-live-rates-after-api-error");
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
     throw new Error(payload?.error || "TMpesa could not load live market prices.");
   }
 
@@ -73,6 +96,12 @@ export async function fetchWorldMarketRates() {
   const usdcRate = Number(payload?.prices?.USDC || 0);
 
   if (wldRate <= 0 || usdcRate <= 0) {
+    const cachedResponse = buildCachedResponse("session-last-live-rates-after-incomplete-quote");
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
     throw new Error("TMpesa received an incomplete live market quote.");
   }
 
