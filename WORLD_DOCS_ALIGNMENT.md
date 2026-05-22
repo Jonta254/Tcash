@@ -48,11 +48,19 @@ This note records the World Developers docs reviewed during the final TMpesa pol
 - The app keeps clear direct navigation without hamburger menus.
 - Trade, Wallet, History, Profile, and Support use single-purpose screens instead of mixing roles.
 
-## Important remaining note
+## World ID verification status
 
-TMpesa still uses the legacy MiniKit verification flow for protected order checks:
+TMpesa now uses the current World ID / IDKit flow as the primary path for protected verification:
 
-- client: `requestWorldVerification(...)`
-- backend: `api/verify.js`
+- backend RP context route: `api/world-id-rp-context.js`
+- backend proof verification route: `api/verify.js`
+- client verification entry: `requestWorldVerification(...)`
 
-World docs now present World ID and IDKit as the current verification direction. If a future strict migration is required, this is the main remaining area to update.
+Temporary fallback remains:
+
+- if `WORLD_RP_ID` or `RP_SIGNING_KEY` is not configured, TMpesa falls back to the legacy MiniKit verify path so existing environments do not break immediately
+
+For a fully strict production setup, configure:
+
+- `WORLD_RP_ID`
+- `RP_SIGNING_KEY`

@@ -43,10 +43,17 @@ export function getWorldPortalConfig() {
   return {
     appId: process.env.APP_ID || WORLD_APP_ID,
     apiKey: process.env.DEV_PORTAL_API_KEY || "",
+    rpId: process.env.WORLD_RP_ID || "",
+    rpSigningKey: process.env.RP_SIGNING_KEY || "",
   };
 }
 
 export function hasWorldPortalConfig() {
   const config = getWorldPortalConfig();
   return Boolean(config.appId && config.apiKey);
+}
+
+export function hasWorldIdConfig() {
+  const config = getWorldPortalConfig();
+  return Boolean(config.appId && config.rpId && config.rpSigningKey);
 }

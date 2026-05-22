@@ -1,11 +1,14 @@
 import { MiniKit, getIsUserVerified } from "@worldcoin/minikit-js";
+import { IDKit, proofOfHuman } from "@worldcoin/idkit-core";
 import { APP_CONFIG } from "../config/appConfig";
 import {
   completeSiweVerification,
   confirmWorldPayment,
   createPaymentReference,
+  requestWorldIdRpContext,
   requestServerNonce,
   verifyHighValueOrder,
+  verifyWorldIdProof,
 } from "./backendService";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
@@ -261,25 +264,71 @@ export async function requestWorldVerification({
     throw new Error("Open TMpesa inside World App to complete the human verification step.");
   }
 
-  const verificationPayload = {
-    action,
-    signal,
-    verification_level: verificationLevel,
-  };
+  try {
+    const worldIdContext = await requestWorldIdRpContext(action);
+    const request = await IDKit.request({
+      app_id: worldIdContext.app_id,
+      action,
+      rp_context: worldIdContext.rp_context,
+      allow_legacy_proofs: true,
+      return_to: buildWorldAppDeeplink("/"),
+    }).preset(
+      proofOfHuman({
+        signal,
+      }),
+    );
 
-  const { data } = await runMiniKitCommand("verify", verificationPayload);
-  const verification = await verifyHighValueOrder(data, action, signal);
+    const completion = await request.pollUntilCompletion({
+      pollInterval: 2000,
+      timeout: 120000,
+    });
 
-  if (!verification?.success) {
-    throw new Error(verification?.error || "TMpesa could not verify this order.");
+    if (!completion?.success) {
+      throw new Error(completion?.error || "World ID verification was not completed.");
+    }
+
+    const verification = await verifyWorldIdProof(completion.result);
+
+    if (!verification?.success) {
+      throw new Error(verification?.error || "TMpesa could not verify this order.");
+    }
+
+    return {
+      verificationLevel: "proof-of-human",
+      verifyRes: verification.verifyRes,
+      signal,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+
+    if (
+      message.includes("WORLD_RP_ID") ||
+      message.includes("RP_SIGNING_KEY") ||
+      message.includes("rp_context")
+    ) {
+      const verificationPayload = {
+        action,
+        signal,
+        verification_level: verificationLevel,
+      };
+
+      const { data } = await runMiniKitCommand("verify", verificationPayload);
+      const verification = await verifyHighValueOrder(data, action, signal);
+
+      if (!verification?.success) {
+        throw new Error(verification?.error || "TMpesa could not verify this order.");
+      }
+
+      return {
+        verificationLevel: data.verification_level || verificationLevel,
+        nullifierHash: data.nullifier_hash,
+        merkleRoot: data.merkle_root,
+        signal,
+      };
+    }
+
+    throw error;
   }
-
-  return {
-    verificationLevel: data.verification_level || verificationLevel,
-    nullifierHash: data.nullifier_hash,
-    merkleRoot: data.merkle_root,
-    signal,
-  };
 }
 
 export async function getWorldNotificationPermissionState() {
