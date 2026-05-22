@@ -10,7 +10,6 @@ import {
   getCurrentUser,
   getWorldAppContext,
   isUserAccessVerified,
-  loginAdmin,
   loginWithWorldApp,
   notifyAdminReferralEvent,
   waitForWorldHumanVerification,
@@ -22,7 +21,6 @@ function LoginPage() {
   const searchParams = new URLSearchParams(location.search);
   const settings = useAppSettings();
   const worldApp = getWorldAppContext();
-  const [form, setForm] = useState({ phone: "", password: "" });
   const [error, setError] = useState("");
   const [worldLoading, setWorldLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState("");
@@ -81,23 +79,6 @@ function LoginPage() {
       navigate(getPostLoginPath(currentUser), { replace: true });
     }
   }, [navigate, targetPath]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    setError("");
-
-    try {
-      loginAdmin(form);
-      finalizeSessionRedirect();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const handleWorldAppLogin = async () => {
     setError("");
@@ -176,14 +157,11 @@ function LoginPage() {
             </div>
             <div className="auth-splash-copy">
               <div className="auth-title-row">
-                <span className="brand-kicker">Kenya to World</span>
-                <span className="live-badge">Premium access</span>
+                <span className="brand-kicker">World mini app</span>
+                <span className="live-badge">Wallet Auth</span>
               </div>
               <h2>TMpesa</h2>
-              <p className="muted">
-                Buy and sell WLD or USDC with M-Pesa using World wallet sign-in and clean manual
-                settlement.
-              </p>
+              <p className="muted">Buy and sell WLD or USDC with M-Pesa inside World App.</p>
             </div>
           </div>
 
@@ -196,53 +174,18 @@ function LoginPage() {
           ) : null}
           {authStatus ? <div className="notice">{authStatus}</div> : null}
 
-          <div className="story-exchange-card auth-story-card">
-            <div className="story-node story-node-kes">
-              <span>From</span>
-              <strong>M-Pesa</strong>
-              <small>KES settlement</small>
-            </div>
-            <div className="story-connector" aria-hidden="true">
-              <span />
-            </div>
-            <div className="story-node story-node-world">
-              <span>To</span>
-              <strong>World assets</strong>
-              <small>WLD and USDC</small>
-            </div>
-          </div>
-
           <div className="auth-gate-card">
             <div className="auth-gate-head">
               <span className="secure-access-badge">World sign in</span>
-              <span className="secure-access-trust">Official approval sheet</span>
+              <span className="secure-access-trust">Official approval</span>
             </div>
 
             <div className="auth-gate-copy">
               <div>
-                <span className="tag">Wallet Auth first</span>
+                <span className="tag">Wallet Auth</span>
                 <h3>Enter TMpesa through World App</h3>
               </div>
-              <p className="muted">
-                TMpesa follows the World mini app flow from Wallet Auth to protected trading. We
-                only request the account signals needed to recognize your wallet, route orders,
-                and unlock one-time checks when required.
-              </p>
-            </div>
-
-            <div className="auth-gate-grid">
-              <div className="auth-gate-tile">
-                <strong>Username</strong>
-                <span>Identifies your TMpesa account and crypto delivery route.</span>
-              </div>
-              <div className="auth-gate-tile">
-                <strong>Wallet</strong>
-                <span>Used for sign-in, live balances, and World Pay transfers.</span>
-              </div>
-              <div className="auth-gate-tile">
-                <strong>Human check</strong>
-                <span>Requested only when a protected trade step needs it.</span>
-              </div>
+              <p className="muted">Approve once, open your wallet session, and start trading.</p>
             </div>
 
             <div className="auth-mini-flow" aria-label="Wallet login flow">
@@ -272,7 +215,7 @@ function LoginPage() {
             </button>
             <div className="notice auth-inline-note">
               {worldApp.isInstalled
-                ? "World App detected. TMpesa will sign you in first, then ask new users for one-time verification inside the app."
+                ? "World App detected. TMpesa will open your wallet session and continue inside the app."
                 : "Open TMpesa inside World App to continue with wallet authentication."}
             </div>
             {!worldApp.isInstalled && settings.worldAppId ? (
@@ -296,40 +239,6 @@ function LoginPage() {
               <strong>Operator reviewed</strong>
             </div>
           </div>
-
-          <details className="admin-access-panel admin-access-panel-quiet">
-            <summary>Operator sign in</summary>
-            <form className="auth-form" onSubmit={handleSubmit}>
-              <div className="field">
-                <label htmlFor="phone">Admin phone number</label>
-                <input
-                  id="phone"
-                  name="phone"
-                  placeholder="0795621901"
-                  value={form.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="password">Admin password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <button type="submit" className="button-secondary">
-                Open Admin
-              </button>
-            </form>
-          </details>
         </section>
 
       </div>

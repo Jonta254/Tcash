@@ -9,7 +9,9 @@ import {
 const LIVE_RATE_REFRESH_MS = 15000;
 
 function useLiveRateState() {
-  const [exchangeRates, setExchangeRates] = useState(() => getLastLiveMarketRates() || {});
+  const [exchangeRates, setExchangeRates] = useState(
+    () => getLastLiveMarketRates() || getExchangeRates() || {},
+  );
 
   useEffect(() => {
     let active = true;
