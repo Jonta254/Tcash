@@ -21,6 +21,15 @@ import {
   waitForWorldHumanVerification,
 } from "../../services";
 
+const BALANCE_CURRENCY_STORAGE_KEY = "worldtmpesa_balance_currency";
+
+function formatUSD(value) {
+  return `USD ${Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 function DashboardPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -42,6 +51,13 @@ function DashboardPage() {
   const [referralMessage, setReferralMessage] = useState("");
   const [referralError, setReferralError] = useState("");
   const [showReferralLink, setShowReferralLink] = useState(false);
+  const [balanceCurrency, setBalanceCurrency] = useState(() => {
+    if (typeof window === "undefined") {
+      return "KES";
+    }
+
+    return window.localStorage.getItem(BALANCE_CURRENCY_STORAGE_KEY) === "USD" ? "USD" : "KES";
+  });
   const liveRates = useExchangeRates();
 
   const needsFirstAccessVerification =
@@ -85,6 +101,18 @@ function DashboardPage() {
       usdc: assets.find((entry) => entry.symbol === "USDC"),
     };
   }, [liveRates, walletPortfolio.assets]);
+
+  const walletBoardUsd = useMemo(() => {
+    const usdcRate = Number(
+      liveRates?.USDC || APP_CONFIG.defaultSettings.ratesKes?.USDC || 0,
+    );
+
+    if (!usdcRate || usdcRate <= 0) {
+      return 0;
+    }
+
+    return walletBoard.totalKes / usdcRate;
+  }, [liveRates, walletBoard.totalKes]);
 
   useEffect(() => {
     if (!user?.walletAddress) {
@@ -210,6 +238,14 @@ function DashboardPage() {
     setWalletRefreshKey((value) => value + 1);
   };
 
+  const handleBalanceCurrencyChange = (nextCurrency) => {
+    setBalanceCurrency(nextCurrency);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(BALANCE_CURRENCY_STORAGE_KEY, nextCurrency);
+    }
+  };
+
   const handleShareInvite = async () => {
     setReferralError("");
     setReferralMessage("");
@@ -250,8 +286,10 @@ function DashboardPage() {
       return "Loading balance...";
     }
 
-    return formatKES(walletBoard.totalKes);
-  }, [user?.walletAddress, walletBoard.totalKes, walletLoading]);
+    return balanceCurrency === "USD"
+      ? formatUSD(walletBoardUsd)
+      : formatKES(walletBoard.totalKes);
+  }, [balanceCurrency, user?.walletAddress, walletBoard.totalKes, walletBoardUsd, walletLoading]);
 
   return (
     <div className="stack">
@@ -333,7 +371,22 @@ function DashboardPage() {
 
         <div className="home-balance-card">
           <div className="home-balance-main">
-            <span>Estimated balance</span>
+            <div className="home-balance-meta">
+              <span>Estimated value</span>
+              <div className="balance-currency-toggle" role="tablist" aria-label="Balance currency">
+                {["KES", "USD"].map((currency) => (
+                  <button
+                    key={currency}
+                    type="button"
+                    className={`balance-currency-button${balanceCurrency === currency ? " active" : ""}`}
+                    onClick={() => handleBalanceCurrencyChange(currency)}
+                    aria-pressed={balanceCurrency === currency}
+                  >
+                    {currency}
+                  </button>
+                ))}
+              </div>
+            </div>
             <strong>{balanceLabel}</strong>
             {!user?.walletAddress ? <small>Connect your World wallet to start.</small> : null}
           </div>
