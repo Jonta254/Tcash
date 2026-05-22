@@ -24,14 +24,28 @@ function getDefaultSettings() {
   };
 }
 
+function sanitizeRates(rates = {}) {
+  return Object.entries({
+    ...APP_CONFIG.defaultSettings.ratesKes,
+    ...rates,
+  }).reduce((accumulator, [asset, value]) => {
+    const parsedValue = Number(value);
+    const minimumValidRate = asset === "WLD" ? 1 : 1;
+
+    accumulator[asset] =
+      parsedValue > minimumValidRate
+        ? parsedValue
+        : APP_CONFIG.defaultSettings.ratesKes[asset] || 0;
+
+    return accumulator;
+  }, {});
+}
+
 function mergeSettings(settings = {}) {
   return {
     ...getDefaultSettings(),
     ...settings,
-    ratesKes: {
-      ...APP_CONFIG.defaultSettings.ratesKes,
-      ...(settings.ratesKes || {}),
-    },
+    ratesKes: sanitizeRates(settings.ratesKes || {}),
     feeKesPerCoin: {
       ...APP_CONFIG.defaultSettings.feeKesPerCoin,
       ...(settings.feeKesPerCoin || {}),
@@ -89,7 +103,7 @@ export function getSettings() {
 }
 
 export function getExchangeRates() {
-  return getSettings().ratesKes;
+  return sanitizeRates(getSettings().ratesKes);
 }
 
 export function getExchangeRate(asset = "WLD") {
@@ -112,11 +126,10 @@ export function updateExchangeRates(nextRates) {
 
   const settings = {
     ...previousSettings,
-    ratesKes: {
-      ...APP_CONFIG.defaultSettings.ratesKes,
+    ratesKes: sanitizeRates({
       ...(previousSettings.ratesKes || {}),
       ...parsedRates,
-    },
+    }),
     updatedAt: new Date().toISOString(),
   };
 

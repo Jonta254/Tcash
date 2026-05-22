@@ -9,26 +9,12 @@ import {
   formatKES,
   getCurrentUser,
   getOrdersForCurrentUser,
-  getReferralSummary,
   getWorldWalletPortfolio,
   isUserAccessVerified,
-  markReferralShared,
-  openSupportEmail,
-  shareMiniAppInvite,
-  openWhatsAppSupport,
   requestWorldVerification,
   updateCurrentUserProfile,
   waitForWorldHumanVerification,
 } from "../../services";
-
-const BALANCE_CURRENCY_STORAGE_KEY = "worldtmpesa_balance_currency";
-
-function formatUSD(value) {
-  return `USD ${Number(value || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
 
 function DashboardPage() {
   const location = useLocation();
@@ -47,17 +33,6 @@ function DashboardPage() {
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [marketRefreshError, setMarketRefreshError] = useState("");
-  const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
-  const [referralMessage, setReferralMessage] = useState("");
-  const [referralError, setReferralError] = useState("");
-  const [showReferralLink, setShowReferralLink] = useState(false);
-  const [balanceCurrency, setBalanceCurrency] = useState(() => {
-    if (typeof window === "undefined") {
-      return "KES";
-    }
-
-    return window.localStorage.getItem(BALANCE_CURRENCY_STORAGE_KEY) === "USD" ? "USD" : "KES";
-  });
   const liveRates = useExchangeRates();
 
   const needsFirstAccessVerification =
@@ -101,18 +76,6 @@ function DashboardPage() {
       usdc: assets.find((entry) => entry.symbol === "USDC"),
     };
   }, [liveRates, walletPortfolio.assets]);
-
-  const walletBoardUsd = useMemo(() => {
-    const usdcRate = Number(
-      liveRates?.USDC || APP_CONFIG.defaultSettings.ratesKes?.USDC || 0,
-    );
-
-    if (!usdcRate || usdcRate <= 0) {
-      return 0;
-    }
-
-    return walletBoard.totalKes / usdcRate;
-  }, [liveRates, walletBoard.totalKes]);
 
   useEffect(() => {
     if (!user?.walletAddress) {
@@ -238,45 +201,6 @@ function DashboardPage() {
     setWalletRefreshKey((value) => value + 1);
   };
 
-  const handleBalanceCurrencyChange = (nextCurrency) => {
-    setBalanceCurrency(nextCurrency);
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(BALANCE_CURRENCY_STORAGE_KEY, nextCurrency);
-    }
-  };
-
-  const handleShareInvite = async () => {
-    setReferralError("");
-    setReferralMessage("");
-
-    try {
-      await shareMiniAppInvite({
-        title: "Join TMpesa",
-        text: `Use my TMpesa invite code ${referralSummary.code} to join the World mini app and trade WLD or USDC with M-Pesa settlement.`,
-        url: referralSummary.appLink,
-      });
-      setReferralSummary(markReferralShared(user));
-      setShowReferralLink(true);
-      setReferralMessage("Invite link ready. Share TMpesa with new users using your code.");
-    } catch (error) {
-      setReferralError(error instanceof Error ? error.message : "Unable to open the TMpesa invite link.");
-    }
-  };
-
-  const handleCopyInvite = async () => {
-    setReferralError("");
-    setReferralMessage("");
-
-    try {
-      await navigator.clipboard.writeText(referralSummary.appLink);
-      setShowReferralLink(true);
-      setReferralMessage("Referral link copied. Share it with new users to grow your TMpesa rewards.");
-    } catch {
-      setReferralError("TMpesa could not copy the invite link on this device.");
-    }
-  };
-
   const balanceLabel = useMemo(() => {
     if (!user?.walletAddress) {
       return "Connect wallet to view balance";
@@ -286,10 +210,8 @@ function DashboardPage() {
       return "Loading balance...";
     }
 
-    return balanceCurrency === "USD"
-      ? formatUSD(walletBoardUsd)
-      : formatKES(walletBoard.totalKes);
-  }, [balanceCurrency, user?.walletAddress, walletBoard.totalKes, walletBoardUsd, walletLoading]);
+    return formatKES(walletBoard.totalKes);
+  }, [user?.walletAddress, walletBoard.totalKes, walletLoading]);
 
   return (
     <div className="stack">
@@ -348,9 +270,11 @@ function DashboardPage() {
           <div>
             <span className="brand-kicker">Portfolio</span>
             <h2>Wallet</h2>
-            {!user?.walletAddress ? <small>Open in World App to connect</small> : null}
           </div>
-          <div className="home-wallet-actions">
+          <div className="home-wallet-actions home-wallet-actions-compact">
+            <span className={`live-badge${user?.walletAddress ? "" : " muted-badge"}`}>
+              {user?.walletAddress ? "Wallet connected" : "Wallet not connected"}
+            </span>
             <button
               type="button"
               className="icon-button"
@@ -369,23 +293,9 @@ function DashboardPage() {
         <div className="home-balance-card">
           <div className="home-balance-main">
             <div className="home-balance-meta">
-              <span>Estimated value</span>
-              <div className="balance-currency-toggle" role="tablist" aria-label="Balance currency">
-                {["KES", "USD"].map((currency) => (
-                  <button
-                    key={currency}
-                    type="button"
-                    className={`balance-currency-button${balanceCurrency === currency ? " active" : ""}`}
-                    onClick={() => handleBalanceCurrencyChange(currency)}
-                    aria-pressed={balanceCurrency === currency}
-                  >
-                    {currency}
-                  </button>
-                ))}
-              </div>
+              <span>Balance in KES</span>
             </div>
             <strong>{balanceLabel}</strong>
-            {!user?.walletAddress ? <small>Connect your World wallet to start.</small> : null}
           </div>
 
           <div className="home-asset-rows">
@@ -411,7 +321,7 @@ function DashboardPage() {
             <span className="brand-kicker">Live prices</span>
             <h3>WLD and USDC</h3>
           </div>
-          <small className="market-panel-note">Live market price in KES</small>
+          <small className="market-panel-note">Market prices update live</small>
         </div>
         <div className="rates-board-compact">
           {homeMarketRates.map((rateCard) => (
@@ -456,42 +366,6 @@ function DashboardPage() {
         </div>
       </section>
 
-      <section className="panel stack home-referral-panel">
-        <div className="split compact-panel-head">
-          <div>
-            <span className="brand-kicker">Referral</span>
-            <h3>Invite friends to TMpesa</h3>
-          </div>
-          <span className="status-pill paid">{referralSummary.code}</span>
-        </div>
-        <p className="muted compact-referral-copy">
-          Share your TMpesa invite. Rewards unlock when referred users become active traders.
-        </p>
-        {referralMessage ? <div className="notice">{referralMessage}</div> : null}
-        {referralError ? <div className="error">{referralError}</div> : null}
-        {showReferralLink ? (
-          <div className="referral-link-row">
-            <code>{referralSummary.appLink}</code>
-          </div>
-        ) : null}
-        <div className="referral-milestone-grid">
-          {referralSummary.rewardMilestones.map((milestone) => (
-            <div key={milestone.users} className="referral-mini-card">
-              <span>{milestone.users} users</span>
-              <strong>{formatKES(milestone.rewardKes)}</strong>
-            </div>
-          ))}
-        </div>
-        <div className="button-row compact-actions">
-          <button type="button" className="button" onClick={handleShareInvite}>
-            Share invite
-          </button>
-          <button type="button" className="button-secondary" onClick={handleCopyInvite}>
-            Copy link
-          </button>
-        </div>
-      </section>
-
       {recentActivity.length ? (
         <section className="panel stack compact-activity-panel">
           <div className="split compact-panel-head">
@@ -521,53 +395,6 @@ function DashboardPage() {
           </div>
         </section>
       ) : null}
-
-      <section className="panel compact-support-strip">
-        <div className="compact-support-copy">
-          <strong>Need help?</strong>
-          <small>Payment delay, account support, or quick guide</small>
-        </div>
-        <div className="compact-support-actions">
-          <Link to="/support#guide" className="button-ghost">
-            Guide
-          </Link>
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() =>
-              openSupportEmail({
-                subject: "TMpesa support request",
-                body: [
-                  "Hello TMpesa support,",
-                  "",
-                  "I need help with my account or order.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
-              })
-            }
-          >
-            Email
-          </button>
-          <button
-            type="button"
-            className="button-ghost"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: [
-                  "Hello TMpesa support,",
-                  "",
-                  "My payment or settlement is delayed and I need assistance.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
-              })
-            }
-          >
-            Delay
-          </button>
-        </div>
-      </section>
     </div>
   );
 }

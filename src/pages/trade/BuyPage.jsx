@@ -20,6 +20,7 @@ function BuyPage() {
     buyKesInput,
     setBuyKesInput,
     quotedCryptoAmount,
+    buyRateKes,
     walletAddress,
     setWalletAddress,
     paymentReference,
@@ -70,7 +71,6 @@ function BuyPage() {
           <div>
             <span className="brand-kicker">Buy WLD/USDC</span>
             <h2>Pay with M-Pesa and receive crypto</h2>
-            <p className="muted">Enter the KES amount and confirm the quote.</p>
           </div>
         </div>
 
@@ -83,9 +83,10 @@ function BuyPage() {
                 <strong>Destination ready</strong>
                 <span>Used for crypto delivery after review.</span>
                 {currentUser?.username ? <code>Username: @{currentUser.username}</code> : null}
-                {currentUser?.walletAddress ? <code>✓ Wallet connected</code> : null}
+                {currentUser?.walletAddress ? <code>Wallet connected</code> : null}
               </div>
             ) : null}
+
             <div className="field">
               <label htmlFor="buyAsset">Asset</label>
               <select id="buyAsset" value={asset} onChange={(event) => setAsset(event.target.value)}>
@@ -122,26 +123,32 @@ function BuyPage() {
                   onChange={(event) => setWalletAddress(event.target.value)}
                   placeholder="0xYourWalletAddress"
                 />
-                <span className="muted field-hint">
-                  Open with World App to detect this automatically.
-                </span>
               </div>
             ) : null}
 
+            <div className="amount-line">
+              <span>Rate</span>
+              <strong>{formatKES(buyRateKes)} per {asset}</strong>
+            </div>
             <div className="amount-line">
               <span>You pay</span>
               <strong>{formatKES(kesAmount)}</strong>
             </div>
             <div className="amount-line">
               <span>You will receive</span>
-              <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
+              <strong>
+                {quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}
+              </strong>
             </div>
             <div className="soft-note">TMpesa fee included. Manual review required.</div>
+
             {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput ? (
               <div className="notice">
-                Adjust the amount so the final buy total stays between {formatKES(buyKesMin)} and {formatKES(buyKesMax)}.
+                Adjust the amount so the final buy total stays between {formatKES(buyKesMin)} and{" "}
+                {formatKES(buyKesMax)}.
               </div>
             ) : null}
+
             {needsOrderVerification ? (
               <div className="notice">
                 This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
@@ -183,7 +190,7 @@ function BuyPage() {
             {step === 2 ? (
               <>
                 <div className="field">
-                  <label htmlFor="mpesaCode">M-Pesa Transaction Code</label>
+                  <label htmlFor="mpesaCode">M-Pesa transaction code</label>
                   <input
                     id="mpesaCode"
                     value={paymentReference}
@@ -200,9 +207,10 @@ function BuyPage() {
 
             {step === 3 ? (
               <div className="success-panel">
-              <strong>M-Pesa payment submitted</strong>
-              <p>
-                  The admin will verify your code and send {currentOrder.asset} to your recorded destination.
+                <strong>M-Pesa payment submitted</strong>
+                <p>
+                  The admin will verify your code and send {currentOrder.asset} to your recorded
+                  destination.
                 </p>
               </div>
             ) : null}

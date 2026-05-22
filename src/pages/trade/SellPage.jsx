@@ -39,6 +39,7 @@ function SellPage() {
     setError,
     kesAmount,
     grossKesAmount,
+    sellRateKes,
     sellMinKesEquivalent,
     sellMinAssetAmount,
     placeOrder,
@@ -73,9 +74,11 @@ function SellPage() {
           setWalletPortfolio(portfolio);
         }
       })
-      .catch((error) => {
+      .catch((nextError) => {
         if (active) {
-          setWalletError(error instanceof Error ? error.message : "Unable to load your World wallet.");
+          setWalletError(
+            nextError instanceof Error ? nextError.message : "Unable to load your World wallet.",
+          );
         }
       })
       .finally(() => {
@@ -154,7 +157,6 @@ function SellPage() {
           <div>
             <span className="brand-kicker">Sell WLD/USDC</span>
             <h2>Sell from World App and settle to M-Pesa</h2>
-            <p className="muted">Enter the crypto amount and confirm the quote.</p>
           </div>
         </div>
 
@@ -164,12 +166,13 @@ function SellPage() {
           <div className="stack">
             {currentUser?.walletAddress || currentUser?.username ? (
               <div className="info-box receipt-card">
-                <strong>Payout ready</strong>
-                <span>World wallet and username are linked to this sell order.</span>
-                {currentUser?.username ? <code>Username: @{currentUser.username}</code> : null}
-                {currentUser?.walletAddress ? <code>✓ Wallet connected</code> : null}
+                <strong>M-Pesa payout number</strong>
+                <span>KES will be sent to this number after review.</span>
+                <code>{payoutPhoneNumber || currentUser?.mpesaPhoneNumber || "Add your payout number"}</code>
+                {currentUser?.walletAddress ? <code>Wallet connected</code> : null}
               </div>
             ) : null}
+
             <div className="field">
               <label htmlFor="asset">Asset</label>
               <select id="asset" value={asset} onChange={(event) => setAsset(event.target.value)}>
@@ -180,6 +183,7 @@ function SellPage() {
                 ))}
               </select>
             </div>
+
             <div className="field">
               <label htmlFor="cryptoAmount">Amount of {asset}</label>
               <input
@@ -192,7 +196,11 @@ function SellPage() {
                 placeholder="10"
               />
               <span className="muted field-hint">
-                Minimum sell size: {sellMinAssetAmount ? `${formatCryptoAmount(sellMinAssetAmount)} ${asset}` : `live ${asset} equivalent`}.
+                Minimum sell size:{" "}
+                {sellMinAssetAmount
+                  ? `${formatCryptoAmount(sellMinAssetAmount)} ${asset}`
+                  : `live ${asset} equivalent`}
+                .
               </span>
               {selectedAssetBalance ? (
                 <div className="inline-payment-form">
@@ -209,6 +217,7 @@ function SellPage() {
                 </div>
               ) : null}
             </div>
+
             <div className="field">
               <label htmlFor="payoutPhoneNumber">M-Pesa payout number</label>
               <input
@@ -217,28 +226,34 @@ function SellPage() {
                 onChange={(event) => setPayoutPhoneNumber(event.target.value)}
                 placeholder="0712345678"
               />
-              <span className="muted field-hint">
-                This is where the admin will send KES after your World payment is confirmed.
-              </span>
             </div>
 
             <div className="amount-line">
+              <span>Rate</span>
+              <strong>{formatKES(sellRateKes)} per {asset}</strong>
+            </div>
+            <div className="amount-line">
               <span>You send</span>
-              <strong>{cryptoAmount || "0"} {asset}</strong>
+              <strong>
+                {cryptoAmount || "0"} {asset}
+              </strong>
             </div>
             <div className="amount-line">
               <span>You will receive</span>
               <strong>{formatKES(kesAmount)}</strong>
             </div>
+
             {walletError ? <div className="error">{walletError}</div> : null}
             {walletLoading ? <div className="notice">Loading your sellable wallet balance...</div> : null}
             <div className="soft-note">TMpesa fee included. Manual review required.</div>
+
             {grossKesAmount < sellMinKesEquivalent && cryptoAmount ? (
               <div className="notice">
                 Increase the sell amount to at least the live value of{" "}
                 {APP_CONFIG.tradeLimits.sellMinUsdcEquivalent} USDC before creating this order.
               </div>
             ) : null}
+
             {needsOrderVerification ? (
               <div className="notice">
                 This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
@@ -261,34 +276,33 @@ function SellPage() {
           <div className="stack">
             {canSendInsideMiniApp ? (
               <div className="highlight-box action-highlight">
-                <strong>Step 2: Send directly to TMpesa receiver</strong>
+                <strong>Send directly to TMpesa receiver</strong>
                 <p className="muted">
-                  Tap send and approve the World Pay sheet. The asset goes straight from the user
-                  wallet to your connected TMpesa Worldchain receiver, then the order waits for
-                  admin payout review.
+                  Approve the World Pay sheet and the order will wait for manual M-Pesa settlement.
                 </p>
               </div>
             ) : (
               <div className="highlight-box">
                 <strong>Manual confirmation required</strong>
                 <p className="muted">
-                  Open TMpesa inside World App for direct wallet payment. If the World Pay sheet is
-                  unavailable, send manually and submit the blockchain transaction hash.
+                  If World Pay is unavailable, send manually and submit the blockchain transaction
+                  hash.
                 </p>
               </div>
             )}
 
             <div className="amount-line">
               <span>You send</span>
-              <strong>{currentOrder.cryptoAmount} {currentOrder.asset}</strong>
+              <strong>
+                {currentOrder.cryptoAmount} {currentOrder.asset}
+              </strong>
             </div>
             <div className="amount-line">
               <span>You will receive</span>
               <strong>{formatKES(currentOrder.kesAmount)}</strong>
             </div>
             <div className="info-box receipt-card">
-              <strong>M-Pesa payout destination</strong>
-              <span>This number is used when the admin sends your KES settlement.</span>
+              <strong>M-Pesa payout number</strong>
               <code>{currentOrder.payoutPhoneNumber}</code>
             </div>
 
@@ -306,7 +320,7 @@ function SellPage() {
                 ) : (
                   <>
                     <div className="field">
-                      <label htmlFor="txRef">Transaction Hash (txRef)</label>
+                      <label htmlFor="txRef">Transaction hash</label>
                       <input
                         id="txRef"
                         value={paymentReference}
@@ -332,12 +346,7 @@ function SellPage() {
                 <strong>Payment received for review</strong>
                 <p>
                   Your wallet transfer is recorded. The admin will confirm the World payment and
-                  send KES to <strong>{currentOrder.payoutPhoneNumber}</strong> while the order
-                  remains in payout review.
-                </p>
-                <p>
-                  You can track the status from the Orders tab and use the support actions if your
-                  payout takes longer than expected.
+                  send KES to <strong>{currentOrder.payoutPhoneNumber}</strong>.
                 </p>
               </div>
             ) : null}

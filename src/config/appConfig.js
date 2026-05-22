@@ -35,7 +35,7 @@ export const APP_CONFIG = {
   tradeLimits: {
     buyKesMin: 600,
     buyKesMax: 20000,
-    sellMinUsdcEquivalent: 2,
+    sellMinUsdcEquivalent: 1,
   },
   defaultSettings: {
     ratesKes: {
