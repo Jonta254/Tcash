@@ -77,11 +77,8 @@ function WalletPage() {
         <div className="profile-hero-head">
           <div>
             <span className="brand-kicker">Wallet</span>
-            <h2>World wallet overview</h2>
-            <p className="muted">
-              Connect your World wallet to view live WLD and USDC balances, receive crypto, and
-              review wallet authentication status.
-            </p>
+            <h2>Wallet</h2>
+            <p className="muted">Live balances, receive address, and wallet status.</p>
           </div>
           <span className="live-badge">{user?.walletAddress ? "Connected" : "Not connected"}</span>
         </div>
@@ -130,10 +127,7 @@ function WalletPage() {
         <div>
           <span className="brand-kicker">Receive and deposit</span>
           <h3>Receive address</h3>
-          <p className="muted">
-            Use your connected World wallet address to receive WLD or USDC. TMpesa uses the same
-            address for wallet reads and delivery tracking.
-          </p>
+          <p className="muted">Receive WLD or USDC using your connected World wallet address.</p>
         </div>
         <div className="info-box">
           <strong>Wallet address</strong>

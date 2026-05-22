@@ -91,9 +91,7 @@ function SupportPage() {
           <div>
             <span className="brand-kicker">Support</span>
             <h2>Support and help center</h2>
-            <p className="muted">
-              Get quick answers, payment-delay support, and direct contact options from one clean place.
-            </p>
+            <p className="muted">Quick answers, payment delay support, and direct help.</p>
           </div>
         </div>
       </section>
@@ -103,9 +101,7 @@ function SupportPage() {
           <div>
             <span className="brand-kicker">TMpesa guide</span>
             <h3>Simple answers for every user</h3>
-            <p className="muted">
-              Open a topic below to learn how TMpesa works without reading long instructions.
-            </p>
+            <p className="muted">Open a topic to get the answer quickly.</p>
           </div>
           <span className="status-pill completed">Quick help</span>
         </div>

@@ -77,7 +77,11 @@ function OrdersPage() {
             </button>
           ))}
         </div>
-        {user?.isAdmin ? <Link to="/tmpesa-admin" className="button-secondary">Open Admin</Link> : null}
+        {user?.isAdmin ? (
+          <Link to="/tmpesa-admin" className="text-link">
+            Admin desk
+          </Link>
+        ) : null}
       </section>
 
       {orders.length ? (
