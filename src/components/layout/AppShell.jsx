@@ -123,7 +123,7 @@ function AppShell() {
         <header className="topbar topbar-shell">
           <div className="brand-block">
             <div className="brand-shell">
-              <span className="brand-jewel" aria-hidden="true" />
+              <img src="/tmpesa-icon.svg" alt="TMpesa" className="brand-logo-mark" />
               <span className="brand-status">World exchange ready</span>
             </div>
             <div className="brand-headline">

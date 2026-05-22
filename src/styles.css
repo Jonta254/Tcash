@@ -901,6 +901,16 @@ button:disabled {
   min-height: 32px;
 }
 
+.brand-logo-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex: 0 0 auto;
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
 .brand-jewel {
   justify-content: center;
   width: 32px;
@@ -3505,6 +3515,12 @@ button:disabled {
 
   .brand-shell {
     gap: 8px;
+  }
+
+  .brand-logo-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
   }
 
   .topbar-actions {
