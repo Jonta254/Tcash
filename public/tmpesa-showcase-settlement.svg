@@ -1,24 +1,29 @@
 <svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="100" y1="60" x2="980" y2="1020" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="92" y1="48" x2="986" y2="1028" gradientUnits="userSpaceOnUse">
       <stop stop-color="#071126"/>
-      <stop offset="1" stop-color="#132346"/>
+      <stop offset="1" stop-color="#132447"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="204" y1="594" x2="896" y2="748" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE2A1" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#D19B34" stop-opacity="0.04"/>
     </linearGradient>
   </defs>
   <rect width="1080" height="1080" rx="96" fill="url(#bg)"/>
-  <circle cx="234" cy="220" r="182" fill="#6CFFC8" fill-opacity="0.09"/>
-  <circle cx="884" cy="864" r="208" fill="#FFD882" fill-opacity="0.12"/>
-  <rect x="138" y="138" width="804" height="804" rx="60" fill="#0F1A31" stroke="#2C4778" stroke-width="4"/>
-  <text x="180" y="234" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="74" font-weight="700">Manual desk, clean experience</text>
-  <text x="180" y="294" fill="#9AAED1" font-family="Segoe UI, Arial, sans-serif" font-size="34">Built for real users who want direct crypto-to-cash settlement.</text>
-  <rect x="180" y="384" width="720" height="156" rx="42" fill="#101B2F" stroke="#355785"/>
-  <text x="228" y="446" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="700">You send</text>
-  <text x="228" y="508" fill="#9AAED1" font-family="Segoe UI, Arial, sans-serif" font-size="38">25 WLD</text>
-  <rect x="180" y="580" width="720" height="156" rx="42" fill="#101B2F" stroke="#355785"/>
-  <text x="228" y="642" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="44" font-weight="700">You receive</text>
-  <text x="228" y="704" fill="#6DF5C0" font-family="Segoe UI, Arial, sans-serif" font-size="50" font-weight="700">KES 6,225</text>
-  <rect x="180" y="786" width="302" height="74" rx="37" fill="#20335E"/>
-  <text x="268" y="833" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="600">World wallet</text>
-  <rect x="510" y="786" width="306" height="74" rx="37" fill="#41341B"/>
-  <text x="593" y="833" fill="#FFF3D0" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="600">M-Pesa cashout</text>
+  <circle cx="220" cy="238" r="176" fill="#70FFD0" fill-opacity="0.08"/>
+  <circle cx="900" cy="866" r="198" fill="#FFD987" fill-opacity="0.12"/>
+  <rect x="142" y="142" width="796" height="796" rx="60" fill="#0F1A30" stroke="#2D4778" stroke-width="4"/>
+  <text x="182" y="230" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700">Trade desk</text>
+  <text x="182" y="282" fill="#9EB1D2" font-family="Segoe UI, Arial, sans-serif" font-size="28">Simple quote. Fast review.</text>
+  <rect x="182" y="372" width="716" height="154" rx="40" fill="#101B30" stroke="#355886"/>
+  <text x="228" y="432" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="40" font-weight="700">You send</text>
+  <text x="228" y="492" fill="#A5B8D8" font-family="Segoe UI, Arial, sans-serif" font-size="44">25 WLD</text>
+  <rect x="182" y="560" width="716" height="174" rx="40" fill="#101B30" stroke="#355886"/>
+  <rect x="182" y="560" width="716" height="174" rx="40" fill="url(#gold)"/>
+  <text x="228" y="620" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="40" font-weight="700">You receive</text>
+  <text x="228" y="684" fill="#6DF5C0" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="700">KES 6,225</text>
+  <rect x="182" y="794" width="246" height="70" rx="35" fill="#1F315A"/>
+  <text x="252" y="838" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="600">World wallet</text>
+  <rect x="454" y="794" width="280" height="70" rx="35" fill="#3E331B"/>
+  <text x="536" y="838" fill="#FFF3D0" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="600">M-Pesa payout</text>
 </svg>

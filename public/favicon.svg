@@ -1,19 +1,21 @@
 <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="12" y1="8" x2="116" y2="120" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#060C22"/>
-      <stop offset="1" stop-color="#101A34"/>
+    <linearGradient id="bg" x1="12" y1="10" x2="118" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#061024"/>
+      <stop offset="1" stop-color="#122347"/>
     </linearGradient>
-    <linearGradient id="gold" x1="42" y1="38" x2="90" y2="92" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFE29A"/>
-      <stop offset="1" stop-color="#C9972D"/>
+    <linearGradient id="gold" x1="50" y1="43" x2="80" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A5"/>
+      <stop offset="1" stop-color="#D09C35"/>
     </linearGradient>
   </defs>
   <rect width="128" height="128" rx="32" fill="url(#bg)"/>
-  <rect x="12" y="12" width="104" height="104" rx="30" fill="#122042" stroke="#2B487B"/>
-  <circle cx="64" cy="64" r="38" fill="#081221" stroke="#2AF0FF" stroke-width="2.5"/>
-  <path d="M51 47C56 43 61 41 67 41C79 41 89 49 90 61" stroke="#F7FAFF" stroke-width="6" stroke-linecap="round"/>
-  <path d="M78 52L92 61L81 72" stroke="url(#gold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M77 81C72 85 67 87 61 87C49 87 39 79 38 67" stroke="#F7FAFF" stroke-width="6" stroke-linecap="round"/>
-  <path d="M50 76L36 67L47 56" stroke="url(#gold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="12" y="12" width="104" height="104" rx="30" fill="#0E1C37" stroke="#31507E"/>
+  <rect x="36" y="22" width="56" height="78" rx="16" fill="#091524" stroke="#31507E" stroke-width="1.6"/>
+  <circle cx="64" cy="54" r="22" fill="#0C1830" stroke="#2DEEFF" stroke-width="2"/>
+  <path d="M55 47C58 44 61 42 64 42C70 42 75 45 77 51" stroke="#F8FBFF" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M72 47L78 51L73 58" stroke="url(#gold)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M71 61C68 64 64 66 61 66C55 66 50 63 49 57" stroke="#F8FBFF" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M56 61L49 57L55 50" stroke="url(#gold)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="64" y="116" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">TMpesa</text>
 </svg>

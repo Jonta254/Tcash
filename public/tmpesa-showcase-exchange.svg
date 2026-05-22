@@ -1,41 +1,36 @@
 <svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="82" y1="64" x2="1000" y2="1030" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="92" y1="54" x2="990" y2="1020" gradientUnits="userSpaceOnUse">
       <stop stop-color="#061024"/>
       <stop offset="1" stop-color="#132447"/>
     </linearGradient>
-    <linearGradient id="gold" x1="564" y1="192" x2="895" y2="538" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFE29A"/>
-      <stop offset="1" stop-color="#C9972D"/>
+    <linearGradient id="cyan" x1="258" y1="664" x2="536" y2="664" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38F0FF"/>
+      <stop offset="1" stop-color="#4C7FFF"/>
     </linearGradient>
-    <linearGradient id="cyan" x1="194" y1="776" x2="532" y2="776" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#38EFFF"/>
-      <stop offset="1" stop-color="#4E7EFF"/>
+    <linearGradient id="gold" x1="708" y1="354" x2="874" y2="496" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A6"/>
+      <stop offset="1" stop-color="#D39E37"/>
     </linearGradient>
   </defs>
   <rect width="1080" height="1080" rx="96" fill="url(#bg)"/>
-  <circle cx="820" cy="260" r="220" fill="url(#gold)" fill-opacity="0.12"/>
-  <circle cx="176" cy="936" r="250" fill="#69FFC9" fill-opacity="0.08"/>
-  <rect x="112" y="112" width="856" height="856" rx="64" fill="#101A31" stroke="#2C4577" stroke-width="4"/>
-  <rect x="156" y="156" width="136" height="136" rx="40" fill="#122042" stroke="#355788"/>
-  <circle cx="224" cy="224" r="42" fill="#081221" stroke="#2AF0FF" stroke-width="4"/>
-  <path d="M209 205C216 198 223 195 231 195C245 195 257 205 260 219" stroke="#F7FAFF" stroke-width="7" stroke-linecap="round"/>
-  <path d="M246 205L264 219L249 234" stroke="#FFD26D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M238 246C231 253 224 256 216 256C202 256 190 246 188 232" stroke="#F7FAFF" stroke-width="7" stroke-linecap="round"/>
-  <path d="M202 247L184 233L199 218" stroke="#FFD26D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="332" y="214" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="64" font-weight="700">TMpesa</text>
-  <text x="332" y="276" fill="#A7B8D9" font-family="Segoe UI, Arial, sans-serif" font-size="28">Bridge crypto to cash in World App</text>
-  <text x="156" y="404" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="700">Buy or sell WLD</text>
-  <text x="156" y="482" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="700">and USDC with M-Pesa</text>
-  <text x="156" y="570" fill="#98A9CC" font-family="Segoe UI, Arial, sans-serif" font-size="42">Live wallet pricing. Manual desk settlement. Fast support.</text>
-  <path d="M188 776H492" stroke="url(#cyan)" stroke-width="18" stroke-linecap="round"/>
-  <path d="M458 734L532 776L458 818" stroke="url(#cyan)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="612" y="626" width="252" height="182" rx="34" fill="#0D1528" stroke="#38598B"/>
-  <text x="654" y="686" fill="#A5B8D8" font-family="Segoe UI, Arial, sans-serif" font-size="24">YOU RECEIVE</text>
-  <text x="654" y="748" fill="#6AF6C2" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="700">KES 4,489</text>
-  <text x="654" y="785" fill="#A5B8D8" font-family="Segoe UI, Arial, sans-serif" font-size="22">Live market linked</text>
-  <rect x="156" y="866" width="232" height="76" rx="38" fill="#1A2D56" stroke="#36588C"/>
-  <text x="208" y="914" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600">World wallet</text>
-  <rect x="410" y="866" width="260" height="76" rx="38" fill="#1A2C2B" stroke="#2D7D73"/>
-  <text x="486" y="914" fill="#DFFEF6" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600">M-Pesa payout</text>
+  <circle cx="852" cy="202" r="210" fill="#FFD987" fill-opacity="0.12"/>
+  <circle cx="168" cy="912" r="226" fill="#6BFFC8" fill-opacity="0.08"/>
+  <rect x="126" y="126" width="828" height="828" rx="64" fill="#0F1A31" stroke="#2B4778" stroke-width="4"/>
+  <text x="164" y="224" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="70" font-weight="700">Crypto cashout</text>
+  <text x="164" y="276" fill="#A8B9D7" font-family="Segoe UI, Arial, sans-serif" font-size="28">Live market. Clean settlement.</text>
+  <rect x="164" y="360" width="760" height="470" rx="54" fill="#0C172A" stroke="#29435F"/>
+  <rect x="216" y="416" width="232" height="318" rx="38" fill="#132246" stroke="#31507E" stroke-width="3"/>
+  <circle cx="332" cy="566" r="78" fill="#091523" stroke="#2EEFFF" stroke-width="4"/>
+  <path d="M304 530C312 522 321 518 333 518C350 518 364 526 370 540" stroke="#F7FAFF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M356 530L376 540L360 558" stroke="#FFD26D" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M360 606C352 616 342 621 330 621C313 621 298 612 292 598" stroke="#F7FAFF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M308 606L288 596L304 578" stroke="#FFD26D" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M258 664H502" stroke="url(#cyan)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M470 624L536 664L470 704" stroke="url(#cyan)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="596" y="456" width="260" height="176" rx="36" fill="#101A30" stroke="#36598B"/>
+  <text x="640" y="518" fill="#9EB2D5" font-family="Segoe UI, Arial, sans-serif" font-size="24">MARKET</text>
+  <text x="640" y="586" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="700">WLD</text>
+  <rect x="640" y="604" width="144" height="44" rx="18" fill="url(#gold)"/>
+  <text x="712" y="633" fill="#0D1424" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle">M-Pesa</text>
 </svg>
