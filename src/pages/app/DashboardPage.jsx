@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
@@ -36,7 +36,6 @@ function DashboardPage() {
   const [walletPortfolio, setWalletPortfolio] = useState({ assets: [] });
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
-  const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [marketRefreshError, setMarketRefreshError] = useState("");
   const [marketRefreshing, setMarketRefreshing] = useState(false);
   const [walletRefreshing, setWalletRefreshing] = useState(false);
@@ -87,37 +86,30 @@ function DashboardPage() {
     };
   }, [liveRates, walletPortfolio.assets]);
 
-  useEffect(() => {
+  const loadWalletPortfolio = useCallback(async () => {
     if (!user?.walletAddress) {
       setWalletPortfolio({ assets: [] });
+      setWalletError("");
+      setWalletLoading(false);
       return;
     }
 
-    let active = true;
     setWalletLoading(true);
     setWalletError("");
 
-    getWorldWalletPortfolio(user.walletAddress)
-      .then((portfolio) => {
-        if (active) {
-          setWalletPortfolio(portfolio);
-        }
-      })
-      .catch((error) => {
-        if (active) {
-          setWalletError(error instanceof Error ? error.message : "Unable to load your World wallet.");
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setWalletLoading(false);
-        }
-      });
+    try {
+      const portfolio = await getWorldWalletPortfolio(user.walletAddress);
+      setWalletPortfolio(portfolio);
+    } catch (error) {
+      setWalletError(error instanceof Error ? error.message : "Unable to load your World wallet.");
+    } finally {
+      setWalletLoading(false);
+    }
+  }, [user?.walletAddress]);
 
-    return () => {
-      active = false;
-    };
-  }, [user?.walletAddress, walletRefreshKey]);
+  useEffect(() => {
+    loadWalletPortfolio().catch(() => null);
+  }, [loadWalletPortfolio]);
 
   useEffect(() => {
     if (!needsFirstAccessVerification || !user?.walletAddress) {
@@ -201,8 +193,11 @@ function DashboardPage() {
 
   const handleRefreshWalletBalances = async () => {
     setWalletRefreshing(true);
-    setWalletRefreshKey((value) => value + 1);
-    window.setTimeout(() => setWalletRefreshing(false), 600);
+    try {
+      await loadWalletPortfolio();
+    } finally {
+      setWalletRefreshing(false);
+    }
   };
 
   const handleRefreshMarketRates = async () => {

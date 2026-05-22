@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   fetchWorldMarketRates,
+  getExchangeRates,
   getLastLiveMarketRates,
   subscribeToRateUpdates,
 } from "../services";

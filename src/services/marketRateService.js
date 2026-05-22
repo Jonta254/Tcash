@@ -2,6 +2,22 @@ import { updateExchangeRates } from "./settingsService";
 
 const LAST_LIVE_RATES_SESSION_KEY = "worldtmpesa_last_live_rates";
 
+function rememberRates(rates) {
+  try {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(LAST_LIVE_RATES_SESSION_KEY, JSON.stringify(rates));
+    }
+  } catch {
+    // Ignore session persistence issues.
+  }
+
+  try {
+    updateExchangeRates(rates);
+  } catch {
+    // Ignore local persistence issues.
+  }
+}
+
 export function getLastLiveMarketRates() {
   if (typeof window === "undefined") {
     return null;
@@ -29,6 +45,21 @@ export async function fetchWorldMarketRates() {
   const response = await fetch(`/api/world-prices?ts=${Date.now()}`, {
     cache: "no-store",
   }).catch(() => {
+    const lastRates = getLastLiveMarketRates();
+
+    if (lastRates) {
+      return {
+        ok: true,
+        json: async () => ({
+          success: true,
+          prices: lastRates,
+          source: "session-last-live-rates",
+          fetchedAt: new Date().toISOString(),
+          fallback: true,
+        }),
+      };
+    }
+
     throw new Error("TMpesa could not load live market prices.");
   });
 
@@ -49,26 +80,14 @@ export async function fetchWorldMarketRates() {
     WLD: wldRate,
     USDC: usdcRate,
   };
-
-  try {
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(LAST_LIVE_RATES_SESSION_KEY, JSON.stringify(rates));
-    }
-  } catch {
-    // Keep the live response even if session persistence fails.
-  }
-
-  try {
-    updateExchangeRates(rates);
-  } catch {
-    // Keep the live response even if local persistence fails.
-  }
+  rememberRates(rates);
 
   return {
     rates: {
       ...rates,
     },
-    source: payload?.source || "world-official-public-prices",
+    source: payload?.source || "live-market-prices",
     fetchedAt: payload?.fetchedAt || null,
+    isFallback: Boolean(payload?.fallback),
   };
 }
