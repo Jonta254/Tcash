@@ -346,14 +346,11 @@ function DashboardPage() {
       <section className="panel home-wallet-board">
         <div className="home-wallet-head">
           <div>
-            <span className="brand-kicker">TMpesa</span>
+            <span className="brand-kicker">Portfolio</span>
             <h2>Wallet</h2>
-            <small>{user?.walletAddress ? "Connected" : "Open in World App to connect"}</small>
+            {!user?.walletAddress ? <small>Open in World App to connect</small> : null}
           </div>
           <div className="home-wallet-actions">
-            <span className={`status-pill ${user?.walletAddress ? "completed" : "pending"}`}>
-              {user?.walletAddress ? "Connected" : "Not connected"}
-            </span>
             <button
               type="button"
               className="icon-button"
