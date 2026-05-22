@@ -9,9 +9,14 @@ import {
   formatKES,
   getCurrentUser,
   getOrdersForCurrentUser,
+  getReferralSummary,
   getWorldWalletPortfolio,
   isUserAccessVerified,
+  markReferralShared,
+  openSupportEmail,
+  openWhatsAppSupport,
   requestWorldVerification,
+  shareMiniAppInvite,
   updateCurrentUserProfile,
   waitForWorldHumanVerification,
 } from "../../services";
@@ -33,6 +38,9 @@ function DashboardPage() {
   const [walletError, setWalletError] = useState("");
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const [marketRefreshError, setMarketRefreshError] = useState("");
+  const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
+  const [referralMessage, setReferralMessage] = useState("");
+  const [referralError, setReferralError] = useState("");
   const liveRates = useExchangeRates();
 
   const needsFirstAccessVerification =
@@ -201,6 +209,23 @@ function DashboardPage() {
     setWalletRefreshKey((value) => value + 1);
   };
 
+  const handleShareInvite = async () => {
+    setReferralError("");
+    setReferralMessage("");
+
+    try {
+      await shareMiniAppInvite({
+        title: "Join TMpesa",
+        text: `Use my TMpesa invite code ${referralSummary.code} to join the World mini app and trade WLD or USDC with M-Pesa settlement.`,
+        url: referralSummary.appLink,
+      });
+      setReferralSummary(markReferralShared(user));
+      setReferralMessage("Invite ready to share.");
+    } catch (error) {
+      setReferralError(error instanceof Error ? error.message : "Unable to open the invite link.");
+    }
+  };
+
   const balanceLabel = useMemo(() => {
     if (!user?.walletAddress) {
       return "Connect wallet to view balance";
@@ -366,6 +391,37 @@ function DashboardPage() {
         </div>
       </section>
 
+      <section className="panel stack home-referral-panel">
+        <div className="split compact-panel-head">
+          <div>
+            <span className="brand-kicker">Referral</span>
+            <h3>Invite friends</h3>
+          </div>
+          <span className="status-pill paid">Code {referralSummary.code}</span>
+        </div>
+        <p className="muted compact-referral-copy">
+          Share TMpesa with new users and unlock rewards when they become active traders.
+        </p>
+        {referralMessage ? <div className="notice">{referralMessage}</div> : null}
+        {referralError ? <div className="error">{referralError}</div> : null}
+        <div className="referral-milestone-grid">
+          {referralSummary.rewardMilestones.map((milestone) => (
+            <div key={milestone.users} className="referral-mini-card">
+              <span>{milestone.users} users</span>
+              <strong>{formatKES(milestone.rewardKes)}</strong>
+            </div>
+          ))}
+        </div>
+        <div className="button-row compact-actions">
+          <button type="button" className="button" onClick={handleShareInvite}>
+            Share invite
+          </button>
+          <Link to="/profile" className="button-secondary">
+            Referral center
+          </Link>
+        </div>
+      </section>
+
       {recentActivity.length ? (
         <section className="panel stack compact-activity-panel">
           <div className="split compact-panel-head">
@@ -395,6 +451,53 @@ function DashboardPage() {
           </div>
         </section>
       ) : null}
+
+      <section className="panel compact-support-strip">
+        <div className="compact-support-copy">
+          <strong>Need help?</strong>
+          <small>Guide, email, or urgent payout support</small>
+        </div>
+        <div className="compact-support-actions">
+          <Link to="/support#guide" className="button-ghost">
+            Guide
+          </Link>
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() =>
+              openSupportEmail({
+                subject: "TMpesa support request",
+                body: [
+                  "Hello TMpesa support,",
+                  "",
+                  "I need help with my account or order.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Email
+          </button>
+          <button
+            type="button"
+            className="button-ghost"
+            onClick={() =>
+              openWhatsAppSupport({
+                message: [
+                  "Hello TMpesa support,",
+                  "",
+                  "My payment or settlement is delayed and I need assistance.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Delay
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
