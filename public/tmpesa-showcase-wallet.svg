@@ -1,0 +1,31 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1080" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#061024"/>
+      <stop offset="1" stop-color="#102140"/>
+    </linearGradient>
+    <linearGradient id="card" x1="164" y1="214" x2="894" y2="898" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111C34"/>
+      <stop offset="1" stop-color="#0C172B"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" rx="96" fill="url(#bg)"/>
+  <circle cx="850" cy="214" r="198" fill="#FFD882" fill-opacity="0.12"/>
+  <circle cx="146" cy="932" r="220" fill="#62FFD0" fill-opacity="0.08"/>
+  <rect x="122" y="122" width="836" height="836" rx="64" fill="url(#card)" stroke="#304A7D" stroke-width="4"/>
+  <text x="164" y="212" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="74" font-weight="700">Portfolio that feels native</text>
+  <text x="164" y="268" fill="#9AADD0" font-family="Segoe UI, Arial, sans-serif" font-size="34">Track WLD and USDC, refresh live prices, and manage settlements.</text>
+  <rect x="164" y="336" width="752" height="216" rx="44" fill="#091321" stroke="#24405E"/>
+  <text x="212" y="412" fill="#A8BAD7" font-family="Segoe UI, Arial, sans-serif" font-size="30">BALANCE IN KES</text>
+  <text x="212" y="498" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="700">KES 12,980.45</text>
+  <rect x="212" y="586" width="656" height="102" rx="30" fill="#182433" stroke="#2E445F"/>
+  <text x="254" y="648" fill="#A8BAD7" font-family="Segoe UI, Arial, sans-serif" font-size="34">WLD</text>
+  <text x="742" y="648" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">6.50</text>
+  <rect x="212" y="716" width="656" height="102" rx="30" fill="#182433" stroke="#2E445F"/>
+  <text x="254" y="778" fill="#A8BAD7" font-family="Segoe UI, Arial, sans-serif" font-size="34">USDC</text>
+  <text x="734" y="778" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">84.00</text>
+  <rect x="164" y="860" width="244" height="64" rx="32" fill="#20325C"/>
+  <text x="230" y="901" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="600">Live market</text>
+  <rect x="434" y="860" width="252" height="64" rx="32" fill="#173228"/>
+  <text x="494" y="901" fill="#DDFEF5" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="600">Wallet sync</text>
+</svg>

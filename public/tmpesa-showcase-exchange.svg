@@ -1,0 +1,41 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="82" y1="64" x2="1000" y2="1030" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#061024"/>
+      <stop offset="1" stop-color="#132447"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="564" y1="192" x2="895" y2="538" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE29A"/>
+      <stop offset="1" stop-color="#C9972D"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="194" y1="776" x2="532" y2="776" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38EFFF"/>
+      <stop offset="1" stop-color="#4E7EFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" rx="96" fill="url(#bg)"/>
+  <circle cx="820" cy="260" r="220" fill="url(#gold)" fill-opacity="0.12"/>
+  <circle cx="176" cy="936" r="250" fill="#69FFC9" fill-opacity="0.08"/>
+  <rect x="112" y="112" width="856" height="856" rx="64" fill="#101A31" stroke="#2C4577" stroke-width="4"/>
+  <rect x="156" y="156" width="136" height="136" rx="40" fill="#122042" stroke="#355788"/>
+  <circle cx="224" cy="224" r="42" fill="#081221" stroke="#2AF0FF" stroke-width="4"/>
+  <path d="M209 205C216 198 223 195 231 195C245 195 257 205 260 219" stroke="#F7FAFF" stroke-width="7" stroke-linecap="round"/>
+  <path d="M246 205L264 219L249 234" stroke="#FFD26D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M238 246C231 253 224 256 216 256C202 256 190 246 188 232" stroke="#F7FAFF" stroke-width="7" stroke-linecap="round"/>
+  <path d="M202 247L184 233L199 218" stroke="#FFD26D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="332" y="214" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="64" font-weight="700">TMpesa</text>
+  <text x="332" y="276" fill="#A7B8D9" font-family="Segoe UI, Arial, sans-serif" font-size="28">Bridge crypto to cash in World App</text>
+  <text x="156" y="404" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="700">Buy or sell WLD</text>
+  <text x="156" y="482" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="700">and USDC with M-Pesa</text>
+  <text x="156" y="570" fill="#98A9CC" font-family="Segoe UI, Arial, sans-serif" font-size="42">Live wallet pricing. Manual desk settlement. Fast support.</text>
+  <path d="M188 776H492" stroke="url(#cyan)" stroke-width="18" stroke-linecap="round"/>
+  <path d="M458 734L532 776L458 818" stroke="url(#cyan)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="612" y="626" width="252" height="182" rx="34" fill="#0D1528" stroke="#38598B"/>
+  <text x="654" y="686" fill="#A5B8D8" font-family="Segoe UI, Arial, sans-serif" font-size="24">YOU RECEIVE</text>
+  <text x="654" y="748" fill="#6AF6C2" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="700">KES 4,489</text>
+  <text x="654" y="785" fill="#A5B8D8" font-family="Segoe UI, Arial, sans-serif" font-size="22">Live market linked</text>
+  <rect x="156" y="866" width="232" height="76" rx="38" fill="#1A2D56" stroke="#36588C"/>
+  <text x="208" y="914" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600">World wallet</text>
+  <rect x="410" y="866" width="260" height="76" rx="38" fill="#1A2C2B" stroke="#2D7D73"/>
+  <text x="486" y="914" fill="#DFFEF6" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600">M-Pesa payout</text>
+</svg>
