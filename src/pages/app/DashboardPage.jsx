@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   APP_CONFIG,
+  getCachedWorldWalletPortfolio,
   calculateKesWalletBalance,
   fetchWorldMarketRates,
   formatCryptoAmount,
@@ -21,37 +22,11 @@ import {
   waitForWorldHumanVerification,
 } from "../../services";
 
-const LAST_PORTFOLIO_SESSION_KEY = "worldtmpesa_last_wallet_portfolio";
-
-function getCachedWalletPortfolio() {
-  if (typeof window === "undefined") {
-    return { assets: [] };
-  }
-
-  try {
-    const cached = JSON.parse(window.sessionStorage.getItem(LAST_PORTFOLIO_SESSION_KEY) || "null");
-    return cached && Array.isArray(cached.assets) ? cached : { assets: [] };
-  } catch {
-    return { assets: [] };
-  }
-}
-
-function cacheWalletPortfolio(portfolio) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    window.sessionStorage.setItem(LAST_PORTFOLIO_SESSION_KEY, JSON.stringify(portfolio));
-  } catch {
-    // Ignore cache write failures.
-  }
-}
-
 function DashboardPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const initialUser = getCurrentUser();
+  const initialPortfolio = getCachedWorldWalletPortfolio(initialUser?.walletAddress);
   const [user, setUser] = useState(initialUser);
   const [profilePhone, setProfilePhone] = useState(
     initialUser?.mpesaPhoneNumber || initialUser?.phone || "",
@@ -60,8 +35,8 @@ function DashboardPage() {
   const [profileError, setProfileError] = useState("");
   const [verificationError, setVerificationError] = useState("");
   const [verificationLoading, setVerificationLoading] = useState(false);
-  const [walletPortfolio, setWalletPortfolio] = useState(() => getCachedWalletPortfolio());
-  const [walletLoading, setWalletLoading] = useState(() => !getCachedWalletPortfolio().assets.length);
+  const [walletPortfolio, setWalletPortfolio] = useState(() => initialPortfolio);
+  const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const [marketRefreshError, setMarketRefreshError] = useState("");
   const [marketRefreshing, setMarketRefreshing] = useState(false);
@@ -113,9 +88,9 @@ function DashboardPage() {
     };
   }, [liveRates, walletPortfolio.assets]);
 
-  const loadWalletPortfolio = useCallback(async () => {
+  const loadWalletPortfolio = useCallback(async ({ showErrors = false } = {}) => {
     if (!user?.walletAddress) {
-      setWalletPortfolio({ assets: [] });
+      setWalletPortfolio({ walletAddress: "", assets: [], supported: false });
       setWalletError("");
       setWalletLoading(false);
       return;
@@ -127,9 +102,26 @@ function DashboardPage() {
     try {
       const portfolio = await getWorldWalletPortfolio(user.walletAddress);
       setWalletPortfolio(portfolio);
-      cacheWalletPortfolio(portfolio);
     } catch (error) {
-      setWalletError(error instanceof Error ? error.message : "Unable to load your World wallet.");
+      const cachedPortfolio = getCachedWorldWalletPortfolio(user.walletAddress);
+
+      if (cachedPortfolio.assets.length) {
+        setWalletPortfolio(cachedPortfolio);
+        setWalletError("");
+      } else {
+        setWalletPortfolio({
+          walletAddress: user.walletAddress,
+          assets: [],
+          supported: true,
+        });
+        setWalletError(
+          showErrors
+            ? error instanceof Error
+              ? error.message
+              : "Unable to refresh your World wallet right now."
+            : "",
+        );
+      }
     } finally {
       setWalletLoading(false);
     }
@@ -220,9 +212,10 @@ function DashboardPage() {
   };
 
   const handleRefreshWalletBalances = async () => {
+    setWalletError("");
     setWalletRefreshing(true);
     try {
-      await loadWalletPortfolio();
+      await loadWalletPortfolio({ showErrors: true });
     } finally {
       setWalletRefreshing(false);
     }
@@ -270,16 +263,8 @@ function DashboardPage() {
       return "Connect wallet to view balance";
     }
 
-    if (walletLoading && !walletBoard.assets.length) {
-      return "Loading balance...";
-    }
-
-    if (!hasLiveMarketRates && !walletBoard.totalKes) {
-      return "Loading balance...";
-    }
-
     return formatKES(walletBoard.totalKes);
-  }, [hasLiveMarketRates, user?.walletAddress, walletBoard.assets.length, walletBoard.totalKes, walletLoading]);
+  }, [user?.walletAddress, walletBoard.totalKes]);
 
   return (
     <div className="stack">

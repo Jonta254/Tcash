@@ -1,4 +1,8 @@
 import { APP_CONFIG } from "../config/appConfig";
+import { readStorage, writeStorage } from "./localStorage";
+
+const WALLET_PORTFOLIO_CACHE_KEY = "worldtmpesa_wallet_portfolio_cache";
+const WALLET_READ_TIMEOUT_MS = 5000;
 
 function trimHexPrefix(value) {
   return String(value || "").replace(/^0x/i, "");
@@ -19,6 +23,11 @@ function formatTokenBalance(rawBalance, decimals) {
 }
 
 async function readContract({ to, data }) {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller
+    ? window.setTimeout(() => controller.abort(), WALLET_READ_TIMEOUT_MS)
+    : null;
+
   const response = await fetch(APP_CONFIG.worldChain.rpcUrl, {
     method: "POST",
     headers: {
@@ -36,7 +45,20 @@ async function readContract({ to, data }) {
         "latest",
       ],
     }),
-  });
+    signal: controller?.signal,
+  })
+    .catch((error) => {
+      if (error?.name === "AbortError") {
+        throw new Error("TMpesa could not refresh your wallet balance right now.");
+      }
+
+      throw new Error("Unable to reach the live World wallet reader right now.");
+    })
+    .finally(() => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    });
 
   const payload = await response.json();
 
@@ -45,6 +67,54 @@ async function readContract({ to, data }) {
   }
 
   return payload.result || "0x0";
+}
+
+function normalizeWalletAddress(walletAddress) {
+  return String(walletAddress || "").trim().toLowerCase();
+}
+
+export function getCachedWorldWalletPortfolio(walletAddress) {
+  const normalizedWallet = normalizeWalletAddress(walletAddress);
+
+  if (!normalizedWallet) {
+    return {
+      walletAddress: "",
+      assets: [],
+      supported: false,
+    };
+  }
+
+  const cache = readStorage(WALLET_PORTFOLIO_CACHE_KEY, {});
+  const cached = cache?.[normalizedWallet];
+
+  if (!cached || !Array.isArray(cached.assets)) {
+    return {
+      walletAddress: normalizedWallet,
+      assets: [],
+      supported: true,
+    };
+  }
+
+  return cached;
+}
+
+export function cacheWorldWalletPortfolio(portfolio) {
+  const normalizedWallet = normalizeWalletAddress(portfolio?.walletAddress);
+
+  if (!normalizedWallet) {
+    return;
+  }
+
+  const cache = readStorage(WALLET_PORTFOLIO_CACHE_KEY, {});
+  const nextCache = {
+    ...cache,
+    [normalizedWallet]: {
+      ...portfolio,
+      walletAddress: portfolio.walletAddress,
+      cachedAt: new Date().toISOString(),
+    },
+  };
+  writeStorage(WALLET_PORTFOLIO_CACHE_KEY, nextCache);
 }
 
 export async function getWorldWalletPortfolio(walletAddress) {
@@ -78,9 +148,12 @@ export async function getWorldWalletPortfolio(walletAddress) {
     }),
   );
 
-  return {
+  const portfolio = {
     walletAddress: normalizedWallet,
     assets,
     supported: true,
   };
+
+  cacheWorldWalletPortfolio(portfolio);
+  return portfolio;
 }

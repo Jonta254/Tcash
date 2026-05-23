@@ -396,8 +396,8 @@ export async function requestWorldNotificationPermission() {
     };
   }
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    await sleep(250);
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    await sleep(400);
     const permissionState = await getWorldNotificationPermissionState();
 
     if (permissionState.granted) {

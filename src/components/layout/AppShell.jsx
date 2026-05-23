@@ -84,6 +84,43 @@ function AppShell() {
     };
   }, [entryPromptKey, user, worldApp.isInstalled]);
 
+  useEffect(() => {
+    if (!showNotificationPrompt || !worldApp.isInstalled) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const syncPermissionState = async () => {
+      const permissionState = await getWorldNotificationPermissionState();
+
+      if (active && permissionState.granted) {
+        window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+        setNotificationPromptError("");
+        setNotificationPromptLoading(false);
+        setShowNotificationPrompt(false);
+      }
+    };
+
+    const handleForegroundSync = () => {
+      if (document.visibilityState === "visible") {
+        syncPermissionState();
+      }
+    };
+
+    window.addEventListener("focus", syncPermissionState);
+    document.addEventListener("visibilitychange", handleForegroundSync);
+    const interval = window.setInterval(syncPermissionState, 800);
+    syncPermissionState();
+
+    return () => {
+      active = false;
+      window.removeEventListener("focus", syncPermissionState);
+      document.removeEventListener("visibilitychange", handleForegroundSync);
+      window.clearInterval(interval);
+    };
+  }, [showNotificationPrompt, worldApp.isInstalled]);
+
   const handleLogout = () => {
     logoutUser();
     navigate("/login");

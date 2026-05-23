@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  getCachedWorldWalletPortfolio,
   formatWorldLaunchSource,
   getCurrentUser,
   getWorldAppContext,
@@ -12,7 +13,8 @@ function WalletPage() {
   const user = getCurrentUser();
   const worldApp = getWorldAppContext();
   const exchangeRates = useExchangeRates();
-  const [walletPortfolio, setWalletPortfolio] = useState({ assets: [] });
+  const initialPortfolio = getCachedWorldWalletPortfolio(user?.walletAddress);
+  const [walletPortfolio, setWalletPortfolio] = useState(initialPortfolio);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
@@ -34,7 +36,19 @@ function WalletPage() {
       })
       .catch((error) => {
         if (active) {
-          setWalletError(error instanceof Error ? error.message : "Unable to load wallet data.");
+          const cachedPortfolio = getCachedWorldWalletPortfolio(user.walletAddress);
+
+          if (cachedPortfolio.assets.length) {
+            setWalletPortfolio(cachedPortfolio);
+            setWalletError("");
+          } else {
+            setWalletPortfolio({
+              walletAddress: user.walletAddress,
+              assets: [],
+              supported: true,
+            });
+            setWalletError("");
+          }
         }
       })
       .finally(() => {

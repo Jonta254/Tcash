@@ -6,6 +6,7 @@ import {
   canUseWorldPay,
   formatCryptoAmount,
   formatKES,
+  getCachedWorldWalletPortfolio,
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
@@ -20,7 +21,8 @@ function SellPage() {
   const currentUser = getCurrentUser();
   const worldApp = getWorldAppContext();
   const [sendLoading, setSendLoading] = useState(false);
-  const [walletPortfolio, setWalletPortfolio] = useState({ assets: [] });
+  const initialPortfolio = getCachedWorldWalletPortfolio(currentUser?.walletAddress);
+  const [walletPortfolio, setWalletPortfolio] = useState(initialPortfolio);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
   const {
@@ -75,9 +77,19 @@ function SellPage() {
       })
       .catch((nextError) => {
         if (active) {
-          setWalletError(
-            nextError instanceof Error ? nextError.message : "Unable to load your World wallet.",
-          );
+          const cachedPortfolio = getCachedWorldWalletPortfolio(currentUser.walletAddress);
+
+          if (cachedPortfolio.assets.length) {
+            setWalletPortfolio(cachedPortfolio);
+            setWalletError("");
+          } else {
+            setWalletPortfolio({
+              walletAddress: currentUser.walletAddress,
+              assets: [],
+              supported: true,
+            });
+            setWalletError("");
+          }
         }
       })
       .finally(() => {

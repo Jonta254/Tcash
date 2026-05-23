@@ -53,7 +53,11 @@ export {
   notifyWorldUserOrderCreated,
   notifyWorldUserOrderStatus,
 } from "./notificationService";
-export { getWorldWalletPortfolio } from "./walletPortfolioService";
+export {
+  cacheWorldWalletPortfolio,
+  getCachedWorldWalletPortfolio,
+  getWorldWalletPortfolio,
+} from "./walletPortfolioService";
 export { fetchWorldMarketRates, getLastLiveMarketRates } from "./marketRateService";
 export {
   calculateBuyRate,
