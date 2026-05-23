@@ -875,6 +875,21 @@ button:disabled {
   gap: 6px;
 }
 
+.brand-block-compact {
+  gap: 0;
+}
+
+.brand-inline-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.brand-inline-copy h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 6vw, 2.45rem);
+  line-height: 0.96;
+}
+
 .brand-headline {
   display: grid;
   gap: 0;
@@ -891,6 +906,10 @@ button:disabled {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.brand-shell-compact {
+  gap: 12px;
 }
 
 .brand-jewel,
@@ -951,6 +970,10 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.topbar-actions-compact {
+  gap: 8px;
+}
+
 .theme-toggle-button {
   display: inline-flex;
   align-items: center;
@@ -961,6 +984,13 @@ button:disabled {
   background: linear-gradient(145deg, rgba(243, 201, 105, 0.16), rgba(154, 231, 255, 0.08));
   color: #edf4ff;
   font-weight: 700;
+}
+
+.theme-toggle-button-compact {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  justify-content: center;
 }
 
 .theme-toggle-orb {
@@ -994,6 +1024,11 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.14);
 }
 
+.profile-launch-button-compact {
+  min-height: 46px;
+  padding: 8px 14px;
+}
+
 :root[data-theme="light"] .profile-launch-button {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(228, 237, 249, 0.86));
   border-color: rgba(136, 150, 182, 0.2);
@@ -1013,6 +1048,14 @@ button:disabled {
 .profile-launch-copy {
   display: grid;
   line-height: 1.1;
+}
+
+.profile-launch-copy-compact {
+  gap: 0;
+}
+
+.profile-launch-copy-compact strong {
+  font-size: 0.98rem;
 }
 
 .profile-launch-copy strong {
@@ -1043,7 +1086,7 @@ button:disabled {
 }
 
 .context-strip-compact {
-  padding-block: 9px;
+  padding: 8px 12px;
   font-size: 0.82rem;
 }
 
@@ -2270,17 +2313,6 @@ button:disabled {
   margin: 6px 0 0;
 }
 
-.home-wallet-head h2 {
-  font-size: clamp(1.75rem, 6.5vw, 2.3rem);
-  letter-spacing: -0.03em;
-}
-
-.home-wallet-head small {
-  color: var(--muted);
-  max-width: 300px;
-  display: block;
-}
-
 .home-wallet-actions {
   justify-content: flex-end;
   flex-wrap: wrap;
@@ -2305,6 +2337,12 @@ button:disabled {
     0 10px 18px rgba(0, 0, 0, 0.18);
 }
 
+.icon-button-compact {
+  width: 38px;
+  height: 38px;
+  font-size: 1rem;
+}
+
 :root[data-theme="light"] .icon-button {
   color: #142846;
   background:
@@ -2318,8 +2356,8 @@ button:disabled {
 
 .home-balance-card {
   display: grid;
-  gap: 12px;
-  padding: 16px 16px 14px;
+  gap: 10px;
+  padding: 14px 14px 12px;
   border-radius: 22px;
   background:
     linear-gradient(145deg, rgba(8, 14, 24, 0.97), rgba(15, 28, 37, 0.92)),
@@ -2348,6 +2386,10 @@ button:disabled {
   gap: 6px;
 }
 
+.home-balance-main-compact {
+  gap: 4px;
+}
+
 .home-balance-meta {
   display: flex;
   align-items: center;
@@ -2366,7 +2408,7 @@ button:disabled {
 }
 
 .home-balance-main strong {
-  font-size: clamp(2.35rem, 9vw, 3.2rem);
+  font-size: clamp(2rem, 8.5vw, 2.85rem);
   line-height: 0.95;
   letter-spacing: -0.04em;
   color: #f8fcff;
@@ -2374,7 +2416,7 @@ button:disabled {
 }
 
 .home-balance-main small {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .balance-currency-toggle {
@@ -2425,10 +2467,16 @@ button:disabled {
 }
 
 .asset-row {
-  padding: 12px 14px;
+  padding: 10px 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+.live-badge-small {
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
 }
 
 :root[data-theme="light"] .asset-row {
@@ -2457,7 +2505,7 @@ button:disabled {
 .rate-quote-card {
   display: grid;
   gap: 10px;
-  padding: 16px 18px;
+  padding: 14px 16px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(207, 214, 230, 0.1);
@@ -2483,6 +2531,11 @@ button:disabled {
 .rate-quote-market {
   display: grid;
   gap: 6px;
+}
+
+.rate-quote-market strong {
+  font-size: clamp(1.55rem, 6vw, 2.15rem);
+  line-height: 1;
 }
 
 .rate-quote-market strong {
@@ -2627,6 +2680,13 @@ button:disabled {
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
+}
+
+.home-wallet-board .error,
+.home-rates-panel .error {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.9rem;
 }
 
 .compact-support-copy {
@@ -3526,8 +3586,12 @@ button:disabled {
   .topbar-actions {
     width: 100%;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto auto;
     align-items: center;
+  }
+
+  .profile-launch-button-compact {
+    justify-content: center;
   }
 
   .context-strip {

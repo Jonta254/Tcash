@@ -88,6 +88,12 @@ function DashboardPage() {
     };
   }, [liveRates, walletPortfolio.assets]);
 
+  const hasWalletBalances = useMemo(
+    () =>
+      walletPortfolio.assets.some((assetEntry) => Number(assetEntry.formattedBalance || 0) > 0),
+    [walletPortfolio.assets],
+  );
+
   const loadWalletPortfolio = useCallback(async ({ showErrors = false } = {}) => {
     if (!user?.walletAddress) {
       setWalletPortfolio({ walletAddress: "", assets: [], supported: false });
@@ -260,11 +266,62 @@ function DashboardPage() {
 
   const balanceLabel = useMemo(() => {
     if (!user?.walletAddress) {
-      return "Connect wallet to view balance";
+      return "KES --";
+    }
+
+    if (!hasLiveMarketRates && !hasWalletBalances) {
+      return "KES --";
     }
 
     return formatKES(walletBoard.totalKes);
-  }, [user?.walletAddress, walletBoard.totalKes]);
+  }, [hasLiveMarketRates, hasWalletBalances, user?.walletAddress, walletBoard.totalKes]);
+
+  const portfolioSyncLabel = useMemo(() => {
+    if (!user?.walletAddress) {
+      return "Connect wallet to view your portfolio.";
+    }
+
+    if (walletRefreshing) {
+      return "Syncing wallet...";
+    }
+
+    if (walletLoading && !hasWalletBalances) {
+      return "Syncing wallet...";
+    }
+
+    if (walletError && !hasWalletBalances) {
+      return "Unable to sync. Tap refresh.";
+    }
+
+    return "Live wallet balance";
+  }, [hasWalletBalances, user?.walletAddress, walletError, walletLoading, walletRefreshing]);
+
+  const marketSyncLabel = useMemo(() => {
+    if (marketRefreshing) {
+      return "Syncing market...";
+    }
+
+    if (!hasLiveMarketRates) {
+      return marketRefreshError ? "Unable to sync. Tap refresh." : "Syncing market...";
+    }
+
+    return "Market prices update live";
+  }, [hasLiveMarketRates, marketRefreshError, marketRefreshing]);
+
+  const getAssetDisplayValue = useCallback(
+    (assetEntry) => {
+      if (assetEntry) {
+        return formatCryptoAmount(assetEntry.formattedBalance);
+      }
+
+      if (!user?.walletAddress || walletLoading) {
+        return "--";
+      }
+
+      return "0";
+    },
+    [user?.walletAddress, walletLoading],
+  );
 
   return (
     <div className="stack">
@@ -321,16 +378,18 @@ function DashboardPage() {
       <section className="panel home-wallet-board">
         <div className="home-wallet-head">
           <div>
-            <span className="brand-kicker">Wallet</span>
-            <h2>Portfolio</h2>
+            <span className="brand-kicker">Portfolio</span>
           </div>
-          <div className="home-wallet-actions home-wallet-actions-compact">
-            <span className={`live-badge${user?.walletAddress ? "" : " muted-badge"}`}>
+        </div>
+
+        <div className="home-balance-card">
+          <div className="home-balance-meta">
+            <span className={`live-badge live-badge-small${user?.walletAddress ? "" : " muted-badge"}`}>
               {user?.walletAddress ? "Wallet connected" : "Wallet not connected"}
             </span>
             <button
               type="button"
-              className="icon-button"
+              className="icon-button icon-button-compact"
               onClick={handleRefreshWalletBalances}
               aria-label="Refresh wallet balance"
               title="Refresh wallet balance"
@@ -338,31 +397,23 @@ function DashboardPage() {
               {walletRefreshing ? "..." : "\u21BB"}
             </button>
           </div>
-        </div>
 
-        {walletError ? <div className="error">{walletError}</div> : null}
-        {marketRefreshError ? <div className="error">{marketRefreshError}</div> : null}
-
-        <div className="home-balance-card">
-          <div className="home-balance-main">
+          <div className="home-balance-main home-balance-main-compact">
             <div className="home-balance-meta">
               <span>Balance in KES</span>
             </div>
             <strong>{balanceLabel}</strong>
+            <small>{portfolioSyncLabel}</small>
           </div>
 
           <div className="home-asset-rows">
             <div className="asset-row">
               <span>WLD</span>
-              <strong>
-                {walletBoard.wld ? formatCryptoAmount(walletBoard.wld.formattedBalance) : "0"}
-              </strong>
+              <strong>{getAssetDisplayValue(walletBoard.wld)}</strong>
             </div>
             <div className="asset-row">
               <span>USDC</span>
-              <strong>
-                {walletBoard.usdc ? formatCryptoAmount(walletBoard.usdc.formattedBalance) : "0"}
-              </strong>
+              <strong>{getAssetDisplayValue(walletBoard.usdc)}</strong>
             </div>
           </div>
         </div>
@@ -375,10 +426,10 @@ function DashboardPage() {
             <h3>Market</h3>
           </div>
           <div className="home-wallet-actions home-wallet-actions-compact">
-            <small className="market-panel-note">Live KES market</small>
+            <small className="market-panel-note">{marketSyncLabel}</small>
             <button
               type="button"
-              className="icon-button"
+              className="icon-button icon-button-compact"
               onClick={handleRefreshMarketRates}
               aria-label="Refresh live prices"
               title="Refresh live prices"
@@ -387,16 +438,19 @@ function DashboardPage() {
             </button>
           </div>
         </div>
+        {marketRefreshError && !hasLiveMarketRates ? (
+          <div className="error">Unable to sync. Tap refresh.</div>
+        ) : null}
         <div className="rates-board-compact">
           {homeMarketRates.map((rateCard) => (
             <div key={rateCard.asset} className="rate-quote-card rate-quote-card-compact">
               <div className="rate-quote-head">
                 <strong>{rateCard.asset}</strong>
-                <small>Live price</small>
+                <small>KES market</small>
               </div>
               <div className="rate-quote-market">
-                <strong>{rateCard.priceKes > 1 ? formatKES(rateCard.priceKes) : "Loading..."}</strong>
-                <span>{rateCard.priceKes > 1 ? `per 1 ${rateCard.asset}` : "Waiting for market feed"}</span>
+                <strong>{rateCard.priceKes > 1 ? formatKES(rateCard.priceKes) : "KES --"}</strong>
+                <span>{rateCard.priceKes > 1 ? `per 1 ${rateCard.asset}` : "Syncing market..."}</span>
               </div>
             </div>
           ))}

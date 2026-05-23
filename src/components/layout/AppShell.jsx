@@ -158,36 +158,32 @@ function AppShell() {
     >
       <div className="app-layout app-shell">
         <header className="topbar topbar-shell">
-          <div className="brand-block">
-            <div className="brand-shell">
+          <div className="brand-block brand-block-compact">
+            <div className="brand-shell brand-shell-compact">
               <img src="/tmpesa-icon.svg" alt="TMpesa" className="brand-logo-mark" />
-              <span className="brand-status">World exchange ready</span>
-            </div>
-            <div className="brand-headline">
-              <h1>{APP_CONFIG.appName}</h1>
+              <div className="brand-inline-copy">
+                <h1>{APP_CONFIG.appName}</h1>
+                <span className="brand-status">World exchange ready</span>
+              </div>
             </div>
           </div>
 
-          <div className="topbar-actions">
+          <div className="topbar-actions topbar-actions-compact">
+            <NavLink to="/profile" className="profile-launch-button profile-launch-button-compact">
+              <span className="profile-launch-copy profile-launch-copy-compact">
+                <strong>{user?.username ? `@${user.username}` : "Account"}</strong>
+              </span>
+            </NavLink>
+
             <button
               type="button"
-              className="theme-toggle-button"
+              className="theme-toggle-button theme-toggle-button-compact"
               onClick={toggleTheme}
               aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
             >
               <span className="theme-toggle-orb" aria-hidden="true" />
               <span aria-hidden="true">{isLightTheme ? "\u263E" : "\u2600"}</span>
             </button>
-
-            <NavLink to="/profile" className="profile-launch-button">
-              <span className="profile-launch-avatar" aria-hidden="true">
-                {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
-              </span>
-              <span className="profile-launch-copy">
-                <strong>Account</strong>
-                <small>{user?.username ? `@${user.username}` : "Profile"}</small>
-              </span>
-            </NavLink>
 
             <button type="button" className="button-ghost topbar-logout" onClick={handleLogout}>
               Exit
