@@ -266,11 +266,11 @@ function DashboardPage() {
 
   const balanceLabel = useMemo(() => {
     if (!user?.walletAddress) {
-      return "KES --";
+      return "KES --.--";
     }
 
     if (!hasLiveMarketRates && !hasWalletBalances) {
-      return "KES --";
+      return "KES --.--";
     }
 
     return formatKES(walletBoard.totalKes);
@@ -438,9 +438,6 @@ function DashboardPage() {
             </button>
           </div>
         </div>
-        {marketRefreshError && !hasLiveMarketRates ? (
-          <div className="error">Unable to sync. Tap refresh.</div>
-        ) : null}
         <div className="rates-board-compact">
           {homeMarketRates.map((rateCard) => (
             <div key={rateCard.asset} className="rate-quote-card rate-quote-card-compact">
@@ -449,8 +446,8 @@ function DashboardPage() {
                 <small>KES market</small>
               </div>
               <div className="rate-quote-market">
-                <strong>{rateCard.priceKes > 1 ? formatKES(rateCard.priceKes) : "KES --"}</strong>
-                <span>{rateCard.priceKes > 1 ? `per 1 ${rateCard.asset}` : "Syncing market..."}</span>
+                <strong>{rateCard.priceKes > 1 ? formatKES(rateCard.priceKes) : "KES --.--"}</strong>
+                <span>{rateCard.priceKes > 1 ? `per 1 ${rateCard.asset}` : marketSyncLabel}</span>
               </div>
             </div>
           ))}

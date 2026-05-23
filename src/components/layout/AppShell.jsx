@@ -133,12 +133,11 @@ function AppShell() {
     try {
       const permissionState = await requestWorldNotificationPermission();
 
-      if (!permissionState.granted) {
-        throw new Error("World notification permission was not granted.");
+      if (permissionState.granted) {
+        window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+        setShowNotificationPrompt(false);
+        return;
       }
-
-      window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
-      setShowNotificationPrompt(false);
     } catch (error) {
       setNotificationPromptError(
         error instanceof Error ? error.message : "TMpesa could not enable notifications.",
@@ -250,7 +249,7 @@ function AppShell() {
                   onClick={handleEnableNotifications}
                   disabled={notificationPromptLoading}
                 >
-                  {notificationPromptLoading ? "Opening World permission..." : "Open World permission"}
+                  {notificationPromptLoading ? "Opening..." : "Open World permission"}
                 </button>
                 <button
                   type="button"

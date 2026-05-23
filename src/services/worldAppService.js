@@ -396,21 +396,8 @@ export async function requestWorldNotificationPermission() {
     };
   }
 
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    await sleep(400);
-    const permissionState = await getWorldNotificationPermissionState();
-
-    if (permissionState.granted) {
-      persistNotificationPermissionGranted();
-      return permissionState;
-    }
-  }
-
-  return {
-    granted: false,
-    available: true,
-    permissions: data,
-  };
+  await sleep(250);
+  return getWorldNotificationPermissionState();
 }
 
 export async function shareMiniAppInvite({ title, text, url }) {

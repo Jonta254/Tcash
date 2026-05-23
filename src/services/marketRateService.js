@@ -2,7 +2,7 @@ import { updateExchangeRates } from "./settingsService";
 
 const LAST_LIVE_RATES_SESSION_KEY = "worldtmpesa_last_live_rates";
 const LAST_LIVE_RATES_STORAGE_KEY = "worldtmpesa_last_live_rates_storage";
-const MARKET_REQUEST_TIMEOUT_MS = 4500;
+const MARKET_REQUEST_TIMEOUT_MS = 7000;
 
 function withTimeout(promiseFactory, timeoutMs, timeoutMessage) {
   const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
