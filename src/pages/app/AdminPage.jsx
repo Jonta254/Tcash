@@ -3,6 +3,7 @@ import OrderCard from "../../components/orders/OrderCard";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
+  getAdminAlertsUpdatedEventName,
   getAdminAlerts,
   getAllReferralClaims,
   getAllOrders,
@@ -64,13 +65,16 @@ function AdminPage() {
       setReferralClaims(getAllReferralClaims());
       setAdminAlerts(getAdminAlerts());
     };
+    const adminAlertsEventName = getAdminAlertsUpdatedEventName();
 
     window.addEventListener("focus", syncAdminData);
     window.addEventListener("storage", syncAdminData);
+    window.addEventListener(adminAlertsEventName, syncAdminData);
 
     return () => {
       window.removeEventListener("focus", syncAdminData);
       window.removeEventListener("storage", syncAdminData);
+      window.removeEventListener(adminAlertsEventName, syncAdminData);
     };
   }, []);
 

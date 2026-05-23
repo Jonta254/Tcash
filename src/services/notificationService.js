@@ -1,6 +1,14 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
 
+const ADMIN_ALERTS_UPDATED_EVENT = "tmpesa-admin-alerts-updated";
+
+function emitAdminAlertsUpdated() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(ADMIN_ALERTS_UPDATED_EVENT));
+  }
+}
+
 function buildAdminAlert(type, title, message, payload = {}) {
   return {
     id: crypto.randomUUID(),
@@ -16,6 +24,7 @@ function buildAdminAlert(type, title, message, payload = {}) {
 function persistAdminAlert(alert) {
   const alerts = readStorage(STORAGE_KEYS.adminAlerts, []);
   writeStorage(STORAGE_KEYS.adminAlerts, [alert, ...alerts].slice(0, 50));
+  emitAdminAlertsUpdated();
   return alert;
 }
 
@@ -62,11 +71,17 @@ export function markAdminAlertRead(alertId) {
     alert.id === alertId ? { ...alert, read: true, readAt: new Date().toISOString() } : alert,
   );
   writeStorage(STORAGE_KEYS.adminAlerts, nextAlerts);
+  emitAdminAlertsUpdated();
   return nextAlerts;
 }
 
 export function clearAdminAlerts() {
   writeStorage(STORAGE_KEYS.adminAlerts, []);
+  emitAdminAlertsUpdated();
+}
+
+export function getAdminAlertsUpdatedEventName() {
+  return ADMIN_ALERTS_UPDATED_EVENT;
 }
 
 export async function notifyAdminOrderCreated(order) {

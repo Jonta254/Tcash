@@ -217,7 +217,7 @@ function AppShell() {
                   onClick={handleEnableNotifications}
                   disabled={notificationPromptLoading}
                 >
-                  {notificationPromptLoading ? "Opening World permission..." : "Enable notifications"}
+                  {notificationPromptLoading ? "Opening World permission..." : "Open World permission"}
                 </button>
                 <button
                   type="button"

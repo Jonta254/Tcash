@@ -46,6 +46,7 @@ export { openOrderSupportEmail, openSupportEmail, openWhatsAppSupport } from "./
 export {
   clearAdminAlerts,
   getAdminAlerts,
+  getAdminAlertsUpdatedEventName,
   markAdminAlertRead,
   notifyAdminOrderCreated,
   notifyAdminReferralEvent,

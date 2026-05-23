@@ -12,6 +12,7 @@ import {
 } from "./backendService";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
+const NOTIFICATION_PERMISSION = "notifications";
 const TOKEN_DECIMALS = {
   WLD: 18,
   USDC: 6,
@@ -52,6 +53,12 @@ async function runMiniKitCommand(commandName, payload) {
   }
 
   return { result, data };
+}
+
+function persistNotificationPermissionGranted() {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+  }
 }
 
 function permissionGranted(data, targetPermission) {
@@ -339,10 +346,10 @@ export async function getWorldNotificationPermissionState() {
   try {
     const { data } = await runMiniKitCommand("getPermissions");
 
-    const granted = permissionGranted(data, "notifications");
+    const granted = permissionGranted(data, NOTIFICATION_PERMISSION);
 
-    if (granted && typeof window !== "undefined") {
-      window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+    if (granted) {
+      persistNotificationPermissionGranted();
     }
 
     return {
@@ -375,17 +382,32 @@ export async function requestWorldNotificationPermission() {
   }
 
   const { data } = await runMiniKitCommand("requestPermission", {
-    permission: "notifications",
+    permission: NOTIFICATION_PERMISSION,
   });
 
-  const granted = permissionGranted(data, "notifications");
+  const immediateGrant = permissionGranted(data, NOTIFICATION_PERMISSION);
 
-  if (granted && typeof window !== "undefined") {
-    window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+  if (immediateGrant) {
+    persistNotificationPermissionGranted();
+    return {
+      granted: true,
+      available: true,
+      permissions: data,
+    };
+  }
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await sleep(250);
+    const permissionState = await getWorldNotificationPermissionState();
+
+    if (permissionState.granted) {
+      persistNotificationPermissionGranted();
+      return permissionState;
+    }
   }
 
   return {
-    granted,
+    granted: false,
     available: true,
     permissions: data,
   };
