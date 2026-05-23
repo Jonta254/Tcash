@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   fetchWorldMarketRates,
-  getExchangeRates,
   getLastLiveMarketRates,
   subscribeToRateUpdates,
 } from "../services";
@@ -9,9 +8,7 @@ import {
 const LIVE_RATE_REFRESH_MS = 15000;
 
 function useLiveRateState() {
-  const [exchangeRates, setExchangeRates] = useState(
-    () => getLastLiveMarketRates() || getExchangeRates() || {},
-  );
+  const [exchangeRates, setExchangeRates] = useState(() => getLastLiveMarketRates() || {});
 
   useEffect(() => {
     let active = true;
@@ -54,7 +51,11 @@ function useLiveRateState() {
     const interval = window.setInterval(syncLiveRates, LIVE_RATE_REFRESH_MS);
     const unsubscribe = subscribeToRateUpdates(() => {
       if (active) {
-        setExchangeRates(getExchangeRates());
+        const lastLiveRates = getLastLiveMarketRates();
+
+        if (lastLiveRates) {
+          setExchangeRates(lastLiveRates);
+        }
       }
       syncLiveRates();
     });

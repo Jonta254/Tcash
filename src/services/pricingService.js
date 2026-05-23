@@ -50,11 +50,7 @@ export function getAssetPricing(asset, liveRates = {}) {
 export function calculateKesWalletBalance(assets = [], liveRates = {}) {
   return assets.reduce((sum, assetEntry) => {
     const balance = Number(assetEntry.formattedBalance || assetEntry.balance || 0);
-    const marketPriceKes =
-      Number(liveRates?.[assetEntry.symbol]) ||
-      Number(getExchangeRate(assetEntry.symbol)) ||
-      Number(APP_CONFIG.defaultSettings.ratesKes?.[assetEntry.symbol]) ||
-      0;
+    const marketPriceKes = Number(liveRates?.[assetEntry.symbol] || 0);
 
     return sum + balance * marketPriceKes;
   }, 0);
