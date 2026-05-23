@@ -1,7 +1,7 @@
 import { allowMethods, sendJson } from "./_lib/http.js";
 
 const COINGECKO_PRICES_URL =
-  "https://api.coingecko.com/api/v3/simple/price?ids=worldcoin,usd-coin,tether&vs_currencies=kes,usd";
+  "https://api.coingecko.com/api/v3/simple/price?ids=worldcoin,usd-coin,tether&vs_currencies=kes,usd&include_last_updated_at=true&precision=full";
 
 const WORLD_PRICES_URL =
   "https://app-backend.toolsforhumanity.com/public/v1/miniapps/prices?fiatCurrencies=KES&cryptoCurrencies=WLD,USDC";
@@ -47,6 +47,33 @@ function buildCoinGeckoRates(payload) {
   return {
     WLD: wldKes,
     USDC: stableKes,
+    lastUpdatedAt: Number(payload?.worldcoin?.last_updated_at || 0),
+  };
+}
+
+function isFreshTimestamp(unixSeconds) {
+  const timestamp = Number(unixSeconds || 0);
+
+  if (!timestamp) {
+    return false;
+  }
+
+  const ageMs = Date.now() - timestamp * 1000;
+  return ageMs >= 0 && ageMs <= 1000 * 60 * 20;
+}
+
+function buildWorldRates(payload) {
+  const worldPrices = payload?.result?.prices || {};
+  const worldWldKes = parsePositiveNumber(worldPrices?.WLD?.KES);
+  const worldUsdcKes = parsePositiveNumber(worldPrices?.USDC?.KES);
+
+  if (worldWldKes <= 1 || worldUsdcKes <= 1) {
+    return null;
+  }
+
+  return {
+    WLD: worldWldKes,
+    USDC: worldUsdcKes,
   };
 }
 
@@ -58,51 +85,49 @@ export default async function handler(req, res) {
   try {
     res.setHeader("Cache-Control", "no-store, max-age=0");
 
-    const worldResponse = await fetch(WORLD_PRICES_URL, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    const worldPayload = await worldResponse.json().catch(() => ({}));
-    const worldPrices = worldPayload?.result?.prices || {};
-    const worldWldKes = parsePositiveNumber(worldPrices?.WLD?.KES);
-    const worldUsdcKes = parsePositiveNumber(worldPrices?.USDC?.KES);
-
-    if (worldResponse.ok && worldWldKes > 1 && worldUsdcKes > 1) {
-      sendJson(res, 200, {
-        success: true,
-        prices: {
-          WLD: worldWldKes,
-          USDC: worldUsdcKes,
+    const [worldResult, coinGeckoResult] = await Promise.allSettled([
+      fetch(WORLD_PRICES_URL, {
+        headers: {
+          Accept: "application/json",
         },
-        source: "world-public-prices",
-        fetchedAt: new Date().toISOString(),
-      });
-      return;
-    }
+      }).then(async (response) => ({
+        ok: response.ok,
+        payload: await response.json().catch(() => ({})),
+      })),
+      fetch(COINGECKO_PRICES_URL, {
+        headers: {
+          Accept: "application/json",
+        },
+      }).then(async (response) => ({
+        ok: response.ok,
+        payload: await response.json().catch(() => ({})),
+      })),
+    ]);
 
-    const response = await fetch(COINGECKO_PRICES_URL, {
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    const worldRates =
+      worldResult.status === "fulfilled" && worldResult.value.ok
+        ? buildWorldRates(worldResult.value.payload)
+        : null;
 
-    const payload = await response.json().catch(() => ({}));
-    const coinGeckoRates = buildCoinGeckoRates(payload);
+    const coinGeckoRates =
+      coinGeckoResult.status === "fulfilled" && coinGeckoResult.value.ok
+        ? buildCoinGeckoRates(coinGeckoResult.value.payload)
+        : null;
 
-    if (!response.ok) {
-      sendJson(res, response.status, {
-        success: false,
-        error: "Unable to load live prices from the market source.",
-      });
-      return;
-    }
+    const freshCoinGeckoRates =
+      coinGeckoRates &&
+      coinGeckoRates.WLD > 1 &&
+      coinGeckoRates.USDC > 1 &&
+      isFreshTimestamp(coinGeckoRates.lastUpdatedAt)
+        ? coinGeckoRates
+        : null;
 
-    if (coinGeckoRates.WLD <= 0 || coinGeckoRates.USDC <= 0) {
+    const selectedRates = worldRates || freshCoinGeckoRates;
+
+    if (!selectedRates) {
       sendJson(res, 502, {
         success: false,
-        error: "Live crypto source returned an incomplete quote.",
+        error: "Unable to load a fresh live market quote right now.",
       });
       return;
     }
@@ -110,10 +135,10 @@ export default async function handler(req, res) {
     sendJson(res, 200, {
       success: true,
       prices: {
-        WLD: coinGeckoRates.WLD,
-        USDC: coinGeckoRates.USDC,
+        WLD: selectedRates.WLD,
+        USDC: selectedRates.USDC,
       },
-      source: "coingecko-market-fallback",
+      source: worldRates ? "world-public-prices" : "coingecko-market-fallback",
       fetchedAt: new Date().toISOString(),
     });
   } catch (error) {
