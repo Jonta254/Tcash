@@ -34,6 +34,7 @@ function AppShell() {
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [notificationPromptLoading, setNotificationPromptLoading] = useState(false);
   const [notificationPromptError, setNotificationPromptError] = useState("");
+  const [notificationRequestInFlight, setNotificationRequestInFlight] = useState(false);
   const [entryPromptKey] = useState(
     () => `${user?.id || user?.username || "tmpesa"}:${Date.now()}`,
   );
@@ -84,7 +85,7 @@ function AppShell() {
   }, [entryPromptKey, user, worldApp.isInstalled]);
 
   useEffect(() => {
-    if (!showNotificationPrompt || !worldApp.isInstalled) {
+    if (!showNotificationPrompt || !worldApp.isInstalled || notificationRequestInFlight) {
       return undefined;
     }
 
@@ -110,21 +111,14 @@ function AppShell() {
     window.addEventListener("focus", syncPermissionState);
     document.addEventListener("visibilitychange", handleForegroundSync);
 
-    let interval = null;
-    if (!notificationPromptLoading) {
-      interval = window.setInterval(syncPermissionState, 800);
-      syncPermissionState();
-    }
+    syncPermissionState();
 
     return () => {
       active = false;
       window.removeEventListener("focus", syncPermissionState);
       document.removeEventListener("visibilitychange", handleForegroundSync);
-      if (interval) {
-        window.clearInterval(interval);
-      }
     };
-  }, [notificationPromptLoading, showNotificationPrompt, worldApp.isInstalled]);
+  }, [notificationRequestInFlight, showNotificationPrompt, worldApp.isInstalled]);
 
   const handleLogout = () => {
     logoutUser();
@@ -134,15 +128,11 @@ function AppShell() {
   const handleEnableNotifications = async () => {
     setNotificationPromptError("");
     setNotificationPromptLoading(true);
-
-    const releaseTimer = window.setTimeout(() => {
-      setNotificationPromptLoading(false);
-      setNotificationPromptError("Approve notifications in World App, then return to TMpesa.");
-    }, 1400);
+    setNotificationRequestInFlight(true);
+    setShowNotificationPrompt(false);
 
     try {
       const permissionState = await requestWorldNotificationPermission();
-      window.clearTimeout(releaseTimer);
 
       if (!permissionState.granted) {
         throw new Error("Approve notifications in World App, then return to TMpesa.");
@@ -154,13 +144,14 @@ function AppShell() {
 
       setShowNotificationPrompt(false);
     } catch (error) {
-      window.clearTimeout(releaseTimer);
+      setShowNotificationPrompt(true);
       setNotificationPromptError(
         error instanceof Error
           ? error.message
           : "TMpesa could not enable notifications right now.",
       );
     } finally {
+      setNotificationRequestInFlight(false);
       setNotificationPromptLoading(false);
     }
   };
