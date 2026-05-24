@@ -422,8 +422,8 @@ function DashboardPage() {
       <section className="panel stack home-rates-panel">
         <div className="split compact-panel-head">
           <div>
-            <span className="brand-kicker">Live prices</span>
-            <h3>Market</h3>
+            <span className="brand-kicker">Market</span>
+            <h3>Live prices</h3>
           </div>
           <div className="home-wallet-actions home-wallet-actions-compact">
             <small className="market-panel-note">{marketSyncLabel}</small>
@@ -458,25 +458,25 @@ function DashboardPage() {
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Actions</span>
-            <h3>Quick actions</h3>
+            <h3>Move fast</h3>
           </div>
         </div>
         <div className="quick-action-grid home-quick-actions compact-home-actions">
           <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
             <strong>Buy &amp; Sell</strong>
-            <span>Trade now.</span>
+            <span>Trade now</span>
           </Link>
           <Link to="/wallet#receive" className="quick-action-card quick-action-card-sell">
             <strong>Receive</strong>
-            <span>Copy address.</span>
+            <span>Copy address</span>
           </Link>
           <Link to="/orders" className="quick-action-card quick-action-card-orders">
             <strong>History</strong>
-            <span>Track orders.</span>
+            <span>Track orders</span>
           </Link>
           <Link to="/support" className="quick-action-card quick-action-card-orders">
             <strong>Support</strong>
-            <span>Get help.</span>
+            <span>Get help</span>
           </Link>
         </div>
       </section>
@@ -489,9 +489,7 @@ function DashboardPage() {
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
         </div>
-        <p className="muted compact-referral-copy">
-          Share TMpesa and unlock referral rewards.
-        </p>
+        <p className="muted compact-referral-copy">Share TMpesa and unlock rewards.</p>
         {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
         <div className="referral-milestone-grid">
@@ -545,7 +543,7 @@ function DashboardPage() {
       <section className="panel compact-support-strip">
         <div className="compact-support-copy">
           <strong>Help</strong>
-          <small>Guide, email, or payout follow-up</small>
+          <small>Guide, email, or delay follow-up</small>
         </div>
         <div className="compact-support-actions">
           <Link to="/support#guide" className="button-ghost">

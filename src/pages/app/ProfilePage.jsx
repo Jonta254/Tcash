@@ -479,7 +479,7 @@ function ProfilePage() {
             <span className="brand-kicker">Rate TMpesa</span>
             <h3>Rate the live mini app</h3>
             <p className="muted">
-              Open the official TMpesa World mini app entry to leave your rating in the live app
+              Open the TMpesa World mini app entry to leave your rating in the live app
               experience.
             </p>
           </div>
@@ -496,7 +496,7 @@ function ProfilePage() {
         <div className="notice">
           {ratingSummary.totalRatings
             ? `TMpesa pulse: ${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} stored ratings.`
-            : "This opens the official TMpesa World mini app entry for rating and feedback."}
+            : "This opens the TMpesa World mini app entry for rating and feedback."}
         </div>
       </section>
 

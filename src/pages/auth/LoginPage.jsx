@@ -177,7 +177,7 @@ function LoginPage() {
           <div className="auth-gate-card">
             <div className="auth-gate-head">
               <span className="secure-access-badge">World sign in</span>
-              <span className="secure-access-trust">Official approval</span>
+              <span className="secure-access-trust">Fast entry</span>
             </div>
 
             <div className="auth-gate-copy">
@@ -220,7 +220,7 @@ function LoginPage() {
             </div>
             {!worldApp.isInstalled && settings.worldAppId ? (
               <div className="soft-note">
-                Use the official World App mini app link to continue with Wallet Auth.
+                Use the World App mini app link to continue with Wallet Auth.
               </div>
             ) : null}
           </div>

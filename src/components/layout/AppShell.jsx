@@ -170,8 +170,10 @@ function AppShell() {
             <div className="brand-shell brand-shell-compact">
               <img src="/tmpesa-icon.svg" alt="TMpesa" className="brand-logo-mark" />
               <div className="brand-inline-copy">
-                <h1>{APP_CONFIG.appName}</h1>
-                <span className="brand-status">World exchange ready</span>
+                <div className="brand-inline-row">
+                  <h1>{APP_CONFIG.appName}</h1>
+                  <span className="brand-status">World exchange ready</span>
+                </div>
               </div>
             </div>
           </div>
@@ -200,7 +202,7 @@ function AppShell() {
         </header>
 
         <div className="context-strip context-strip-compact">
-          <span>{hasWorldSession ? "Secure session" : "Open in World App"}</span>
+          <span>{hasWorldSession ? "World App session" : "Open in World App"}</span>
           {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
             <a href={worldAppLink} className="text-link">
               Open in World App
