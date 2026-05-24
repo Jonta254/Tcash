@@ -293,7 +293,7 @@ function DashboardPage() {
       return "Unable to sync. Tap refresh.";
     }
 
-    return "Live wallet balance";
+    return "Live portfolio balance";
   }, [hasWalletBalances, user?.walletAddress, walletError, walletLoading, walletRefreshing]);
 
   const marketSyncLabel = useMemo(() => {
@@ -458,7 +458,7 @@ function DashboardPage() {
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Actions</span>
-            <h3>Move fast</h3>
+            <h3>Quick actions</h3>
           </div>
         </div>
         <div className="quick-action-grid home-quick-actions compact-home-actions">
@@ -489,7 +489,7 @@ function DashboardPage() {
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
         </div>
-        <p className="muted compact-referral-copy">Share TMpesa and unlock rewards.</p>
+        <p className="muted compact-referral-copy">Share TMpesa and earn referral rewards.</p>
         {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
         <div className="referral-milestone-grid">
@@ -543,7 +543,7 @@ function DashboardPage() {
       <section className="panel compact-support-strip">
         <div className="compact-support-copy">
           <strong>Help</strong>
-          <small>Guide, email, or delay follow-up</small>
+          <small>Guide, email, or delay support</small>
         </div>
         <div className="compact-support-actions">
           <Link to="/support#guide" className="button-ghost">

@@ -42,11 +42,14 @@ This note records the World Developers docs reviewed during the final TMpesa pol
 ## Design and policy notes applied
 
 - Home is intentionally brief and action-focused.
+- Home uses compact summary cards instead of tall landing-page sections.
 - Bottom navigation is always visible and kept short.
 - Large landing-page style sections were removed from the main app flow.
 - Support contact paths are present and reachable from inside the app.
 - The app keeps clear direct navigation without hamburger menus.
 - Trade, Wallet, History, Profile, and Support use single-purpose screens instead of mixing roles.
+- User-facing copy avoids implying World endorsement through words like "official" in primary UI messaging.
+- Header, spacing, and card hierarchy are tuned for mobile-first use with compact controls and shorter copy.
 
 ## World ID verification status
 
