@@ -9,6 +9,7 @@ import {
   getWorldAppContext,
   getWorldNotificationPermissionState,
   logoutUser,
+  requestWorldNotificationPermission,
 } from "../../services";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
@@ -108,16 +109,22 @@ function AppShell() {
 
     window.addEventListener("focus", syncPermissionState);
     document.addEventListener("visibilitychange", handleForegroundSync);
-    const interval = window.setInterval(syncPermissionState, 800);
-    syncPermissionState();
+
+    let interval = null;
+    if (!notificationPromptLoading) {
+      interval = window.setInterval(syncPermissionState, 800);
+      syncPermissionState();
+    }
 
     return () => {
       active = false;
       window.removeEventListener("focus", syncPermissionState);
       document.removeEventListener("visibilitychange", handleForegroundSync);
-      window.clearInterval(interval);
+      if (interval) {
+        window.clearInterval(interval);
+      }
     };
-  }, [showNotificationPrompt, worldApp.isInstalled]);
+  }, [notificationPromptLoading, showNotificationPrompt, worldApp.isInstalled]);
 
   const handleLogout = () => {
     logoutUser();
@@ -126,14 +133,36 @@ function AppShell() {
 
   const handleEnableNotifications = async () => {
     setNotificationPromptError("");
-    setNotificationPromptLoading(false);
-    setShowNotificationPrompt(false);
-    navigate("/profile#notifications", {
-      state: {
-        openNotifications: true,
-        highlightNotifications: true,
-      },
-    });
+    setNotificationPromptLoading(true);
+
+    const releaseTimer = window.setTimeout(() => {
+      setNotificationPromptLoading(false);
+      setNotificationPromptError("Approve notifications in World App, then return to TMpesa.");
+    }, 1400);
+
+    try {
+      const permissionState = await requestWorldNotificationPermission();
+      window.clearTimeout(releaseTimer);
+
+      if (!permissionState.granted) {
+        throw new Error("Approve notifications in World App, then return to TMpesa.");
+      }
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+      }
+
+      setShowNotificationPrompt(false);
+    } catch (error) {
+      window.clearTimeout(releaseTimer);
+      setNotificationPromptError(
+        error instanceof Error
+          ? error.message
+          : "TMpesa could not enable notifications right now.",
+      );
+    } finally {
+      setNotificationPromptLoading(false);
+    }
   };
 
   return (
@@ -238,7 +267,7 @@ function AppShell() {
                   onClick={handleEnableNotifications}
                   disabled={notificationPromptLoading}
                 >
-                  {notificationPromptLoading ? "Opening..." : "Open World permission"}
+                  {notificationPromptLoading ? "Opening World permission..." : "Open World permission"}
                 </button>
                 <button
                   type="button"
