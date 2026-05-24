@@ -2710,7 +2710,9 @@ button:disabled {
 }
 
 .history-tab-row {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .history-tab {
@@ -2718,8 +2720,11 @@ button:disabled {
   background: rgba(255, 255, 255, 0.04);
   color: var(--muted);
   border-radius: 999px;
-  padding: 10px 16px;
+  padding: 10px 8px;
   font-weight: 700;
+  font-size: 0.98rem;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .history-tab.active {

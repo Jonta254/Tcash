@@ -64,7 +64,7 @@ function OrdersPage() {
           {[
             { id: "all", label: "All" },
             { id: "pending", label: "Pending" },
-            { id: "completed", label: "Completed" },
+            { id: "completed", label: "Complete" },
             { id: "failed", label: "Failed" },
           ].map((tab) => (
             <button
@@ -105,7 +105,7 @@ function OrdersPage() {
               })
             }
           >
-            Open Delay WhatsApp
+            Delay
           </button>
         </section>
       ) : null}
@@ -147,7 +147,7 @@ function OrdersPage() {
                   className="button-ghost"
                   onClick={() => openOrderSupportEmail(order, "delay")}
                 >
-                  Delay on WhatsApp
+                  Delay
                 </button>
               </div>
             </OrderCard>
