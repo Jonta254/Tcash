@@ -1485,6 +1485,13 @@ button:disabled {
   padding: 20px;
 }
 
+.panel-focus-ring {
+  border-color: rgba(116, 149, 255, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(116, 149, 255, 0.25),
+    0 18px 40px rgba(11, 16, 28, 0.22);
+}
+
 .action-card h3,
 .panel h3,
 .summary-card h3,

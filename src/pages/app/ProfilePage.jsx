@@ -51,7 +51,7 @@ function ProfilePage() {
   const [payoutError, setPayoutError] = useState("");
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
   const [ratingError, setRatingError] = useState("");
-  const notificationAutoOpenRef = useRef(false);
+  const notificationSectionRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -115,30 +115,23 @@ function ProfilePage() {
   };
 
   useEffect(() => {
-    const shouldAutoOpen =
-      location.hash === "#notifications" || Boolean(location.state?.openNotifications);
+    const shouldHighlight =
+      location.hash === "#notifications" ||
+      Boolean(location.state?.highlightNotifications) ||
+      Boolean(location.state?.fromNotificationReminder);
 
-    if (
-      shouldAutoOpen &&
-      !notificationAutoOpenRef.current &&
-      !notificationsEnabled &&
-      !notificationLoading
-    ) {
-      notificationAutoOpenRef.current = true;
-      handleEnableNotifications().finally(() => {
-        if (location.state?.openNotifications) {
-          navigate(location.pathname + location.hash, { replace: true, state: null });
-        }
-      });
+    if (!shouldHighlight) {
+      return;
     }
-  }, [
-    location.hash,
-    location.pathname,
-    location.state,
-    navigate,
-    notificationLoading,
-    notificationsEnabled,
-  ]);
+
+    window.setTimeout(() => {
+      notificationSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+
+    if (location.state?.highlightNotifications || location.state?.fromNotificationReminder) {
+      navigate(location.pathname + location.hash, { replace: true, state: null });
+    }
+  }, [location.hash, location.pathname, location.state, navigate]);
 
   const handleSavePayoutNumber = () => {
     setPayoutError("");
@@ -403,7 +396,13 @@ function ProfilePage() {
         ) : null}
       </section>
 
-      <section className="panel stack" id="notifications">
+      <section
+        className={`panel stack${
+          location.hash === "#notifications" ? " panel-focus-ring" : ""
+        }`}
+        id="notifications"
+        ref={notificationSectionRef}
+      >
         <div className="split">
           <div>
             <span className="brand-kicker">Push notifications</span>
