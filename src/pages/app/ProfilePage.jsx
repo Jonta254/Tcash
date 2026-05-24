@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import {
   createReferralClaim,
@@ -35,6 +35,8 @@ function formatJoinedDate(value) {
 
 function ProfilePage() {
   const user = getCurrentUser();
+  const location = useLocation();
+  const navigate = useNavigate();
   const orders = getOrdersForCurrentUser();
   const worldApp = getWorldAppContext();
   const { isLightTheme, toggleTheme } = useThemeMode();
@@ -49,6 +51,7 @@ function ProfilePage() {
   const [payoutError, setPayoutError] = useState("");
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
   const [ratingError, setRatingError] = useState("");
+  const notificationAutoOpenRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -110,6 +113,32 @@ function ProfilePage() {
       setNotificationLoading(false);
     }
   };
+
+  useEffect(() => {
+    const shouldAutoOpen =
+      location.hash === "#notifications" || Boolean(location.state?.openNotifications);
+
+    if (
+      shouldAutoOpen &&
+      !notificationAutoOpenRef.current &&
+      !notificationsEnabled &&
+      !notificationLoading
+    ) {
+      notificationAutoOpenRef.current = true;
+      handleEnableNotifications().finally(() => {
+        if (location.state?.openNotifications) {
+          navigate(location.pathname + location.hash, { replace: true, state: null });
+        }
+      });
+    }
+  }, [
+    location.hash,
+    location.pathname,
+    location.state,
+    navigate,
+    notificationLoading,
+    notificationsEnabled,
+  ]);
 
   const handleSavePayoutNumber = () => {
     setPayoutError("");
@@ -374,7 +403,7 @@ function ProfilePage() {
         ) : null}
       </section>
 
-      <section className="panel stack">
+      <section className="panel stack" id="notifications">
         <div className="split">
           <div>
             <span className="brand-kicker">Push notifications</span>
