@@ -138,6 +138,8 @@ function AppShell() {
         setShowNotificationPrompt(false);
         return;
       }
+
+      setNotificationPromptError("Approve notifications in World App, then return to TMpesa.");
     } catch (error) {
       setNotificationPromptError(
         error instanceof Error ? error.message : "TMpesa could not enable notifications.",

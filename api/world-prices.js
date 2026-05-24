@@ -5,6 +5,8 @@ const COINGECKO_PRICES_URL =
 
 const WORLD_PRICES_URL =
   "https://app-backend.toolsforhumanity.com/public/v1/miniapps/prices?fiatCurrencies=KES&cryptoCurrencies=WLD,USDC";
+const BINANCE_WLD_USDT_URL = "https://api.binance.com/api/v3/ticker/price?symbol=WLDUSDT";
+const USD_KES_URL = "https://open.er-api.com/v6/latest/USD";
 
 function parsePositiveNumber(value) {
   const parsed = Number(value || 0);
@@ -77,6 +79,36 @@ function buildWorldRates(payload) {
   };
 }
 
+function buildUsdKesRate(payload) {
+  return parsePositiveNumber(payload?.rates?.KES);
+}
+
+function buildBinanceRates(payload, usdKesRate, fallbackUsdcKes) {
+  const wldUsdt = parsePositiveNumber(payload?.price);
+
+  if (wldUsdt <= 0 || usdKesRate <= 1) {
+    return null;
+  }
+
+  return {
+    WLD: wldUsdt * usdKesRate,
+    USDC: fallbackUsdcKes > 1 ? fallbackUsdcKes : usdKesRate,
+  };
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  return {
+    ok: response.ok,
+    payload: await response.json().catch(() => ({})),
+  };
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ["GET"])) {
     return;
@@ -85,23 +117,11 @@ export default async function handler(req, res) {
   try {
     res.setHeader("Cache-Control", "no-store, max-age=0");
 
-    const [worldResult, coinGeckoResult] = await Promise.allSettled([
-      fetch(WORLD_PRICES_URL, {
-        headers: {
-          Accept: "application/json",
-        },
-      }).then(async (response) => ({
-        ok: response.ok,
-        payload: await response.json().catch(() => ({})),
-      })),
-      fetch(COINGECKO_PRICES_URL, {
-        headers: {
-          Accept: "application/json",
-        },
-      }).then(async (response) => ({
-        ok: response.ok,
-        payload: await response.json().catch(() => ({})),
-      })),
+    const [worldResult, coinGeckoResult, binanceResult, usdKesResult] = await Promise.allSettled([
+      fetchJson(WORLD_PRICES_URL),
+      fetchJson(COINGECKO_PRICES_URL),
+      fetchJson(BINANCE_WLD_USDT_URL),
+      fetchJson(USD_KES_URL),
     ]);
 
     const worldRates =
@@ -122,7 +142,21 @@ export default async function handler(req, res) {
         ? coinGeckoRates
         : null;
 
-    const selectedRates = worldRates || freshCoinGeckoRates;
+    const usdKesRate =
+      usdKesResult.status === "fulfilled" && usdKesResult.value.ok
+        ? buildUsdKesRate(usdKesResult.value.payload)
+        : 0;
+
+    const binanceRates =
+      binanceResult.status === "fulfilled" && binanceResult.value.ok
+        ? buildBinanceRates(
+            binanceResult.value.payload,
+            usdKesRate,
+            freshCoinGeckoRates?.USDC || worldRates?.USDC || usdKesRate,
+          )
+        : null;
+
+    const selectedRates = binanceRates || worldRates || freshCoinGeckoRates;
 
     if (!selectedRates) {
       sendJson(res, 502, {
@@ -138,7 +172,11 @@ export default async function handler(req, res) {
         WLD: selectedRates.WLD,
         USDC: selectedRates.USDC,
       },
-      source: worldRates ? "world-public-prices" : "coingecko-market-fallback",
+      source: binanceRates
+        ? "binance-wld-usdt-plus-usd-kes"
+        : worldRates
+          ? "world-public-prices"
+          : "coingecko-market-fallback",
       fetchedAt: new Date().toISOString(),
     });
   } catch (error) {
