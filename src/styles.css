@@ -413,6 +413,8 @@ button {
 .auth-mini-flow strong {
   color: #f2f6ff;
   font-size: 0.9rem;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 :root[data-theme="light"] .auth-mini-flow strong {
@@ -449,6 +451,7 @@ button {
 .auth-benefit-chip strong {
   color: #eef4ff;
   font-size: 0.86rem;
+  line-height: 1.2;
 }
 
 :root[data-theme="light"] .auth-benefit-chip strong {
@@ -3622,10 +3625,73 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .auth-mini-flow,
   .auth-compact-benefits,
   .trade-desk-meta {
     grid-template-columns: 1fr;
+  }
+
+  .auth-splash-top {
+    gap: 14px;
+    padding-top: 2px;
+  }
+
+  .auth-logo-frame {
+    width: 96px;
+    height: 96px;
+  }
+
+  .auth-logo-mark {
+    width: 62px;
+    height: 62px;
+  }
+
+  .auth-splash-copy h2 {
+    font-size: clamp(2.05rem, 10vw, 2.8rem);
+  }
+
+  .auth-splash-copy p {
+    margin-top: 10px;
+    font-size: 0.98rem;
+  }
+
+  .auth-gate-card {
+    padding: 16px 14px;
+  }
+
+  .auth-mini-flow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .auth-mini-flow div {
+    gap: 5px;
+    padding: 10px 9px;
+    border-radius: 16px;
+  }
+
+  .auth-mini-flow span {
+    width: 22px;
+    height: 22px;
+    font-size: 0.74rem;
+  }
+
+  .auth-mini-flow strong {
+    font-size: 0.82rem;
+  }
+
+  .auth-compact-benefits {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .auth-benefit-chip {
+    gap: 6px;
+    padding: 10px 8px;
+    border-radius: 16px;
+  }
+
+  .auth-benefit-chip strong {
+    font-size: 0.8rem;
   }
 
   .story-exchange-card {
