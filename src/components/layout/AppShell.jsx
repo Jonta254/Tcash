@@ -9,12 +9,11 @@ import {
   getWorldAppContext,
   getWorldNotificationPermissionState,
   logoutUser,
+  requestWorldNotificationPermission,
 } from "../../services";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
 const NOTIFICATION_ENTRY_PROMPT_KEY = "worldtmpesa_notification_prompt_entry";
-const NOTIFICATION_PROMPT_FAST_RELEASE_MS = 900;
-
 const navItems = [
   { to: "/", label: "Home", glyph: "\u25C8", tone: "home" },
   { to: "/wallet", label: "Wallet", glyph: "\u25CE", tone: "wallet" },
@@ -129,11 +128,28 @@ function AppShell() {
   const handleEnableNotifications = async () => {
     setNotificationPromptError("");
     setNotificationPromptLoading(true);
-    window.setTimeout(() => {
+
+    try {
+      const permissionState = await requestWorldNotificationPermission();
+
+      if (!permissionState.granted) {
+        throw new Error("Notifications are still off. Approve them in World App and try again.");
+      }
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+      }
+
       setShowNotificationPrompt(false);
+    } catch (error) {
+      setNotificationPromptError(
+        error instanceof Error
+          ? error.message
+          : "TMpesa could not enable notifications right now.",
+      );
+    } finally {
       setNotificationPromptLoading(false);
-      navigate("/profile#notifications", { state: { openNotifications: true } });
-    }, NOTIFICATION_PROMPT_FAST_RELEASE_MS);
+    }
   };
 
   return (
