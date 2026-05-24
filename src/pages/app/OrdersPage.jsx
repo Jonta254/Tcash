@@ -84,32 +84,6 @@ function OrdersPage() {
         ) : null}
       </section>
 
-      {orders.length ? (
-        <section className="support-footer support-footer-emphasis">
-          <div>
-            <strong>Payment delay support</strong>
-            <p>Open WhatsApp for urgent help with a delayed payment or payout.</p>
-          </div>
-          <button
-            type="button"
-            className="button"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: [
-                  "Hello TMpesa support,",
-                  "",
-                  "I have already placed an order and my payment or settlement is delayed.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
-              })
-            }
-          >
-            Delay
-          </button>
-        </section>
-      ) : null}
-
       {filteredOrders.length ? (
         <section className="order-grid">
           {filteredOrders.map((order) => (
@@ -167,6 +141,32 @@ function OrdersPage() {
           </div>
         </section>
       )}
+
+      {orders.length ? (
+        <section className="support-footer support-footer-emphasis">
+          <div>
+            <strong>Payment delay support</strong>
+            <p>Open WhatsApp for urgent help with a delayed payment or payout.</p>
+          </div>
+          <button
+            type="button"
+            className="button"
+            onClick={() =>
+              openWhatsAppSupport({
+                message: [
+                  "Hello TMpesa support,",
+                  "",
+                  "I have already placed an order and my payment or settlement is delayed.",
+                  "",
+                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
+                ].join("\n"),
+              })
+            }
+          >
+            Delay
+          </button>
+        </section>
+      ) : null}
     </div>
   );
 }

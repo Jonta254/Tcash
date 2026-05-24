@@ -52,6 +52,7 @@ function ProfilePage() {
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
   const [ratingError, setRatingError] = useState("");
   const notificationSectionRef = useRef(null);
+  const notificationAutoOpenRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -117,6 +118,7 @@ function ProfilePage() {
   useEffect(() => {
     const shouldHighlight =
       location.hash === "#notifications" ||
+      Boolean(location.state?.openNotifications) ||
       Boolean(location.state?.highlightNotifications) ||
       Boolean(location.state?.fromNotificationReminder);
 
@@ -128,10 +130,28 @@ function ProfilePage() {
       notificationSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
 
-    if (location.state?.highlightNotifications || location.state?.fromNotificationReminder) {
+    if (
+      location.state?.openNotifications ||
+      location.state?.highlightNotifications ||
+      location.state?.fromNotificationReminder
+    ) {
       navigate(location.pathname + location.hash, { replace: true, state: null });
     }
   }, [location.hash, location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    const shouldAutoOpen = Boolean(location.state?.openNotifications);
+
+    if (
+      shouldAutoOpen &&
+      !notificationAutoOpenRef.current &&
+      !notificationsEnabled &&
+      !notificationLoading
+    ) {
+      notificationAutoOpenRef.current = true;
+      handleEnableNotifications();
+    }
+  }, [location.state, notificationsEnabled, notificationLoading]);
 
   const handleSavePayoutNumber = () => {
     setPayoutError("");

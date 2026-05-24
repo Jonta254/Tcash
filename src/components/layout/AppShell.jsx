@@ -9,7 +9,6 @@ import {
   getWorldAppContext,
   getWorldNotificationPermissionState,
   logoutUser,
-  requestWorldNotificationPermission,
 } from "../../services";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
@@ -127,29 +126,14 @@ function AppShell() {
 
   const handleEnableNotifications = async () => {
     setNotificationPromptError("");
-    setNotificationPromptLoading(true);
-
-    try {
-      const permissionState = await requestWorldNotificationPermission();
-
-      if (!permissionState.granted) {
-        throw new Error("Notifications are still off. Approve them in World App to continue.");
-      }
-
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
-      }
-
-      setShowNotificationPrompt(false);
-    } catch (error) {
-      setNotificationPromptError(
-        error instanceof Error
-          ? error.message
-          : "TMpesa could not enable notifications right now.",
-      );
-    } finally {
-      setNotificationPromptLoading(false);
-    }
+    setNotificationPromptLoading(false);
+    setShowNotificationPrompt(false);
+    navigate("/profile#notifications", {
+      state: {
+        openNotifications: true,
+        highlightNotifications: true,
+      },
+    });
   };
 
   return (
@@ -254,7 +238,7 @@ function AppShell() {
                   onClick={handleEnableNotifications}
                   disabled={notificationPromptLoading}
                 >
-                  {notificationPromptLoading ? "Opening World permission..." : "Open World permission"}
+                  {notificationPromptLoading ? "Opening..." : "Open World permission"}
                 </button>
                 <button
                   type="button"
