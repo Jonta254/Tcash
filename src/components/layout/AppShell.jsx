@@ -14,6 +14,7 @@ import {
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
 const NOTIFICATION_ENTRY_PROMPT_KEY = "worldtmpesa_notification_prompt_entry";
+const NOTIFICATION_PROMPT_FAST_RELEASE_MS = 900;
 
 const navItems = [
   { to: "/", label: "Home", glyph: "\u25C8", tone: "home" },
@@ -131,21 +132,44 @@ function AppShell() {
     setNotificationPromptLoading(true);
 
     try {
-      const permissionState = await requestWorldNotificationPermission();
+      const permissionPromise = requestWorldNotificationPermission();
+      const fastResult = await Promise.race([
+        permissionPromise,
+        new Promise((resolve) =>
+          window.setTimeout(() => resolve(null), NOTIFICATION_PROMPT_FAST_RELEASE_MS),
+        ),
+      ]);
 
-      if (permissionState.granted) {
+      if (fastResult?.granted) {
         window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
         setShowNotificationPrompt(false);
         return;
       }
 
+      setNotificationPromptLoading(false);
       setNotificationPromptError("Approve notifications in World App, then return to TMpesa.");
+
+      permissionPromise
+        .then((permissionState) => {
+          if (permissionState?.granted) {
+            window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+            setNotificationPromptError("");
+            setShowNotificationPrompt(false);
+          }
+        })
+        .catch((error) => {
+          setNotificationPromptError(
+            error instanceof Error ? error.message : "TMpesa could not enable notifications.",
+          );
+        });
     } catch (error) {
       setNotificationPromptError(
         error instanceof Error ? error.message : "TMpesa could not enable notifications.",
       );
     } finally {
-      setNotificationPromptLoading(false);
+      setTimeout(() => {
+        setNotificationPromptLoading(false);
+      }, 0);
     }
   };
 
