@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
@@ -14,6 +15,7 @@ function BuyPage() {
   const settings = useAppSettings();
   const currentUser = getCurrentUser();
   const worldApp = getWorldAppContext();
+  const [copiedValue, setCopiedValue] = useState("");
   const {
     asset,
     setAsset,
@@ -61,6 +63,22 @@ function BuyPage() {
     }
 
     placeOrder();
+  };
+
+  const copyPaymentValue = async (label, value) => {
+    const text = String(value || "").trim();
+
+    if (!text) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedValue(label);
+      window.setTimeout(() => setCopiedValue(""), 1800);
+    } catch {
+      setError(`Copy failed. Long-press ${label} and copy it manually.`);
+    }
   };
 
   return (
@@ -164,10 +182,45 @@ function BuyPage() {
 
         {step >= 2 && currentOrder ? (
           <div className="stack">
-            <div className="payment-card">
-              <span>Pay to till</span>
-              <strong>{settings.mpesaPaybillNumber}</strong>
-              <p>{formatKES(currentOrder.kesAmount)}</p>
+            <div className="payment-card payment-instructions-card">
+              <span>Pay KES by M-Pesa PayBill</span>
+              <strong>{formatKES(currentOrder.kesAmount)}</strong>
+              <div className="copy-detail-list">
+                <div>
+                  <span>PayBill</span>
+                  <code>{settings.mpesaPaybillNumber}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => copyPaymentValue("PayBill", settings.mpesaPaybillNumber)}
+                  >
+                    {copiedValue === "PayBill" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <div>
+                  <span>Account</span>
+                  <code>{settings.mpesaAccountNumber}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => copyPaymentValue("Account", settings.mpesaAccountNumber)}
+                  >
+                    {copiedValue === "Account" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <div>
+                  <span>Name</span>
+                  <code>{settings.mpesaTillName}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => copyPaymentValue("Name", settings.mpesaTillName)}
+                  >
+                    {copiedValue === "Name" ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+              <p>Use PayBill, then paste the M-Pesa transaction code below.</p>
             </div>
 
             <div className="info-box receipt-card">
@@ -178,7 +231,8 @@ function BuyPage() {
             </div>
 
             <div className="sr-only">
-              <code>Till Number: {settings.mpesaPaybillNumber}</code>
+              <code>PayBill Number: {settings.mpesaPaybillNumber}</code>
+              <code>Account Number: {settings.mpesaAccountNumber}</code>
               <code>Amount: KES {currentOrder.kesAmount.toLocaleString()}</code>
             </div>
 

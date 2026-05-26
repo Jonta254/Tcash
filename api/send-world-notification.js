@@ -2,6 +2,58 @@ import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
 const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const WORLD_NOTIFICATIONS_URL = "https://developer.world.org/api/v2/minikit/send-notification";
+const recentNotifications = new Map();
+const duplicateWindowMs = 1000 * 60;
+const walletWindowMs = 1000 * 60;
+const walletLimitPerWindow = 3;
+
+function pruneRecentNotifications(now = Date.now()) {
+  for (const [key, value] of recentNotifications.entries()) {
+    if (value.expiresAt <= now) {
+      recentNotifications.delete(key);
+    }
+  }
+}
+
+function getNotificationRateLimit({ walletAddress, title, miniAppPath }) {
+  const now = Date.now();
+  pruneRecentNotifications(now);
+
+  const wallet = String(walletAddress || "").toLowerCase();
+  const duplicateKey = `duplicate:${wallet}:${title}:${miniAppPath || "/orders"}`;
+  const walletKey = `wallet:${wallet}`;
+  const duplicate = recentNotifications.get(duplicateKey);
+
+  if (duplicate) {
+    return {
+      limited: true,
+      reason: "Duplicate notification skipped.",
+    };
+  }
+
+  const walletBucket = recentNotifications.get(walletKey) || {
+    count: 0,
+    expiresAt: now + walletWindowMs,
+  };
+
+  if (walletBucket.count >= walletLimitPerWindow) {
+    return {
+      limited: true,
+      reason: "Notification rate limit reached for this wallet.",
+    };
+  }
+
+  recentNotifications.set(duplicateKey, {
+    count: 1,
+    expiresAt: now + duplicateWindowMs,
+  });
+  recentNotifications.set(walletKey, {
+    count: walletBucket.count + 1,
+    expiresAt: walletBucket.expiresAt,
+  });
+
+  return { limited: false };
+}
 
 function buildMiniAppPath(appId, miniAppPath = "/orders") {
   if (!miniAppPath) {
@@ -53,6 +105,21 @@ export default async function handler(req, res) {
       sendJson(res, 400, {
         sent: false,
         error: "walletAddress, title, and message are required.",
+      });
+      return;
+    }
+
+    const rateLimit = getNotificationRateLimit({
+      walletAddress,
+      title,
+      miniAppPath,
+    });
+
+    if (rateLimit.limited) {
+      sendJson(res, 200, {
+        sent: false,
+        skipped: true,
+        reason: rateLimit.reason,
       });
       return;
     }

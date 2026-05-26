@@ -7,6 +7,11 @@ const LEGACY_SELL_WALLET_ADDRESSES = new Set([
   "0x0f029f35a9da4043ff84b2c98a023d0a68eb64b4".toLowerCase(),
 ]);
 const LEGACY_MPESA_PAYBILL_NUMBER = "522522";
+const LEGACY_MPESA_PAYBILL_NUMBERS = new Set([LEGACY_MPESA_PAYBILL_NUMBER, "5698981"]);
+const LEGACY_MPESA_TILL_NAMES = new Set([
+  "brian okindo josiah",
+  "tmpesa exchange",
+]);
 const LEGACY_USDT_ASSET = "USDT";
 const WORLD_USDC_ASSET = "USDC";
 const LEGACY_SUPPORT_EMAILS = new Set([
@@ -84,6 +89,18 @@ export function initializeSettings() {
 
   if (nextSettings.mpesaPaybillNumber === LEGACY_MPESA_PAYBILL_NUMBER) {
     nextSettings.mpesaPaybillNumber = APP_CONFIG.defaultSettings.mpesaPaybillNumber;
+  }
+
+  if (LEGACY_MPESA_PAYBILL_NUMBERS.has(String(nextSettings.mpesaPaybillNumber || ""))) {
+    nextSettings.mpesaPaybillNumber = APP_CONFIG.defaultSettings.mpesaPaybillNumber;
+  }
+
+  if (!nextSettings.mpesaAccountNumber) {
+    nextSettings.mpesaAccountNumber = APP_CONFIG.defaultSettings.mpesaAccountNumber;
+  }
+
+  if (LEGACY_MPESA_TILL_NAMES.has(String(nextSettings.mpesaTillName || "").toLowerCase())) {
+    nextSettings.mpesaTillName = APP_CONFIG.defaultSettings.mpesaTillName;
   }
 
   if (
@@ -174,6 +191,7 @@ export function updateOperationalSettings(nextSettings) {
   const previousSettings = getSettings();
   const sellWalletAddress = (nextSettings.sellWalletAddress || "").trim();
   const mpesaPaybillNumber = (nextSettings.mpesaPaybillNumber || "").trim();
+  const mpesaAccountNumber = (nextSettings.mpesaAccountNumber || "").trim();
   const mpesaTillName = (nextSettings.mpesaTillName || "").trim();
   const supportEmail = (nextSettings.supportEmail || "").trim();
   if (!sellWalletAddress) {
@@ -181,7 +199,11 @@ export function updateOperationalSettings(nextSettings) {
   }
 
   if (!mpesaPaybillNumber) {
-    throw new Error("Enter the M-Pesa paybill or till number.");
+    throw new Error("Enter the M-Pesa paybill number.");
+  }
+
+  if (!mpesaAccountNumber) {
+    throw new Error("Enter the M-Pesa account number.");
   }
 
   if (!mpesaTillName) {
@@ -196,6 +218,7 @@ export function updateOperationalSettings(nextSettings) {
     ...previousSettings,
     sellWalletAddress,
     mpesaPaybillNumber,
+    mpesaAccountNumber,
     mpesaTillName,
     supportEmail,
     worldAppId: APP_CONFIG.worldAppId,

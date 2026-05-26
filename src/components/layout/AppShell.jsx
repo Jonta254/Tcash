@@ -14,6 +14,7 @@ import {
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
 const NOTIFICATION_ENTRY_PROMPT_KEY = "worldtmpesa_notification_prompt_entry";
+const NOTIFICATION_DISMISSED_KEY = "worldtmpesa_notification_prompt_dismissed";
 const navItems = [
   { to: "/", label: "Home", glyph: "\u25C8", tone: "home" },
   { to: "/wallet", label: "Wallet", glyph: "\u25CE", tone: "wallet" },
@@ -56,8 +57,13 @@ function AppShell() {
       const hasPromptedThisEntry =
         typeof window !== "undefined" &&
         window.sessionStorage.getItem(NOTIFICATION_ENTRY_PROMPT_KEY) === entryPromptKey;
+      const dismissedAt =
+        typeof window !== "undefined"
+          ? Number(window.localStorage.getItem(NOTIFICATION_DISMISSED_KEY) || 0)
+          : 0;
+      const recentlyDismissed = dismissedAt && Date.now() - dismissedAt < 1000 * 60 * 60 * 24 * 3;
 
-      const permissionState = await getWorldNotificationPermissionState();
+      const permissionState = await getWorldNotificationPermissionState({ command: false });
 
       if (active && permissionState.granted) {
         window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
@@ -69,7 +75,7 @@ function AppShell() {
         window.localStorage.removeItem(NOTIFICATION_ALLOWED_STORAGE_KEY);
       }
 
-      if (active && !permissionState.granted && !hasPromptedThisEntry) {
+      if (active && !permissionState.granted && !hasPromptedThisEntry && !recentlyDismissed) {
         if (typeof window !== "undefined") {
           window.sessionStorage.setItem(NOTIFICATION_ENTRY_PROMPT_KEY, entryPromptKey);
         }
@@ -92,7 +98,7 @@ function AppShell() {
     let active = true;
 
     const syncPermissionState = async () => {
-      const permissionState = await getWorldNotificationPermissionState();
+      const permissionState = await getWorldNotificationPermissionState({ command: false });
 
       if (active && permissionState.granted) {
         window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
@@ -125,11 +131,17 @@ function AppShell() {
     navigate("/login");
   };
 
+  const closeNotificationPrompt = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(NOTIFICATION_DISMISSED_KEY, Date.now().toString());
+    }
+    setShowNotificationPrompt(false);
+  };
+
   const handleEnableNotifications = async () => {
     setNotificationPromptError("");
     setNotificationPromptLoading(true);
     setNotificationRequestInFlight(true);
-    setShowNotificationPrompt(false);
 
     try {
       const permissionState = await requestWorldNotificationPermission();
@@ -236,7 +248,7 @@ function AppShell() {
               <button
                 type="button"
                 className="notification-prompt-close"
-                onClick={() => setShowNotificationPrompt(false)}
+                onClick={closeNotificationPrompt}
                 aria-label="Close notification prompt"
               >
                 {"\u00D7"}
@@ -265,7 +277,7 @@ function AppShell() {
                 <button
                   type="button"
                   className="button-secondary"
-                  onClick={() => setShowNotificationPrompt(false)}
+                  onClick={closeNotificationPrompt}
                 >
                   Not now
                 </button>

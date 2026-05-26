@@ -37,6 +37,7 @@ function AdminPage() {
   const [operationalInputs, setOperationalInputs] = useState(() => ({
     sellWalletAddress: liveSettings.sellWalletAddress,
     mpesaPaybillNumber: liveSettings.mpesaPaybillNumber,
+    mpesaAccountNumber: liveSettings.mpesaAccountNumber,
     mpesaTillName: liveSettings.mpesaTillName,
     supportEmail: liveSettings.supportEmail,
     worldAppId: liveSettings.worldAppId || "",
@@ -78,7 +79,6 @@ function AdminPage() {
     };
   }, []);
 
-  // TODO: Replace this temporary admin gate with real authentication before production.
   if (!user?.isAdmin) {
     return (
       <div className="stack">
@@ -211,6 +211,7 @@ function AdminPage() {
       setOperationalInputs({
         sellWalletAddress: nextSettings.sellWalletAddress,
         mpesaPaybillNumber: nextSettings.mpesaPaybillNumber,
+        mpesaAccountNumber: nextSettings.mpesaAccountNumber,
         mpesaTillName: nextSettings.mpesaTillName,
         supportEmail: nextSettings.supportEmail,
         worldAppId: nextSettings.worldAppId || "",
@@ -343,7 +344,7 @@ function AdminPage() {
         <div>
           <h3>Mini App Operations</h3>
           <p className="muted">
-            Set the live wallet receiver for sell-side payments, the M-Pesa till for buy orders,
+            Set the live wallet receiver for sell-side payments, the M-Pesa PayBill for buy orders,
             and the Gmail support destination for user help actions.
           </p>
         </div>
@@ -372,7 +373,7 @@ function AdminPage() {
 
           <div className="info-grid">
             <div className="field">
-              <label htmlFor="mpesaPaybillNumber">M-Pesa Till</label>
+              <label htmlFor="mpesaPaybillNumber">M-Pesa PayBill</label>
               <input
                 id="mpesaPaybillNumber"
                 value={operationalInputs.mpesaPaybillNumber}
@@ -382,7 +383,22 @@ function AdminPage() {
                     mpesaPaybillNumber: event.target.value,
                   }))
                 }
-                placeholder="522522"
+                placeholder="542542"
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="mpesaAccountNumber">Account Number</label>
+              <input
+                id="mpesaAccountNumber"
+                value={operationalInputs.mpesaAccountNumber}
+                onChange={(event) =>
+                  setOperationalInputs((current) => ({
+                    ...current,
+                    mpesaAccountNumber: event.target.value,
+                  }))
+                }
+                placeholder="856340"
               />
             </div>
 
@@ -397,7 +413,7 @@ function AdminPage() {
                     mpesaTillName: event.target.value,
                   }))
                 }
-                placeholder="TMpesa Exchange"
+                placeholder="B.O.J"
               />
             </div>
           </div>

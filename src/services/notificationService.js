@@ -2,6 +2,8 @@ import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
 
 const ADMIN_ALERTS_UPDATED_EVENT = "tmpesa-admin-alerts-updated";
+const sentNotificationKeys = new Map();
+const notificationDedupeMs = 1000 * 60;
 
 function emitAdminAlertsUpdated() {
   if (typeof window !== "undefined") {
@@ -29,6 +31,25 @@ function persistAdminAlert(alert) {
 }
 
 async function postJson(url, body) {
+  const notificationKey =
+    url === "/api/send-world-notification"
+      ? `${body.walletAddress}:${body.title}:${body.miniAppPath || "/orders"}`
+      : "";
+
+  if (notificationKey) {
+    const lastSentAt = sentNotificationKeys.get(notificationKey) || 0;
+
+    if (Date.now() - lastSentAt < notificationDedupeMs) {
+      return {
+        sent: false,
+        skipped: true,
+        reason: "Duplicate notification skipped.",
+      };
+    }
+
+    sentNotificationKeys.set(notificationKey, Date.now());
+  }
+
   const response = await fetch(url, {
     method: "POST",
     headers: {

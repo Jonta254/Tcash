@@ -1635,6 +1635,55 @@ button:disabled {
   font-weight: 700;
 }
 
+.payment-instructions-card {
+  gap: 14px;
+}
+
+.payment-instructions-card > strong {
+  font-size: clamp(1.7rem, 7vw, 2.4rem);
+}
+
+.copy-detail-list {
+  display: grid;
+  gap: 10px;
+}
+
+.copy-detail-list div {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(207, 214, 230, 0.1);
+}
+
+.copy-detail-list span {
+  color: #c9d7ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.copy-detail-list code {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.copy-button {
+  min-height: 36px;
+  border: 1px solid rgba(207, 214, 230, 0.16);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f3f7ff;
+  font-weight: 800;
+}
+
 .success-panel {
   padding: 16px;
   border-radius: 20px;
@@ -1934,6 +1983,15 @@ button:disabled {
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.3);
 }
 
+.notification-prompt-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
 .notification-prompt-close {
   position: absolute;
   top: 12px;
@@ -1946,6 +2004,11 @@ button:disabled {
   color: #e8eefc;
   font-size: 1.4rem;
   line-height: 1;
+}
+
+.notification-prompt-card .button,
+.notification-prompt-card .button-secondary {
+  min-height: 58px;
 }
 
 .notification-prompt-icon {

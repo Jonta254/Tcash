@@ -35,6 +35,7 @@ function SellPage() {
     paymentReference,
     setPaymentReference,
     step,
+    setStep,
     setCurrentOrder,
     currentOrder,
     error,
@@ -119,18 +120,25 @@ function SellPage() {
         to: settings.sellWalletAddress,
       });
 
+      if (!payment.verified) {
+        throw new Error(
+          payment.transactionStatus
+            ? `World payment is ${payment.transactionStatus}. Wait for confirmation and try again.`
+            : "World payment could not be verified yet. Please try again.",
+        );
+      }
+
       const updated = updateOrder(currentOrder.id, {
         paymentMethod: "world-pay",
         paymentReference: payment.transactionId,
-        paymentSummary: payment.verified
-          ? `World Pay verified (${payment.transactionStatus})`
-          : `World Pay submitted (${payment.transactionStatus})`,
+        paymentSummary: `World Pay verified (${payment.transactionStatus})`,
         paymentVerificationStatus: payment.transactionStatus,
         status: "paid",
       });
 
       setCurrentOrder(updated);
-      markAsPaid(payment.transactionId);
+      setPaymentReference(payment.transactionId);
+      setStep(3);
     } catch (nextError) {
       setError(nextError.message);
     } finally {

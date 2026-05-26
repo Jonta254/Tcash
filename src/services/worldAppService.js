@@ -12,10 +12,21 @@ import {
 } from "./backendService";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
+const NOTIFICATION_REQUESTED_STORAGE_KEY = "worldtmpesa_notification_permission_requested";
 const NOTIFICATION_PERMISSION = "notifications";
+const NOTIFICATION_REQUEST_COOLDOWN_MS = 1000 * 60 * 2;
+const notificationPermissionCache = {
+  checkedAt: 0,
+  value: null,
+};
+let notificationPermissionRequest = null;
 const TOKEN_DECIMALS = {
   WLD: 18,
   USDC: 6,
+};
+const WORLD_PAY_TOKEN_BY_ASSET = {
+  WLD: "WLD",
+  USDC: "USDC",
 };
 
 function toTokenUnits(amount, decimals) {
@@ -58,6 +69,25 @@ async function runMiniKitCommand(commandName, payload) {
 function persistNotificationPermissionGranted() {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
+  }
+}
+
+function readStoredNotificationPermission() {
+  return (
+    typeof window !== "undefined" &&
+    window.localStorage.getItem(NOTIFICATION_ALLOWED_STORAGE_KEY) === "true"
+  );
+}
+
+function readLastNotificationRequestAt() {
+  return typeof window === "undefined"
+    ? 0
+    : Number(window.localStorage.getItem(NOTIFICATION_REQUESTED_STORAGE_KEY) || 0);
+}
+
+function markNotificationPermissionRequested() {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(NOTIFICATION_REQUESTED_STORAGE_KEY, Date.now().toString());
   }
 }
 
@@ -203,7 +233,7 @@ export async function connectWithWorldAppWallet() {
 }
 
 export function canUseWorldPay(asset) {
-  return APP_CONFIG.worldPaySupportedAssets.includes(asset);
+  return APP_CONFIG.worldPaySupportedAssets.includes(asset) && Boolean(WORLD_PAY_TOKEN_BY_ASSET[asset]);
 }
 
 export function buildWorldAppDeeplink(path = "/") {
@@ -231,17 +261,22 @@ export async function requestWorldPayment({ amount, asset = "WLD", description, 
   }
 
   const paymentReference = (await createPaymentReference()).reference;
+  const tokenSymbol = WORLD_PAY_TOKEN_BY_ASSET[asset];
 
   const { data } = await runMiniKitCommand("pay", {
     reference: paymentReference,
     to: to.trim(),
     tokens: [
       {
-        symbol: asset,
+        symbol: tokenSymbol,
         token_amount: toTokenUnits(amount, TOKEN_DECIMALS[asset] || 18),
       },
     ],
     description,
+    fallback: () => ({
+      status: "error",
+      message: "Open TMpesa inside World App to complete this payment.",
+    }),
   });
 
   const normalizedPayload = {
@@ -338,9 +373,24 @@ export async function requestWorldVerification({
   }
 }
 
-export async function getWorldNotificationPermissionState() {
+export async function getWorldNotificationPermissionState({ command = false } = {}) {
   if (!MiniKit.isInstalled()) {
     return { granted: false, available: false };
+  }
+
+  if (!command) {
+    return {
+      granted: readStoredNotificationPermission(),
+      available: true,
+      permissions: {},
+    };
+  }
+
+  if (
+    notificationPermissionCache.value &&
+    Date.now() - notificationPermissionCache.checkedAt < 15_000
+  ) {
+    return notificationPermissionCache.value;
   }
 
   try {
@@ -352,21 +402,25 @@ export async function getWorldNotificationPermissionState() {
       persistNotificationPermissionGranted();
     }
 
-    return {
+    const permissionState = {
       granted,
       available: true,
       permissions: data?.permissions || data || {},
     };
-  } catch {
-    const grantedFromStorage =
-      typeof window !== "undefined" &&
-      window.localStorage.getItem(NOTIFICATION_ALLOWED_STORAGE_KEY) === "true";
 
-    return {
-      granted: grantedFromStorage,
-      available: grantedFromStorage,
+    notificationPermissionCache.checkedAt = Date.now();
+    notificationPermissionCache.value = permissionState;
+    return permissionState;
+  } catch {
+    const permissionState = {
+      granted: readStoredNotificationPermission(),
+      available: true,
       permissions: {},
     };
+
+    notificationPermissionCache.checkedAt = Date.now();
+    notificationPermissionCache.value = permissionState;
+    return permissionState;
   }
 }
 
@@ -375,29 +429,52 @@ export async function requestWorldNotificationPermission() {
     throw new Error("Open TMpesa inside World App to enable order notifications.");
   }
 
-  const currentPermissions = await getWorldNotificationPermissionState();
+  if (notificationPermissionRequest) {
+    return notificationPermissionRequest;
+  }
+
+  const currentPermissions = await getWorldNotificationPermissionState({ command: false });
 
   if (currentPermissions.granted) {
     return currentPermissions;
   }
 
-  const { data } = await runMiniKitCommand("requestPermission", {
-    permission: NOTIFICATION_PERMISSION,
-  });
+  const lastRequestedAt = readLastNotificationRequestAt();
 
-  const immediateGrant = permissionGranted(data, NOTIFICATION_PERMISSION);
-
-  if (immediateGrant) {
-    persistNotificationPermissionGranted();
-    return {
-      granted: true,
-      available: true,
-      permissions: data,
-    };
+  if (lastRequestedAt && Date.now() - lastRequestedAt < NOTIFICATION_REQUEST_COOLDOWN_MS) {
+    throw new Error("World permission was just requested. Wait a moment before trying again.");
   }
 
-  await sleep(250);
-  return getWorldNotificationPermissionState();
+  notificationPermissionRequest = (async () => {
+    markNotificationPermissionRequested();
+    const { data } = await runMiniKitCommand("requestPermission", {
+      permission: NOTIFICATION_PERMISSION,
+    });
+
+    const immediateGrant = permissionGranted(data, NOTIFICATION_PERMISSION);
+
+    if (immediateGrant) {
+      persistNotificationPermissionGranted();
+      const permissionState = {
+        granted: true,
+        available: true,
+        permissions: data,
+      };
+      notificationPermissionCache.checkedAt = Date.now();
+      notificationPermissionCache.value = permissionState;
+      return permissionState;
+    }
+
+    await sleep(900);
+    notificationPermissionCache.checkedAt = 0;
+    return getWorldNotificationPermissionState({ command: true });
+  })();
+
+  try {
+    return await notificationPermissionRequest;
+  } finally {
+    notificationPermissionRequest = null;
+  }
 }
 
 export async function shareMiniAppInvite({ title, text, url }) {

@@ -52,13 +52,12 @@ function ProfilePage() {
   const [ratingSummary, setRatingSummary] = useState(() => getRatingSummary());
   const [ratingError, setRatingError] = useState("");
   const notificationSectionRef = useRef(null);
-  const notificationAutoOpenRef = useRef(false);
 
   useEffect(() => {
     let active = true;
 
     const syncNotifications = async () => {
-      const state = await getWorldNotificationPermissionState();
+      const state = await getWorldNotificationPermissionState({ command: false });
 
       if (active) {
         setNotificationsEnabled(state.granted);
@@ -138,20 +137,6 @@ function ProfilePage() {
       navigate(location.pathname + location.hash, { replace: true, state: null });
     }
   }, [location.hash, location.pathname, location.state, navigate]);
-
-  useEffect(() => {
-    const shouldAutoOpen = Boolean(location.state?.openNotifications);
-
-    if (
-      shouldAutoOpen &&
-      !notificationAutoOpenRef.current &&
-      !notificationsEnabled &&
-      !notificationLoading
-    ) {
-      notificationAutoOpenRef.current = true;
-      handleEnableNotifications();
-    }
-  }, [location.state, notificationsEnabled, notificationLoading]);
 
   const handleSavePayoutNumber = () => {
     setPayoutError("");

@@ -12,7 +12,7 @@ This app is built as a World App Mini App first. The normal web URL is only for 
 - World Pay results are verified through `/api/confirm-payment`.
 - Supported World Pay assets are `WLD` and `USDC`.
 - The receiver wallet is `0x0f029f35a9da4043ff84b2c98a023d0a68eb64b4`.
-- The M-Pesa till number is `5698981`.
+- The M-Pesa PayBill is `542542`, account number is `856340`, and business name is `B.O.J`.
 - The support email is `brianokindo2022@gmail.com`.
 - Delay support can open WhatsApp from the order flow.
 - Admin order email notifications are sent through `/api/notify-order` when `RESEND_API_KEY` is configured.
