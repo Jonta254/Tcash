@@ -19,7 +19,6 @@ import {
   requestWorldVerification,
   shareMiniAppInvite,
   updateCurrentUserProfile,
-  waitForWorldHumanVerification,
 } from "../../services";
 
 function DashboardPage() {
@@ -136,36 +135,6 @@ function DashboardPage() {
   useEffect(() => {
     loadWalletPortfolio().catch(() => null);
   }, [loadWalletPortfolio]);
-
-  useEffect(() => {
-    if (!needsFirstAccessVerification || !user?.walletAddress) {
-      return;
-    }
-
-    let active = true;
-
-    const syncVerificationState = async () => {
-      const isVerified = await waitForWorldHumanVerification(user.walletAddress, {
-        attempts: 2,
-        intervalMs: 700,
-      });
-
-      if (active && isVerified) {
-        const nextUser = updateCurrentUserProfile({
-          firstAccessVerified: true,
-          firstAccessVerifiedAt: new Date().toISOString(),
-          firstAccessVerificationLevel: "address-book",
-        });
-        setUser(nextUser);
-      }
-    };
-
-    syncVerificationState();
-
-    return () => {
-      active = false;
-    };
-  }, [needsFirstAccessVerification, user?.walletAddress]);
 
   const handleProfileSave = () => {
     setProfileError("");

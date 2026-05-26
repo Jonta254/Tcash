@@ -1,4 +1,4 @@
-import { MiniKit, getIsUserVerified } from "@worldcoin/minikit-js";
+import { MiniKit } from "@worldcoin/minikit-js";
 import { IDKit, proofOfHuman } from "@worldcoin/idkit-core";
 import { APP_CONFIG } from "../config/appConfig";
 import {
@@ -7,7 +7,6 @@ import {
   createPaymentReference,
   requestWorldIdRpContext,
   requestServerNonce,
-  verifyHighValueOrder,
   verifyWorldIdProof,
 } from "./backendService";
 
@@ -46,7 +45,7 @@ function toTokenUnits(amount, decimals) {
 async function runMiniKitCommand(commandName, payload) {
   const asyncCommandName = `${commandName}Async`;
   const command =
-    MiniKit[asyncCommandName] || MiniKit.commandsAsync?.[commandName] || MiniKit[commandName];
+    MiniKit[commandName] || MiniKit.commandsAsync?.[commandName] || MiniKit[asyncCommandName];
 
   if (!command) {
     throw new Error(`World App command ${commandName} is not available in this MiniKit version.`);
@@ -56,7 +55,9 @@ async function runMiniKitCommand(commandName, payload) {
   const data = result?.data || result?.finalPayload || result;
 
   if (data?.status === "error") {
-    throw new Error(data?.message || `World App ${commandName} command was cancelled.`);
+    const error = new Error(data?.message || `World App ${commandName} command was cancelled.`);
+    error.code = data?.code || data?.error_code || data?.error;
+    throw error;
   }
 
   if (result?.executedWith === "fallback") {
@@ -70,6 +71,21 @@ function persistNotificationPermissionGranted() {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
   }
+}
+
+function getWorldCommandErrorCode(error) {
+  if (!error || typeof error !== "object") {
+    return "";
+  }
+
+  return String(
+    error.code ||
+      error.error_code ||
+      error.error ||
+      error.data?.code ||
+      error.data?.error_code ||
+      "",
+  );
 }
 
 function readStoredNotificationPermission() {
@@ -306,71 +322,39 @@ export async function requestWorldVerification({
     throw new Error("Open TMpesa inside World App to complete the human verification step.");
   }
 
-  try {
-    const worldIdContext = await requestWorldIdRpContext(action);
-    const request = await IDKit.request({
-      app_id: worldIdContext.app_id,
-      action,
-      rp_context: worldIdContext.rp_context,
-      allow_legacy_proofs: true,
-      return_to: buildWorldAppDeeplink("/"),
-    }).preset(
-      proofOfHuman({
-        signal,
-      }),
-    );
-
-    const completion = await request.pollUntilCompletion({
-      pollInterval: 2000,
-      timeout: 120000,
-    });
-
-    if (!completion?.success) {
-      throw new Error(completion?.error || "World ID verification was not completed.");
-    }
-
-    const verification = await verifyWorldIdProof(completion.result);
-
-    if (!verification?.success) {
-      throw new Error(verification?.error || "TMpesa could not verify this order.");
-    }
-
-    return {
-      verificationLevel: "proof-of-human",
-      verifyRes: verification.verifyRes,
+  const worldIdContext = await requestWorldIdRpContext(action);
+  const request = await IDKit.request({
+    app_id: worldIdContext.app_id,
+    action,
+    rp_context: worldIdContext.rp_context,
+    allow_legacy_proofs: true,
+    return_to: buildWorldAppDeeplink("/"),
+  }).preset(
+    proofOfHuman({
       signal,
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "";
+    }),
+  );
 
-    if (
-      message.includes("WORLD_RP_ID") ||
-      message.includes("RP_SIGNING_KEY") ||
-      message.includes("rp_context")
-    ) {
-      const verificationPayload = {
-        action,
-        signal,
-        verification_level: verificationLevel,
-      };
+  const completion = await request.pollUntilCompletion({
+    pollInterval: 2000,
+    timeout: 120000,
+  });
 
-      const { data } = await runMiniKitCommand("verify", verificationPayload);
-      const verification = await verifyHighValueOrder(data, action, signal);
-
-      if (!verification?.success) {
-        throw new Error(verification?.error || "TMpesa could not verify this order.");
-      }
-
-      return {
-        verificationLevel: data.verification_level || verificationLevel,
-        nullifierHash: data.nullifier_hash,
-        merkleRoot: data.merkle_root,
-        signal,
-      };
-    }
-
-    throw error;
+  if (!completion?.success) {
+    throw new Error(completion?.error || "World ID verification was not completed.");
   }
+
+  const verification = await verifyWorldIdProof(completion.result);
+
+  if (!verification?.success) {
+    throw new Error(verification?.error || "TMpesa could not verify this order.");
+  }
+
+  return {
+    verificationLevel: "proof-of-human",
+    verifyRes: verification.verifyRes,
+    signal,
+  };
 }
 
 export async function getWorldNotificationPermissionState({ command = false } = {}) {
@@ -447,27 +431,53 @@ export async function requestWorldNotificationPermission() {
 
   notificationPermissionRequest = (async () => {
     markNotificationPermissionRequested();
-    const { data } = await runMiniKitCommand("requestPermission", {
-      permission: NOTIFICATION_PERMISSION,
-    });
+    try {
+      const { data } = await runMiniKitCommand("requestPermission", {
+        permission: NOTIFICATION_PERMISSION,
+      });
 
-    const immediateGrant = permissionGranted(data, NOTIFICATION_PERMISSION);
+      if (permissionGranted(data, NOTIFICATION_PERMISSION)) {
+        persistNotificationPermissionGranted();
+        const permissionState = {
+          granted: true,
+          available: true,
+          permissions: data,
+        };
+        notificationPermissionCache.checkedAt = Date.now();
+        notificationPermissionCache.value = permissionState;
+        return permissionState;
+      }
 
-    if (immediateGrant) {
-      persistNotificationPermissionGranted();
-      const permissionState = {
-        granted: true,
+      return {
+        granted: false,
         available: true,
-        permissions: data,
+        permissions: data || {},
       };
-      notificationPermissionCache.checkedAt = Date.now();
-      notificationPermissionCache.value = permissionState;
-      return permissionState;
-    }
+    } catch (error) {
+      const code = getWorldCommandErrorCode(error);
 
-    await sleep(900);
-    notificationPermissionCache.checkedAt = 0;
-    return getWorldNotificationPermissionState({ command: true });
+      if (code === "already_granted") {
+        persistNotificationPermissionGranted();
+        const permissionState = {
+          granted: true,
+          available: true,
+          permissions: { notifications: "granted" },
+        };
+        notificationPermissionCache.checkedAt = Date.now();
+        notificationPermissionCache.value = permissionState;
+        return permissionState;
+      }
+
+      if (code === "already_requested" || code === "user_rejected") {
+        return {
+          granted: false,
+          available: true,
+          permissions: {},
+        };
+      }
+
+      throw error;
+    }
   })();
 
   try {
@@ -498,43 +508,4 @@ export async function openWorldChatInvite({ message }) {
 
   await runMiniKitCommand("chat", { message });
   return { opened: true };
-}
-
-export async function checkWorldHumanVerification(walletAddress) {
-  const normalizedAddress = String(walletAddress || "").trim();
-
-  if (!normalizedAddress) {
-    return false;
-  }
-
-  try {
-    return Boolean(await getIsUserVerified(normalizedAddress));
-  } catch {
-    return false;
-  }
-}
-
-function sleep(milliseconds) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, milliseconds);
-  });
-}
-
-export async function waitForWorldHumanVerification(
-  walletAddress,
-  { attempts = 6, intervalMs = 1500 } = {},
-) {
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const isVerified = await checkWorldHumanVerification(walletAddress);
-
-    if (isVerified) {
-      return true;
-    }
-
-    if (attempt < attempts - 1) {
-      await sleep(intervalMs);
-    }
-  }
-
-  return false;
 }

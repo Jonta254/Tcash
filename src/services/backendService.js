@@ -59,21 +59,6 @@ export async function confirmWorldPayment(payload) {
   return readJsonResponse(response);
 }
 
-export async function verifyHighValueOrder(payload, action, signal) {
-  const response = await fetch("/api/verify", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ payload, action, signal }),
-  }).catch(() => {
-    throw new Error("TMpesa could not verify the human check. Please try again.");
-  });
-
-  return readJsonResponse(response);
-}
-
 export async function requestWorldIdRpContext(action) {
   const response = await fetch("/api/world-id-rp-context", {
     method: "POST",

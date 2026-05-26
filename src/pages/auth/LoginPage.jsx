@@ -12,7 +12,6 @@ import {
   isUserAccessVerified,
   loginWithWorldApp,
   notifyAdminReferralEvent,
-  waitForWorldHumanVerification,
 } from "../../services";
 
 function LoginPage() {
@@ -91,28 +90,18 @@ function LoginPage() {
       const existingUser =
         findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
       const needsFirstAccessVerification = !isUserAccessVerified(existingUser);
-      const isAlreadyHumanVerified = needsFirstAccessVerification
-        ? await waitForWorldHumanVerification(profile.walletAddress, {
-            attempts: 3,
-            intervalMs: 900,
-          })
-        : false;
 
       setAuthStage("unlock");
       setAuthStatus(
-        needsFirstAccessVerification && !isAlreadyHumanVerified
+        needsFirstAccessVerification
           ? "Opening TMpesa and preparing your first-access verification..."
           : "Opening your TMpesa session...",
       );
 
       loginWithWorldApp(profile, {
-        firstAccessVerified: existingUser?.firstAccessVerified || isAlreadyHumanVerified,
-        firstAccessVerifiedAt:
-          existingUser?.firstAccessVerifiedAt ||
-          (isAlreadyHumanVerified ? new Date().toISOString() : null),
-        firstAccessVerificationLevel:
-          existingUser?.firstAccessVerificationLevel ||
-          (isAlreadyHumanVerified ? "address-book" : ""),
+        firstAccessVerified: existingUser?.firstAccessVerified || false,
+        firstAccessVerifiedAt: existingUser?.firstAccessVerifiedAt || null,
+        firstAccessVerificationLevel: existingUser?.firstAccessVerificationLevel || "",
         referredByCode:
           existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
       });

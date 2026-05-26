@@ -69,7 +69,6 @@ export {
 } from "./pricingService";
 export {
   buildWorldAppDeeplink,
-  checkWorldHumanVerification,
   canUseWorldPay,
   connectWithWorldAppWallet,
   formatWorldLaunchSource,
@@ -80,5 +79,4 @@ export {
   requestWorldNotificationPermission,
   requestWorldVerification,
   shareMiniAppInvite,
-  waitForWorldHumanVerification,
 } from "./worldAppService";
