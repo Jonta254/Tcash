@@ -6,6 +6,7 @@ import {
   getOrdersForCurrentUser,
   openWhatsAppSupport,
   openOrderSupportEmail,
+  syncOrderToAdminQueue,
   updateOrder,
 } from "../../services";
 
@@ -20,7 +21,7 @@ function OrdersPage() {
     setPaymentCodes((current) => ({ ...current, [orderId]: value }));
   };
 
-  const handleMarkBuyPaid = (orderId) => {
+  const handleMarkBuyPaid = async (orderId) => {
     const code = (paymentCodes[orderId] || "").trim().toUpperCase();
 
     if (!code) {
@@ -28,7 +29,25 @@ function OrdersPage() {
       return;
     }
 
-    updateOrder(orderId, { paymentReference: code, status: "paid" });
+    const updated = updateOrder(
+      orderId,
+      { paymentReference: code, status: "paid" },
+      null,
+      { sync: false },
+    );
+
+    try {
+      await syncOrderToAdminQueue(updated);
+    } catch (error) {
+      setOrders(getOrdersForCurrentUser());
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Payment saved locally, but TMpesa could not notify admin. Please try again.",
+      );
+      return;
+    }
+
     setOrders(getOrdersForCurrentUser());
     setMessage("Payment code submitted. Admin will confirm and send your crypto.");
   };

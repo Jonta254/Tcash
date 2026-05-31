@@ -5,6 +5,7 @@ import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   getAdminAlertsUpdatedEventName,
   getAdminAlerts,
+  fetchSharedAdminOrders,
   getAllReferralClaims,
   getAllOrders,
   loginAdmin,
@@ -12,6 +13,7 @@ import {
   getFeePerCoin,
   getCurrentUser,
   openOrderSupportEmail,
+  syncOrderToAdminQueue,
   updateFeeKesPerCoin,
   updateOperationalSettings,
   updateOrder,
@@ -46,6 +48,8 @@ function AdminPage() {
   const [rateError, setRateError] = useState("");
   const [settingsMessage, setSettingsMessage] = useState("");
   const [settingsError, setSettingsError] = useState("");
+  const [orderQueueMessage, setOrderQueueMessage] = useState("");
+  const [orderQueueError, setOrderQueueError] = useState("");
   const payoutQueue = useMemo(
     () => orders.filter((order) => order.type === "sell" && order.status === "paid"),
     [orders],
@@ -60,22 +64,57 @@ function AdminPage() {
   );
 
   useEffect(() => {
-    const syncAdminData = () => {
+    let active = true;
+
+    const syncAdminData = async () => {
       setUser(getCurrentUser());
       setOrders(getAllOrders());
       setReferralClaims(getAllReferralClaims());
       setAdminAlerts(getAdminAlerts());
+
+      try {
+        const payload = await fetchSharedAdminOrders();
+
+        if (!active) {
+          return;
+        }
+
+        if (payload.pendingSetup) {
+          setOrderQueueMessage(payload.message || "Shared admin order queue needs setup.");
+          setOrderQueueError("");
+          return;
+        }
+
+        setOrders(payload.orders || getAllOrders());
+        setOrderQueueMessage(payload.orders?.length ? "Shared admin queue loaded." : "");
+        setOrderQueueError("");
+      } catch (error) {
+        if (active) {
+          setOrderQueueError(
+            error instanceof Error ? error.message : "Could not load shared admin orders.",
+          );
+        }
+      }
     };
     const adminAlertsEventName = getAdminAlertsUpdatedEventName();
 
-    window.addEventListener("focus", syncAdminData);
-    window.addEventListener("storage", syncAdminData);
-    window.addEventListener(adminAlertsEventName, syncAdminData);
+    const syncAdminDataSafely = () => {
+      void syncAdminData();
+    };
+
+    syncAdminDataSafely();
+
+    window.addEventListener("focus", syncAdminDataSafely);
+    window.addEventListener("storage", syncAdminDataSafely);
+    window.addEventListener(adminAlertsEventName, syncAdminDataSafely);
+    const refreshTimer = window.setInterval(syncAdminDataSafely, 30000);
 
     return () => {
-      window.removeEventListener("focus", syncAdminData);
-      window.removeEventListener("storage", syncAdminData);
-      window.removeEventListener(adminAlertsEventName, syncAdminData);
+      active = false;
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", syncAdminDataSafely);
+      window.removeEventListener("storage", syncAdminDataSafely);
+      window.removeEventListener(adminAlertsEventName, syncAdminDataSafely);
     };
   }, []);
 
@@ -173,8 +212,20 @@ function AdminPage() {
     );
   }
 
-  const handleStatusUpdate = (orderId, status) => {
-    updateOrder(orderId, { status });
+  const handleStatusUpdate = async (order, status) => {
+    setOrderQueueError("");
+    const updated = updateOrder(order.id, { status }, order, { sync: false });
+
+    try {
+      await syncOrderToAdminQueue(updated);
+    } catch (error) {
+      setOrderQueueError(
+        error instanceof Error
+          ? error.message
+          : "TMpesa could not save this status to the shared admin queue.",
+      );
+    }
+
     setOrders(getAllOrders());
   };
 
@@ -244,6 +295,8 @@ function AdminPage() {
             </div>
           </div>
         </div>
+        {orderQueueError ? <div className="error">{orderQueueError}</div> : null}
+        {orderQueueMessage ? <div className="notice">{orderQueueMessage}</div> : null}
       </section>
 
       {adminAlerts.length ? (
@@ -532,7 +585,7 @@ function AdminPage() {
                   <button
                     type="button"
                     className="button-secondary"
-                    onClick={() => handleStatusUpdate(order.id, "paid")}
+                    onClick={() => handleStatusUpdate(order, "paid")}
                   >
                     Mark Paid
                   </button>
@@ -541,7 +594,7 @@ function AdminPage() {
                   <button
                     type="button"
                     className="button"
-                    onClick={() => handleStatusUpdate(order.id, "completed")}
+                    onClick={() => handleStatusUpdate(order, "completed")}
                   >
                     Mark Completed
                   </button>

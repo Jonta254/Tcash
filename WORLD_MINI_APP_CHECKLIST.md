@@ -16,6 +16,7 @@ This app is built as a World App Mini App first. The normal web URL is only for 
 - The support email is `brianokindo2022@gmail.com`.
 - Delay support can open WhatsApp from the order flow.
 - Admin order email notifications are sent through `/api/notify-order` when `RESEND_API_KEY` is configured.
+- Admin orders are synced through `/api/orders` and Vercel Blob so orders placed on user phones appear on the admin desk.
 - World notification permission and send hooks are available for in-app user alerts.
 - Browser preview mode remains available for testing outside World App.
 
@@ -26,6 +27,7 @@ This app is built as a World App Mini App first. The normal web URL is only for 
 - Create a Developer Portal API key and set it as `DEV_PORTAL_API_KEY` in Vercel.
 - Set `RESEND_API_KEY` in Vercel so Gmail order notifications send to admin.
 - Set `ORDER_NOTIFICATION_EMAIL` to `brianokindo2022@gmail.com`.
+- Set `BLOB_READ_WRITE_TOKEN` in Vercel so user orders can reach the shared admin queue.
 - If using World user push notifications, set `WORLD_NOTIFICATION_API_KEY`.
 - Whitelist the receiver wallet address for World Pay.
 - Configure app name as `TMpesa`, not `WorldTMpesa`, to avoid implying official World affiliation.

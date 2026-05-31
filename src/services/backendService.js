@@ -59,6 +59,33 @@ export async function confirmWorldPayment(payload) {
   return readJsonResponse(response);
 }
 
+export async function fetchAdminOrderQueue() {
+  const response = await fetch("/api/orders", {
+    cache: "no-store",
+    credentials: "include",
+  }).catch(() => {
+    throw new Error("TMpesa could not load the shared admin order queue.");
+  });
+
+  return readJsonResponse(response);
+}
+
+export async function syncAdminOrder(order) {
+  const response = await fetch("/api/orders", {
+    method: "POST",
+    cache: "no-store",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ order }),
+  }).catch(() => {
+    throw new Error("TMpesa could not sync this order to admin.");
+  });
+
+  return readJsonResponse(response);
+}
+
 export async function requestWorldIdRpContext(action) {
   const response = await fetch("/api/world-id-rp-context", {
     method: "POST",

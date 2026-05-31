@@ -13,6 +13,7 @@ import {
   isUserAccessVerified,
   requestWorldPayment,
   requestWorldVerification,
+  syncOrderToAdminQueue,
   updateOrder,
 } from "../../services";
 
@@ -21,6 +22,7 @@ function SellPage() {
   const currentUser = getCurrentUser();
   const worldApp = getWorldAppContext();
   const [sendLoading, setSendLoading] = useState(false);
+  const [orderCreating, setOrderCreating] = useState(false);
   const initialPortfolio = getCachedWorldWalletPortfolio(currentUser?.walletAddress);
   const [walletPortfolio, setWalletPortfolio] = useState(initialPortfolio);
   const [walletLoading, setWalletLoading] = useState(false);
@@ -128,13 +130,20 @@ function SellPage() {
         );
       }
 
-      const updated = updateOrder(currentOrder.id, {
-        paymentMethod: "world-pay",
-        paymentReference: payment.transactionId,
-        paymentSummary: `World Pay verified (${payment.transactionStatus})`,
-        paymentVerificationStatus: payment.transactionStatus,
-        status: "paid",
-      });
+      const updated = updateOrder(
+        currentOrder.id,
+        {
+          paymentMethod: "world-pay",
+          paymentReference: payment.transactionId,
+          paymentSummary: `World Pay verified (${payment.transactionStatus})`,
+          paymentVerificationStatus: payment.transactionStatus,
+          status: "paid",
+        },
+        null,
+        { sync: false },
+      );
+
+      await syncOrderToAdminQueue(updated);
 
       setCurrentOrder(updated);
       setPaymentReference(payment.transactionId);
@@ -147,6 +156,12 @@ function SellPage() {
   };
 
   const handleCreateSellOrder = async () => {
+    if (orderCreating) {
+      return;
+    }
+
+    setOrderCreating(true);
+
     if (needsOrderVerification) {
       try {
         setError("");
@@ -155,18 +170,20 @@ function SellPage() {
           signal: `sell:${asset}:${cryptoAmount}:${kesAmount}`,
           verificationLevel: "device",
         });
-        placeOrder({
+        await placeOrder({
           humanVerificationStatus: "verified",
           humanVerificationLevel: verification.verificationLevel,
         });
-        return;
       } catch (nextError) {
         setError(nextError.message);
-        return;
+      } finally {
+        setOrderCreating(false);
       }
+      return;
     }
 
-    placeOrder();
+    await placeOrder();
+    setOrderCreating(false);
   };
 
   return (
@@ -281,8 +298,13 @@ function SellPage() {
               </div>
             ) : null}
 
-            <button type="button" className="button" onClick={handleCreateSellOrder}>
-              Review and Create Sell Order
+            <button
+              type="button"
+              className="button"
+              onClick={handleCreateSellOrder}
+              disabled={orderCreating}
+            >
+              {orderCreating ? "Submitting order..." : "Review and Create Sell Order"}
             </button>
           </div>
         ) : null}

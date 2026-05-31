@@ -16,6 +16,7 @@ function BuyPage() {
   const currentUser = getCurrentUser();
   const worldApp = getWorldAppContext();
   const [copiedValue, setCopiedValue] = useState("");
+  const [orderCreating, setOrderCreating] = useState(false);
   const {
     asset,
     setAsset,
@@ -43,6 +44,12 @@ function BuyPage() {
     !isUserAccessVerified(currentUser);
 
   const handleCreateBuyOrder = async () => {
+    if (orderCreating) {
+      return;
+    }
+
+    setOrderCreating(true);
+
     if (needsOrderVerification) {
       try {
         setError("");
@@ -51,18 +58,20 @@ function BuyPage() {
           signal: `buy:${asset}:${quotedCryptoAmount}:${kesAmount}`,
           verificationLevel: "device",
         });
-        placeOrder({
+        await placeOrder({
           humanVerificationStatus: "verified",
           humanVerificationLevel: verification.verificationLevel,
         });
-        return;
       } catch (nextError) {
         setError(nextError.message);
-        return;
+      } finally {
+        setOrderCreating(false);
       }
+      return;
     }
 
-    placeOrder();
+    await placeOrder();
+    setOrderCreating(false);
   };
 
   const copyPaymentValue = async (label, value) => {
@@ -174,8 +183,13 @@ function BuyPage() {
               </div>
             ) : null}
 
-            <button type="button" className="button" onClick={handleCreateBuyOrder}>
-              Create Buy Order
+            <button
+              type="button"
+              className="button"
+              onClick={handleCreateBuyOrder}
+              disabled={orderCreating}
+            >
+              {orderCreating ? "Submitting order..." : "Create Buy Order"}
             </button>
           </div>
         ) : null}

@@ -1,6 +1,6 @@
 # WorldTMpesa
 
-This repository contains `TMpesa`, a React + Vite World mini app for manually exchanging WLD/USDC and Kenyan Shillings through M-Pesa. It now includes Vercel API functions for backend nonce generation, SIWE verification, and World payment verification, while user/order operations still remain in `localStorage` until a database is added.
+This repository contains `TMpesa`, a React + Vite World mini app for manually exchanging WLD/USDC and Kenyan Shillings through M-Pesa. It includes Vercel API functions for backend nonce generation, SIWE verification, World payment verification, order notifications, and a shared admin order queue.
 
 ## Features
 
@@ -10,10 +10,10 @@ This repository contains `TMpesa`, a React + Vite World mini app for manually ex
 - Sell flow: crypto to KES with in-mini-app WLD send
 - Buy flow: M-Pesa to crypto
 - Orders page with status tracking
-- Admin simulation page for manual confirmation
+- Admin page for manual confirmation and M-Pesa payout tracking
 - Admin-editable rates, receiver wallet, M-Pesa details, and support email
 - Gmail support and payment-delay actions for users
-- Vercel API backend for nonce generation, SIWE verification, and World payment confirmation
+- Vercel API backend for nonce generation, SIWE verification, World payment confirmation, and shared admin orders
 
 ## Product Context
 
@@ -24,12 +24,12 @@ This repository contains `TMpesa`, a React + Vite World mini app for manually ex
 - Includes repo assets in `public/` for favicon, icon, manifest, and content-card placeholder
 - World wallet auth now uses a backend nonce and server-side SIWE verification
 - WLD sell payments now call a backend confirmation endpoint before the app records the send
-- User and order persistence still uses localStorage until a database is added
+- User profiles and settings still use localStorage, while orders are synced to a shared Vercel Blob admin queue
 
 ## Important Prototype Note
 
 - Before production payouts, whitelist the receiver wallet in the World Developer Portal
-- Before multi-device admin usage, move users/orders/settings from localStorage into a real database
+- Set up Vercel Blob through `BLOB_READ_WRITE_TOKEN` before accepting live orders, so every user order appears in admin across devices
 - World recommends Wallet Auth as the primary login flow for mini apps and backend verification for the returned payloads, which this project now implements through Vercel API routes
 
 ## Review-Safe Naming
@@ -53,9 +53,9 @@ This repository contains `TMpesa`, a React + Vite World mini app for manually ex
 ## Local Storage Notes
 
 - Users are stored locally in the browser
-- Orders are stored locally in the browser
+- Orders are synced to Vercel Blob and cached locally in the current browser
 - Rates and app settings are stored locally in the browser
-- World auth and payment verification are now handled by backend API routes under `api/`
+- Orders are cached locally for the current browser and synced through `/api/orders` for the admin desk
 
 ## Backend Routes
 
@@ -63,14 +63,17 @@ This repository contains `TMpesa`, a React + Vite World mini app for manually ex
 - `POST /api/complete-siwe`: verify the World wallet auth payload on the server
 - `POST /api/payment-reference`: issue a backend payment reference before WLD send
 - `POST /api/confirm-payment`: confirm a World payment with the Developer Portal API
+- `GET /api/orders`: load the shared admin order queue
+- `POST /api/orders`: save a new or updated order to the shared admin order queue
 - `GET /api/health`: quick backend health/config check
 
 ## Environment Variables
 
-Create env vars from [.env.example](C:/Users/ADMIN/Documents/Codex/2026-04-19-i-need-to-star-a-new/.env.example):
+Create env vars from [.env.example](C:/Users/ADMIN/Documents/New%20project/WorldTMpesa/.env.example):
 
 - `APP_ID`: your World mini app id, used for payment verification
 - `DEV_PORTAL_API_KEY`: World Developer Portal API key, used to confirm World payments
+- `BLOB_READ_WRITE_TOKEN`: required Vercel Blob token for the shared admin order queue
 - `RESEND_API_KEY`: optional Resend key for sending admin order notification emails
 - `ORDER_NOTIFICATION_EMAIL`: optional admin email override, defaults to `brianokindo2022@gmail.com`
 - `ORDER_EMAIL_FROM`: optional verified sender, defaults to Resend test sender

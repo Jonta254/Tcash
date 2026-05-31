@@ -5,6 +5,7 @@ import {
   calculateSellRate,
   createOrder,
   getCurrentUser,
+  syncOrderToAdminQueue,
   updateCurrentUserProfile,
   updateOrder,
 } from "../services";
@@ -110,7 +111,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     return sellMinKesEquivalent / exchangeRate;
   }, [exchangeRate, sellMinKesEquivalent]);
 
-  const placeOrder = (options = {}) => {
+  const placeOrder = async (options = {}) => {
     setError("");
 
     if (type === "buy" && (!buyKesInput || parsedBuyKesAmount <= 0)) {
@@ -150,27 +151,36 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       updateCurrentUserProfile({ mpesaPhoneNumber: payoutPhoneNumber.trim() });
     }
 
-    const order = createOrder({
-      type,
-      asset,
-      cryptoAmount: quotedCryptoAmount,
-      kesAmount,
-      grossKesAmount,
-      feeKesAmount,
-      feePerCoinKes,
-      walletAddress: walletAddress.trim(),
-      payoutPhoneNumber: payoutPhoneNumber.trim(),
-      destinationUsername: currentUser?.username || "",
-      humanVerificationStatus: options.humanVerificationStatus || "",
-      humanVerificationLevel: options.humanVerificationLevel || "",
-    });
+    try {
+      const order = await createOrder({
+        type,
+        asset,
+        cryptoAmount: quotedCryptoAmount,
+        kesAmount,
+        grossKesAmount,
+        feeKesAmount,
+        feePerCoinKes,
+        walletAddress: walletAddress.trim(),
+        payoutPhoneNumber: payoutPhoneNumber.trim(),
+        destinationUsername: currentUser?.username || "",
+        humanVerificationStatus: options.humanVerificationStatus || "",
+        humanVerificationLevel: options.humanVerificationLevel || "",
+      });
 
-    setCurrentOrder(order);
-    setStep(2);
-    return order;
+      setCurrentOrder(order);
+      setStep(2);
+      return order;
+    } catch (nextError) {
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : "TMpesa could not submit this order to admin. Please try again.",
+      );
+      return null;
+    }
   };
 
-  const markAsPaid = (nextReference) => {
+  const markAsPaid = async (nextReference) => {
     setError("");
 
     if (!nextReference.trim()) {
@@ -184,10 +194,26 @@ export function useOrderFlow(type, initialAsset = "WLD") {
 
     const formattedReference =
       type === "buy" ? nextReference.trim().toUpperCase() : nextReference.trim();
-    const updated = updateOrder(currentOrder.id, {
-      paymentReference: formattedReference,
-      status: "paid",
-    });
+    const updated = updateOrder(
+      currentOrder.id,
+      {
+        paymentReference: formattedReference,
+        status: "paid",
+      },
+      null,
+      { sync: false },
+    );
+
+    try {
+      await syncOrderToAdminQueue(updated);
+    } catch (nextError) {
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : "TMpesa saved this payment locally but could not notify admin. Please try again.",
+      );
+      return null;
+    }
 
     setPaymentReference(formattedReference);
     setCurrentOrder(updated);

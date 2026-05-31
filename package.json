@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vercel/blob": "^2.4.0",
     "@worldcoin/idkit-core": "^4.1.6",
     "@worldcoin/minikit-js": "^1.9.6",
     "react": "^18.3.1",

@@ -14,9 +14,12 @@ export {
 } from "./authService";
 export {
   createOrder,
+  fetchSharedAdminOrders,
   getAllOrders,
   getOrdersForCurrentUser,
   initializeOrders,
+  mergeAdminOrders,
+  syncOrderToAdminQueue,
   updateOrder,
 } from "./orderService";
 export {
