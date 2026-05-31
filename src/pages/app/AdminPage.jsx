@@ -109,7 +109,7 @@ function AdminPage() {
     window.addEventListener("focus", syncAdminDataSafely);
     window.addEventListener("storage", syncAdminDataSafely);
     window.addEventListener(adminAlertsEventName, syncAdminDataSafely);
-    const refreshTimer = window.setInterval(syncAdminDataSafely, 30000);
+    const refreshTimer = window.setInterval(syncAdminDataSafely, 10000);
 
     return () => {
       active = false;

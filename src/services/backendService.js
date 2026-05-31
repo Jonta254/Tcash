@@ -74,7 +74,7 @@ export async function syncAdminOrder(order) {
   return syncAdminOrders([order]);
 }
 
-export async function syncAdminOrders(orders) {
+export async function syncAdminOrders(orders, options = {}) {
   const response = await fetch("/api/orders", {
     method: "POST",
     cache: "no-store",
@@ -82,7 +82,10 @@ export async function syncAdminOrders(orders) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ orders }),
+    body: JSON.stringify({
+      orders,
+      notifyAdmin: options.notifyAdmin !== false,
+    }),
   }).catch(() => {
     throw new Error("TMpesa could not sync orders to admin.");
   });

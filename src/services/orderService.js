@@ -3,7 +3,6 @@ import { fetchAdminOrderQueue, syncAdminOrder, syncAdminOrders } from "./backend
 import { getCurrentUser } from "./authService";
 import { readStorage, writeStorage } from "./localStorage";
 import {
-  notifyAdminOrderCreated,
   notifyAdminReferralEvent,
   notifyWorldUserOrderCreated,
   notifyWorldUserOrderStatus,
@@ -103,7 +102,7 @@ export async function backfillExistingOrdersToAdminQueue() {
     return { ok: true, count: orders.length, skipped: true };
   }
 
-  const result = await syncAdminOrders(orders);
+  const result = await syncAdminOrders(orders, { notifyAdmin: false });
   writeStorage(ORDER_BACKFILL_STATE_KEY, {
     signature,
     syncedAt: Date.now(),
@@ -161,7 +160,6 @@ export async function createOrder(payload) {
 
   await syncOrderToAdminQueue(order);
   writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
-  void notifyAdminOrderCreated(order).catch(() => null);
   void notifyWorldUserOrderCreated(order).catch(() => null);
   return order;
 }
