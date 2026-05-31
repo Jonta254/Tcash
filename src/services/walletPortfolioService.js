@@ -3,6 +3,8 @@ import { readStorage, writeStorage } from "./localStorage";
 
 const WALLET_PORTFOLIO_CACHE_KEY = "worldtmpesa_wallet_portfolio_cache";
 const WALLET_READ_TIMEOUT_MS = 5000;
+const WALLET_PORTFOLIO_REFRESH_MS = 1000 * 60;
+const walletPortfolioRequests = new Map();
 
 function trimHexPrefix(value) {
   return String(value || "").replace(/^0x/i, "");
@@ -128,32 +130,55 @@ export async function getWorldWalletPortfolio(walletAddress) {
     };
   }
 
+  const cachedPortfolio = getCachedWorldWalletPortfolio(normalizedWallet);
+  const cachedAt = new Date(cachedPortfolio?.cachedAt || 0).getTime();
+
+  if (cachedPortfolio.assets.length && Date.now() - cachedAt < WALLET_PORTFOLIO_REFRESH_MS) {
+    return cachedPortfolio;
+  }
+
+  const requestKey = normalizeWalletAddress(normalizedWallet);
+
+  if (walletPortfolioRequests.has(requestKey)) {
+    return walletPortfolioRequests.get(requestKey);
+  }
+
   const paddedWallet = trimHexPrefix(normalizedWallet).padStart(64, "0");
   const balanceOfSelector = "0x70a08231";
 
-  const assets = await Promise.all(
-    Object.values(APP_CONFIG.worldChain.assets).map(async (asset) => {
-      const rawBalanceHex = await readContract({
-        to: asset.address,
-        data: `${balanceOfSelector}${paddedWallet}`,
-      });
-      const rawBalance = hexToBigInt(rawBalanceHex);
+  const request = (async () => {
+    const assets = await Promise.all(
+      Object.values(APP_CONFIG.worldChain.assets).map(async (asset) => {
+        const rawBalanceHex = await readContract({
+          to: asset.address,
+          data: `${balanceOfSelector}${paddedWallet}`,
+        });
+        const rawBalance = hexToBigInt(rawBalanceHex);
 
-      return {
-        symbol: asset.symbol,
-        name: asset.name,
-        rawBalance: rawBalance.toString(),
-        formattedBalance: formatTokenBalance(rawBalance, asset.decimals),
-      };
-    }),
-  );
+        return {
+          symbol: asset.symbol,
+          name: asset.name,
+          rawBalance: rawBalance.toString(),
+          formattedBalance: formatTokenBalance(rawBalance, asset.decimals),
+        };
+      }),
+    );
 
-  const portfolio = {
-    walletAddress: normalizedWallet,
-    assets,
-    supported: true,
-  };
+    const portfolio = {
+      walletAddress: normalizedWallet,
+      assets,
+      supported: true,
+    };
 
-  cacheWorldWalletPortfolio(portfolio);
-  return portfolio;
+    cacheWorldWalletPortfolio(portfolio);
+    return portfolio;
+  })();
+
+  walletPortfolioRequests.set(requestKey, request);
+
+  try {
+    return await request;
+  } finally {
+    walletPortfolioRequests.delete(requestKey);
+  }
 }

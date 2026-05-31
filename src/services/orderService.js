@@ -14,6 +14,9 @@ import {
   markReferralMilestonesAnnounced,
 } from "./referralService";
 
+const ORDER_BACKFILL_STATE_KEY = "worldtmpesa_order_backfill_state";
+const ORDER_BACKFILL_COOLDOWN_MS = 1000 * 60 * 15;
+
 export function initializeOrders() {
   const storedOrders = readStorage(STORAGE_KEYS.orders, null);
 
@@ -87,7 +90,25 @@ export async function backfillExistingOrdersToAdminQueue() {
     return { ok: true, count: 0 };
   }
 
-  return syncAdminOrders(orders);
+  const signature = orders
+    .map((order) => `${order.id}:${order.updatedAt || order.createdAt || ""}:${order.status || ""}`)
+    .sort()
+    .join("|");
+  const currentState = readStorage(ORDER_BACKFILL_STATE_KEY, {});
+  const syncedRecently =
+    currentState.signature === signature &&
+    Date.now() - Number(currentState.syncedAt || 0) < ORDER_BACKFILL_COOLDOWN_MS;
+
+  if (syncedRecently) {
+    return { ok: true, count: orders.length, skipped: true };
+  }
+
+  const result = await syncAdminOrders(orders);
+  writeStorage(ORDER_BACKFILL_STATE_KEY, {
+    signature,
+    syncedAt: Date.now(),
+  });
+  return result;
 }
 
 export function getOrdersForCurrentUser() {

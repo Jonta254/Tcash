@@ -3,12 +3,16 @@ import { updateExchangeRates } from "./settingsService";
 const LAST_LIVE_RATES_SESSION_KEY = "worldtmpesa_last_live_rates";
 const LAST_LIVE_RATES_STORAGE_KEY = "worldtmpesa_last_live_rates_storage";
 const MARKET_REQUEST_TIMEOUT_MS = 7000;
+const MARKET_REFRESH_COOLDOWN_MS = 1000 * 60;
 const WORLD_PRICES_URL =
   "https://app-backend.toolsforhumanity.com/public/v1/miniapps/prices?fiatCurrencies=KES&cryptoCurrencies=WLD,USDC";
 const COINGECKO_PRICES_URL =
   "https://api.coingecko.com/api/v3/simple/price?ids=worldcoin,usd-coin,tether&vs_currencies=kes,usd&include_last_updated_at=true&precision=full";
 const BINANCE_WLD_USDT_URL = "https://api.binance.com/api/v3/ticker/price?symbol=WLDUSDT";
 const USD_KES_URL = "https://open.er-api.com/v6/latest/USD";
+let marketRequestInFlight = null;
+let lastMarketResponse = null;
+let lastMarketFetchAt = 0;
 
 function withTimeout(promiseFactory, timeoutMs, timeoutMessage) {
   const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -280,57 +284,81 @@ export function getLastLiveMarketRates() {
 }
 
 export async function fetchWorldMarketRates() {
-  try {
-    const response = await withTimeout(
-      (signal) =>
-        fetch(`/api/world-prices?ts=${Date.now()}`, {
-          cache: "no-store",
-          signal,
-        }),
-      MARKET_REQUEST_TIMEOUT_MS,
-      "TMpesa could not refresh live market prices right now.",
-    );
-
-    const payload = await response.json().catch(() => ({}));
-
-    if (!response.ok || !payload?.success) {
-      throw new Error(payload?.error || "TMpesa could not load live market prices.");
-    }
-
-    const wldRate = Number(payload?.prices?.WLD || 0);
-    const usdcRate = Number(payload?.prices?.USDC || 0);
-
-    if (wldRate <= 0 || usdcRate <= 0) {
-      throw new Error("TMpesa received an incomplete live market quote.");
-    }
-
-    const rates = {
-      WLD: wldRate,
-      USDC: usdcRate,
-    };
-    rememberRates(rates);
-
+  if (lastMarketResponse && Date.now() - lastMarketFetchAt < MARKET_REFRESH_COOLDOWN_MS) {
     return {
+      ...lastMarketResponse,
       rates: {
-        ...rates,
+        ...lastMarketResponse.rates,
       },
-      source: payload?.source || "live-market-prices",
-      fetchedAt: payload?.fetchedAt || null,
-      isFallback: Boolean(payload?.fallback),
     };
-  } catch {
-    try {
-      const directMarketRates = await fetchDirectMarketRates();
-      rememberRates(directMarketRates.rates);
-      return directMarketRates;
-    } catch {
-      const cachedResponse = buildCachedResponse("session-last-live-rates");
+  }
 
-      if (cachedResponse) {
-        return cachedResponse;
+  if (marketRequestInFlight) {
+    return marketRequestInFlight;
+  }
+
+  marketRequestInFlight = (async () => {
+    try {
+      const response = await withTimeout(
+        (signal) =>
+          fetch(`/api/world-prices?ts=${Date.now()}`, {
+            cache: "no-store",
+            signal,
+          }),
+        MARKET_REQUEST_TIMEOUT_MS,
+        "TMpesa could not refresh live market prices right now.",
+      );
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error || "TMpesa could not load live market prices.");
       }
 
-      throw new Error("TMpesa could not load live market prices.");
+      const wldRate = Number(payload?.prices?.WLD || 0);
+      const usdcRate = Number(payload?.prices?.USDC || 0);
+
+      if (wldRate <= 0 || usdcRate <= 0) {
+        throw new Error("TMpesa received an incomplete live market quote.");
+      }
+
+      const rates = {
+        WLD: wldRate,
+        USDC: usdcRate,
+      };
+      rememberRates(rates);
+
+      return {
+        rates: {
+          ...rates,
+        },
+        source: payload?.source || "live-market-prices",
+        fetchedAt: payload?.fetchedAt || null,
+        isFallback: Boolean(payload?.fallback),
+      };
+    } catch {
+      try {
+        const directMarketRates = await fetchDirectMarketRates();
+        rememberRates(directMarketRates.rates);
+        return directMarketRates;
+      } catch {
+        const cachedResponse = buildCachedResponse("session-last-live-rates");
+
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        throw new Error("TMpesa could not load live market prices.");
+      }
     }
+  })();
+
+  try {
+    const response = await marketRequestInFlight;
+    lastMarketResponse = response;
+    lastMarketFetchAt = Date.now();
+    return response;
+  } finally {
+    marketRequestInFlight = null;
   }
 }

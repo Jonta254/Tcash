@@ -5,7 +5,7 @@ import {
   subscribeToRateUpdates,
 } from "../services";
 
-const LIVE_RATE_REFRESH_MS = 15000;
+const LIVE_RATE_REFRESH_MS = 60000;
 
 function useLiveRateState() {
   const [exchangeRates, setExchangeRates] = useState(() => getLastLiveMarketRates() || {});
