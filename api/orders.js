@@ -23,6 +23,11 @@ function isOrderRecord(value) {
   );
 }
 
+function normalizeOrders(value) {
+  const orders = Array.isArray(value.orders) ? value.orders : [value.order];
+  return orders.filter(isOrderRecord);
+}
+
 function sortOrders(first, second) {
   const firstDate = new Date(first.updatedAt || first.createdAt || 0).getTime();
   const secondDate = new Date(second.updatedAt || second.createdAt || 0).getTime();
@@ -120,32 +125,39 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { order } = await readJsonBody(req);
+    const payload = await readJsonBody(req);
+    const orders = normalizeOrders(payload);
 
-    if (!isOrderRecord(order)) {
+    if (!orders.length) {
       sendJson(res, 400, {
         ok: false,
-        error: "Send a valid TMpesa order.",
+        error: "Send at least one valid TMpesa order.",
       });
       return;
     }
 
     const syncedAt = new Date().toISOString();
-    const orderId = sanitizeOrderId(order.id);
-    const blob = await put(
-      `${ORDER_PREFIX}${orderId}/${Date.now()}.json`,
-      JSON.stringify({ order, syncedAt }, null, 2),
-      {
-        access: "public",
-        addRandomSuffix: true,
-        contentType: "application/json",
-      },
+    const blobs = await Promise.all(
+      orders.map((order) => {
+        const orderId = sanitizeOrderId(order.id);
+
+        return put(
+          `${ORDER_PREFIX}${orderId}/${Date.now()}.json`,
+          JSON.stringify({ order, syncedAt }, null, 2),
+          {
+            access: "public",
+            addRandomSuffix: true,
+            contentType: "application/json",
+          },
+        );
+      }),
     );
 
     sendJson(res, 200, {
       ok: true,
+      count: orders.length,
       syncedAt,
-      url: blob.url,
+      urls: blobs.map((blob) => blob.url),
     });
   } catch (error) {
     sendJson(res, 502, {

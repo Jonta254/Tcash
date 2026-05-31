@@ -71,6 +71,10 @@ export async function fetchAdminOrderQueue() {
 }
 
 export async function syncAdminOrder(order) {
+  return syncAdminOrders([order]);
+}
+
+export async function syncAdminOrders(orders) {
   const response = await fetch("/api/orders", {
     method: "POST",
     cache: "no-store",
@@ -78,9 +82,9 @@ export async function syncAdminOrder(order) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ order }),
+    body: JSON.stringify({ orders }),
   }).catch(() => {
-    throw new Error("TMpesa could not sync this order to admin.");
+    throw new Error("TMpesa could not sync orders to admin.");
   });
 
   return readJsonResponse(response);

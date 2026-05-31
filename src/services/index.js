@@ -14,6 +14,7 @@ export {
 } from "./authService";
 export {
   createOrder,
+  backfillExistingOrdersToAdminQueue,
   fetchSharedAdminOrders,
   getAllOrders,
   getOrdersForCurrentUser,

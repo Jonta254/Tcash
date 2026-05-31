@@ -17,6 +17,7 @@ This app is built as a World App Mini App first. The normal web URL is only for 
 - Delay support can open WhatsApp from the order flow.
 - Admin order email notifications are sent through `/api/notify-order` when `RESEND_API_KEY` is configured.
 - Admin orders are synced through `/api/orders` and Vercel Blob so orders placed on user phones appear on the admin desk.
+- Existing local orders are backfilled to the shared admin queue when those users reopen TMpesa.
 - World notification permission and send hooks are available for in-app user alerts.
 - Browser preview mode remains available for testing outside World App.
 

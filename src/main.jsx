@@ -5,7 +5,12 @@ import App from "./App";
 import AppErrorBoundary from "./components/layout/AppErrorBoundary";
 import SafeMiniKitProvider from "./components/world/SafeMiniKitProvider";
 import "./styles.css";
-import { initializeOrders, initializeSettings, initializeUsers } from "./services";
+import {
+  backfillExistingOrdersToAdminQueue,
+  initializeOrders,
+  initializeSettings,
+  initializeUsers,
+} from "./services";
 import { initializeTheme } from "./services/themeService";
 
 try {
@@ -13,6 +18,7 @@ try {
   initializeOrders();
   initializeSettings();
   initializeTheme();
+  void backfillExistingOrdersToAdminQueue().catch(() => null);
 } catch (error) {
   console.warn("TMpesa boot setup skipped", error);
 }

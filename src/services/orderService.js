@@ -1,5 +1,5 @@
 import { STORAGE_KEYS } from "../config/appConfig";
-import { fetchAdminOrderQueue, syncAdminOrder } from "./backendService";
+import { fetchAdminOrderQueue, syncAdminOrder, syncAdminOrders } from "./backendService";
 import { getCurrentUser } from "./authService";
 import { readStorage, writeStorage } from "./localStorage";
 import {
@@ -78,6 +78,16 @@ export async function fetchSharedAdminOrders() {
 
 export async function syncOrderToAdminQueue(order) {
   return syncAdminOrder(order);
+}
+
+export async function backfillExistingOrdersToAdminQueue() {
+  const orders = getAllOrders();
+
+  if (!orders.length) {
+    return { ok: true, count: 0 };
+  }
+
+  return syncAdminOrders(orders);
 }
 
 export function getOrdersForCurrentUser() {

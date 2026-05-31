@@ -56,6 +56,7 @@ This repository contains `TMpesa`, a React + Vite World mini app for manually ex
 - Orders are synced to Vercel Blob and cached locally in the current browser
 - Rates and app settings are stored locally in the browser
 - Orders are cached locally for the current browser and synced through `/api/orders` for the admin desk
+- Orders created before the shared queue existed are backfilled when the affected user opens TMpesa again
 
 ## Backend Routes
 
