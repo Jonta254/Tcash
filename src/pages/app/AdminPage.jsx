@@ -3,6 +3,7 @@ import OrderCard from "../../components/orders/OrderCard";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
+  backfillExistingOrdersToAdminQueue,
   getAdminAlertsUpdatedEventName,
   getAdminAlerts,
   fetchSharedAdminOrders,
@@ -73,6 +74,7 @@ function AdminPage() {
       setAdminAlerts(getAdminAlerts());
 
       try {
+        await backfillExistingOrdersToAdminQueue();
         const payload = await fetchSharedAdminOrders();
 
         if (!active) {
