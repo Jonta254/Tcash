@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import {
-  APP_CONFIG,
   connectWithWorldAppWallet,
   evaluateReferralRewards,
   findReferrerByCode,
@@ -13,7 +12,6 @@ import {
   isUserAccessVerified,
   loginWithWorldApp,
   notifyAdminReferralEvent,
-  requestWorldVerification,
 } from "../../services";
 
 function LoginPage() {
@@ -28,25 +26,6 @@ function LoginPage() {
   const [authStage, setAuthStage] = useState("idle");
   const targetPath = location.state?.from?.pathname || "/";
   const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
-
-  const isConfiguredAdminProfile = (profile, existingUser) => {
-    const configuredWallet = String(APP_CONFIG.admin.worldWalletAddress || "").trim().toLowerCase();
-    const configuredUsername = String(APP_CONFIG.admin.worldUsername || "")
-      .trim()
-      .replace(/^@/, "")
-      .toLowerCase();
-    const profileWallet = String(profile?.walletAddress || "").trim().toLowerCase();
-    const profileUsername = String(profile?.username || "")
-      .trim()
-      .replace(/^@/, "")
-      .toLowerCase();
-
-    return (
-      existingUser?.isAdmin ||
-      (configuredWallet && profileWallet && configuredWallet === profileWallet) ||
-      (configuredUsername && profileUsername && configuredUsername === profileUsername)
-    );
-  };
 
   const getPostLoginPath = (user) => {
     if (!user) {
@@ -110,35 +89,14 @@ function LoginPage() {
       const profile = await connectWithWorldAppWallet();
       const existingUser =
         findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
-      const needsFirstAccessVerification =
-        !isConfiguredAdminProfile(profile, existingUser) && !isUserAccessVerified(existingUser);
-      let firstAccessVerification = null;
 
       setAuthStage("unlock");
-      setAuthStatus(
-        needsFirstAccessVerification
-          ? "Wallet approved. Complete one World human check to open TMpesa..."
-          : "Opening your TMpesa session...",
-      );
-
-      if (needsFirstAccessVerification) {
-        setAuthStage("verify");
-        firstAccessVerification = await requestWorldVerification({
-          action: APP_CONFIG.firstAccessVerificationAction,
-          signal: `first-access:${profile.walletAddress.toLowerCase()}`,
-          verificationLevel: "device",
-        });
-      }
+      setAuthStatus("Opening your TMpesa session...");
 
       loginWithWorldApp(profile, {
-        firstAccessVerified: existingUser?.firstAccessVerified || Boolean(firstAccessVerification),
-        firstAccessVerifiedAt:
-          existingUser?.firstAccessVerifiedAt ||
-          (firstAccessVerification ? new Date().toISOString() : null),
-        firstAccessVerificationLevel:
-          existingUser?.firstAccessVerificationLevel ||
-          firstAccessVerification?.verificationLevel ||
-          "",
+        firstAccessVerified: existingUser?.firstAccessVerified || false,
+        firstAccessVerifiedAt: existingUser?.firstAccessVerifiedAt || null,
+        firstAccessVerificationLevel: existingUser?.firstAccessVerificationLevel || "",
         referredByCode:
           existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
       });
@@ -223,9 +181,9 @@ function LoginPage() {
                 <span>2</span>
                 <strong>Open session</strong>
               </div>
-              <div className={authStage === "verify" ? "active" : ""}>
+              <div>
                 <span>3</span>
-                <strong>Human check</strong>
+                <strong>Start trading</strong>
               </div>
             </div>
           </div>
