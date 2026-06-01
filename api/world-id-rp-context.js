@@ -11,7 +11,8 @@ export default async function handler(req, res) {
     if (!hasWorldIdConfig()) {
       sendJson(res, 500, {
         success: false,
-        error: "WORLD_RP_ID and RP_SIGNING_KEY must be configured for World ID verification.",
+        code: "world_id_not_configured",
+        error: "TMpesa World ID verification is not ready yet. Please try again shortly.",
       });
       return;
     }
