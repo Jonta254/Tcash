@@ -10,9 +10,7 @@ import {
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
-  isUserAccessVerified,
   requestWorldPayment,
-  requestWorldVerification,
   syncOrderToAdminQueue,
   updateOrder,
 } from "../../services";
@@ -54,10 +52,6 @@ function SellPage() {
     worldApp.isInstalled &&
     canUseWorldPay(asset) &&
     Boolean(settings.sellWalletAddress?.trim());
-  const needsOrderVerification =
-    kesAmount >= APP_CONFIG.highValueOrderKesThreshold &&
-    worldApp.isInstalled &&
-    !isUserAccessVerified(currentUser);
   const selectedAssetBalance = useMemo(
     () => walletPortfolio.assets.find((entry) => entry.symbol === asset),
     [asset, walletPortfolio.assets],
@@ -162,26 +156,6 @@ function SellPage() {
 
     setOrderCreating(true);
 
-    if (needsOrderVerification) {
-      try {
-        setError("");
-        const verification = await requestWorldVerification({
-          action: APP_CONFIG.highValueOrderAction,
-          signal: `sell:${asset}:${cryptoAmount}:${kesAmount}`,
-          verificationLevel: "device",
-        });
-        await placeOrder({
-          humanVerificationStatus: "verified",
-          humanVerificationLevel: verification.verificationLevel,
-        });
-      } catch (nextError) {
-        setError(nextError.message);
-      } finally {
-        setOrderCreating(false);
-      }
-      return;
-    }
-
     await placeOrder();
     setOrderCreating(false);
   };
@@ -283,18 +257,6 @@ function SellPage() {
               <div className="notice">
                 Increase the sell amount to at least the live value of{" "}
                 {APP_CONFIG.tradeLimits.sellMinUsdcEquivalent} USDC before creating this order.
-              </div>
-            ) : null}
-
-            {needsOrderVerification ? (
-              <div className="notice">
-                This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
-                TMpesa will ask for a World human check before creating it.
-              </div>
-            ) : kesAmount >= APP_CONFIG.highValueOrderKesThreshold ? (
-              <div className="notice">
-                Your World account is already verified, so TMpesa will create this high-value order
-                without asking for another human check.
               </div>
             ) : null}
 

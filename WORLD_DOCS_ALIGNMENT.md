@@ -51,19 +51,12 @@ This note records the World Developers docs reviewed during the final TMpesa pol
 - User-facing copy avoids implying World endorsement through words like "official" in primary UI messaging.
 - Header, spacing, and card hierarchy are tuned for mobile-first use with compact controls and shorter copy.
 
-## World ID verification status
+## Login and verification status
 
-TMpesa now uses the current World ID / IDKit flow as the primary path for protected verification:
+TMpesa uses World Mini App Wallet Auth as the login path, matching the current Wallet Auth docs for mini apps.
 
-- backend RP context route: `api/world-id-rp-context.js`
-- backend proof verification route: `api/verify.js`
-- client verification entry: `requestWorldVerification(...)`
+- backend nonce route: `api/nonce.js`
+- backend SIWE verification route: `api/complete-siwe.js`
+- client login entry: `connectWithWorldAppWallet(...)`
 
-Temporary fallback remains:
-
-- if `WORLD_RP_ID` or `RP_SIGNING_KEY` is not configured, TMpesa falls back to the legacy MiniKit verify path so existing environments do not break immediately
-
-For a fully strict production setup, configure:
-
-- `WORLD_RP_ID`
-- `RP_SIGNING_KEY`
+World ID / IDKit is not used as a login gate. The World docs say not to use World ID verification as a login substitute, so TMpesa no longer shows a first-access or unlock-trading verification panel.

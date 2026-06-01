@@ -92,33 +92,3 @@ export async function syncAdminOrders(orders, options = {}) {
 
   return readJsonResponse(response);
 }
-
-export async function requestWorldIdRpContext(action) {
-  const response = await fetch("/api/world-id-rp-context", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ action }),
-  }).catch(() => {
-    throw new Error("TMpesa could not prepare World ID verification. Please try again.");
-  });
-
-  return readJsonResponse(response);
-}
-
-export async function verifyWorldIdProof(payload) {
-  const response = await fetch("/api/verify", {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ payload }),
-  }).catch(() => {
-    throw new Error("TMpesa could not verify the World ID proof. Please try again.");
-  });
-
-  return readJsonResponse(response);
-}

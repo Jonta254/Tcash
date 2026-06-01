@@ -81,6 +81,5 @@ export {
   openWorldChatInvite,
   requestWorldPayment,
   requestWorldNotificationPermission,
-  requestWorldVerification,
   shareMiniAppInvite,
 } from "./worldAppService";

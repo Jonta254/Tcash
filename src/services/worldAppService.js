@@ -1,13 +1,10 @@
 import { MiniKit } from "@worldcoin/minikit-js";
-import { IDKit, proofOfHuman } from "@worldcoin/idkit-core";
 import { APP_CONFIG } from "../config/appConfig";
 import {
   completeSiweVerification,
   confirmWorldPayment,
   createPaymentReference,
-  requestWorldIdRpContext,
   requestServerNonce,
-  verifyWorldIdProof,
 } from "./backendService";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
@@ -310,50 +307,6 @@ export async function requestWorldPayment({ amount, asset = "WLD", description, 
     transactionId: normalizedPayload.transactionId,
     verified: confirmation.verified,
     transactionStatus: confirmation.transactionStatus,
-  };
-}
-
-export async function requestWorldVerification({
-  action = APP_CONFIG.highValueOrderAction,
-  signal,
-  verificationLevel = "device",
-}) {
-  if (!MiniKit.isInstalled()) {
-    throw new Error("Open TMpesa inside World App to complete the human verification step.");
-  }
-
-  const worldIdContext = await requestWorldIdRpContext(action);
-  const request = await IDKit.request({
-    app_id: worldIdContext.app_id,
-    action,
-    rp_context: worldIdContext.rp_context,
-    allow_legacy_proofs: true,
-    return_to: buildWorldAppDeeplink("/"),
-  }).preset(
-    proofOfHuman({
-      signal,
-    }),
-  );
-
-  const completion = await request.pollUntilCompletion({
-    pollInterval: 2000,
-    timeout: 120000,
-  });
-
-  if (!completion?.success) {
-    throw new Error(completion?.error || "World ID verification was not completed.");
-  }
-
-  const verification = await verifyWorldIdProof(completion.result);
-
-  if (!verification?.success) {
-    throw new Error(verification?.error || "TMpesa could not verify this order.");
-  }
-
-  return {
-    verificationLevel: "proof-of-human",
-    verifyRes: verification.verifyRes,
-    signal,
   };
 }
 

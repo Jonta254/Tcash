@@ -493,8 +493,8 @@ function ProfilePage() {
             <strong>{user?.authMethod === "world-app" ? "Connected" : "Local only"}</strong>
           </div>
           <div className="profile-stat-row">
-            <span>First-access verification</span>
-            <strong>{user?.firstAccessVerified ? "Completed" : "Pending"}</strong>
+            <span>Mini app access</span>
+            <strong>{user?.authMethod === "world-app" ? "Ready" : "Local session"}</strong>
           </div>
           <div className="profile-stat-row">
             <span>World username</span>

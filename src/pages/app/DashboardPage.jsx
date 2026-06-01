@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
-  APP_CONFIG,
   getCachedWorldWalletPortfolio,
   calculateKesWalletBalance,
   fetchWorldMarketRates,
@@ -12,18 +11,14 @@ import {
   getOrdersForCurrentUser,
   getReferralSummary,
   getWorldWalletPortfolio,
-  isUserAccessVerified,
   markReferralShared,
   openSupportEmail,
   openWhatsAppSupport,
-  requestWorldVerification,
   shareMiniAppInvite,
   updateCurrentUserProfile,
 } from "../../services";
 
 function DashboardPage() {
-  const location = useLocation();
-  const navigate = useNavigate();
   const initialUser = getCurrentUser();
   const initialPortfolio = getCachedWorldWalletPortfolio(initialUser?.walletAddress);
   const [user, setUser] = useState(initialUser);
@@ -32,8 +27,6 @@ function DashboardPage() {
   );
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
-  const [verificationError, setVerificationError] = useState("");
-  const [verificationLoading, setVerificationLoading] = useState(false);
   const [walletPortfolio, setWalletPortfolio] = useState(() => initialPortfolio);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState("");
@@ -44,9 +37,6 @@ function DashboardPage() {
   const [referralMessage, setReferralMessage] = useState("");
   const [referralError, setReferralError] = useState("");
   const liveRates = useExchangeRates();
-
-  const needsFirstAccessVerification =
-    user?.authMethod === "world-app" && !user?.isAdmin && !isUserAccessVerified(user);
 
   const recentActivity = useMemo(
     () =>
@@ -148,42 +138,6 @@ function DashboardPage() {
     const nextUser = updateCurrentUserProfile({ mpesaPhoneNumber: profilePhone.trim() });
     setUser(nextUser);
     setProfileMessage("Payout number saved.");
-  };
-
-  const handleFirstAccessVerification = async () => {
-    if (!user?.walletAddress) {
-      setVerificationError("TMpesa needs your World wallet session before verification can start.");
-      return;
-    }
-
-    setVerificationError("");
-    setVerificationLoading(true);
-
-    try {
-      const verification = await requestWorldVerification({
-        action: APP_CONFIG.firstAccessVerificationAction,
-        signal: `first-access:${user.walletAddress.toLowerCase()}`,
-        verificationLevel: "device",
-      });
-
-      const nextUser = updateCurrentUserProfile({
-        firstAccessVerified: true,
-        firstAccessVerifiedAt: new Date().toISOString(),
-        firstAccessVerificationLevel: verification.verificationLevel,
-      });
-      setUser(nextUser);
-
-      const nextPath = location.state?.from?.pathname;
-      navigate(nextPath && nextPath !== "/" ? nextPath : "/", { replace: true });
-    } catch (error) {
-      setVerificationError(
-        error instanceof Error
-          ? error.message
-          : "TMpesa could not complete your first-access verification.",
-      );
-    } finally {
-      setVerificationLoading(false);
-    }
   };
 
   const handleRefreshWalletBalances = async () => {
@@ -294,28 +248,6 @@ function DashboardPage() {
 
   return (
     <div className="stack">
-      {needsFirstAccessVerification ? (
-        <section className="panel stack verification-surface">
-          <div className="verification-surface-head">
-            <span className="brand-kicker">First access</span>
-            <span className="live-badge">Human check required</span>
-          </div>
-          <div>
-            <h3>Unlock trading</h3>
-            <p className="muted">Finish one World verification before placing buy or sell orders.</p>
-          </div>
-          {verificationError ? <div className="error">{verificationError}</div> : null}
-          <button
-            type="button"
-            className="button"
-            onClick={handleFirstAccessVerification}
-            disabled={verificationLoading}
-          >
-            {verificationLoading ? "Opening World verification..." : "Complete World Verification"}
-          </button>
-        </section>
-      ) : null}
-
       {!user?.isAdmin && !user?.mpesaPhoneNumber ? (
         <section className="panel stack compact-setup-panel">
           <div className="split">

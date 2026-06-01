@@ -9,7 +9,6 @@ import {
   findUserByWalletAddress,
   getCurrentUser,
   getWorldAppContext,
-  isUserAccessVerified,
   loginWithWorldApp,
   notifyAdminReferralEvent,
 } from "../../services";
@@ -37,7 +36,7 @@ function LoginPage() {
       return requestedPath === "/admin" || requestedPath === "/tmpesa-admin" ? requestedPath : "/";
     }
 
-    return !isUserAccessVerified(user) ? "/" : targetPath;
+    return targetPath;
   };
 
   const finalizeSessionRedirect = () => {
@@ -45,17 +44,6 @@ function LoginPage() {
 
     if (!currentUser) {
       throw new Error("TMpesa could not save your login session. Please try again.");
-    }
-
-    if (!currentUser.isAdmin && !isUserAccessVerified(currentUser)) {
-      navigate("/", {
-        replace: true,
-        state: {
-          requiresVerification: true,
-          from: location.state?.from || { pathname: targetPath },
-        },
-      });
-      return;
     }
 
     const nextPath = getPostLoginPath(currentUser);
@@ -150,12 +138,6 @@ function LoginPage() {
           </div>
 
           {error ? <div className="error">{error}</div> : null}
-          {location.state?.requiresVerification ? (
-            <div className="notice">
-              Your World session is connected, but TMpesa still needs your first-access World check
-              before trading opens.
-            </div>
-          ) : null}
           {authStatus ? <div className="notice">{authStatus}</div> : null}
 
           <div className="auth-gate-card">

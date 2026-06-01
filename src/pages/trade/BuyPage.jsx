@@ -1,20 +1,11 @@
 import { useState } from "react";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
-import {
-  APP_CONFIG,
-  formatCryptoAmount,
-  formatKES,
-  getCurrentUser,
-  getWorldAppContext,
-  isUserAccessVerified,
-  requestWorldVerification,
-} from "../../services";
+import { formatCryptoAmount, formatKES, getCurrentUser } from "../../services";
 
 function BuyPage() {
   const settings = useAppSettings();
   const currentUser = getCurrentUser();
-  const worldApp = getWorldAppContext();
   const [copiedValue, setCopiedValue] = useState("");
   const [orderCreating, setOrderCreating] = useState(false);
   const {
@@ -38,37 +29,12 @@ function BuyPage() {
     markAsPaid,
     supportedAssets,
   } = useOrderFlow("buy");
-  const needsOrderVerification =
-    kesAmount >= APP_CONFIG.highValueOrderKesThreshold &&
-    worldApp.isInstalled &&
-    !isUserAccessVerified(currentUser);
-
   const handleCreateBuyOrder = async () => {
     if (orderCreating) {
       return;
     }
 
     setOrderCreating(true);
-
-    if (needsOrderVerification) {
-      try {
-        setError("");
-        const verification = await requestWorldVerification({
-          action: APP_CONFIG.highValueOrderAction,
-          signal: `buy:${asset}:${quotedCryptoAmount}:${kesAmount}`,
-          verificationLevel: "device",
-        });
-        await placeOrder({
-          humanVerificationStatus: "verified",
-          humanVerificationLevel: verification.verificationLevel,
-        });
-      } catch (nextError) {
-        setError(nextError.message);
-      } finally {
-        setOrderCreating(false);
-      }
-      return;
-    }
 
     await placeOrder();
     setOrderCreating(false);
@@ -168,18 +134,6 @@ function BuyPage() {
               <div className="notice">
                 Adjust the amount so the final buy total stays between {formatKES(buyKesMin)} and{" "}
                 {formatKES(buyKesMax)}.
-              </div>
-            ) : null}
-
-            {needsOrderVerification ? (
-              <div className="notice">
-                This order is above KES {APP_CONFIG.highValueOrderKesThreshold.toLocaleString()}.
-                TMpesa will request a World human check before creating it.
-              </div>
-            ) : kesAmount >= APP_CONFIG.highValueOrderKesThreshold ? (
-              <div className="notice">
-                Your World account is already verified, so TMpesa will create this high-value order
-                without requesting another human check.
               </div>
             ) : null}
 

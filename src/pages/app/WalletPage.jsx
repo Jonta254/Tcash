@@ -5,7 +5,6 @@ import {
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
-  isUserAccessVerified,
 } from "../../services";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 
@@ -163,8 +162,8 @@ function WalletPage() {
             <strong>{user?.username ? "Available" : "Unavailable"}</strong>
           </div>
           <div className="profile-stat-row">
-            <span>First-access verification</span>
-            <strong>{isUserAccessVerified(user) ? "Completed" : "Pending"}</strong>
+            <span>Mini app access</span>
+            <strong>{user?.authMethod === "world-app" ? "Ready" : "Local session"}</strong>
           </div>
           <div className="profile-stat-row">
             <span>Launch source</span>

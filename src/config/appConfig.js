@@ -29,9 +29,6 @@ export const APP_CONFIG = {
       },
     },
   },
-  firstAccessVerificationAction: "first-access-check",
-  highValueOrderAction: "high-value-order-check",
-  highValueOrderKesThreshold: 10000,
   tradeLimits: {
     buyKesMin: 600,
     buyKesMax: 20000,

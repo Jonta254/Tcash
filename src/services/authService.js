@@ -155,15 +155,7 @@ export function findUserByWalletAddress(walletAddress) {
 }
 
 export function isUserAccessVerified(user) {
-  if (!user) {
-    return false;
-  }
-
-  if (user.isAdmin || user.authMethod !== "world-app") {
-    return true;
-  }
-
-  return Boolean(user.firstAccessVerified);
+  return Boolean(user);
 }
 
 export function signupUser(payload) {
