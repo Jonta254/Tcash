@@ -83,7 +83,7 @@ function OrdersPage() {
           {[
             { id: "all", label: "All" },
             { id: "pending", label: "Pending" },
-            { id: "completed", label: "Complete" },
+            { id: "completed", label: "Completed" },
             { id: "failed", label: "Failed" },
           ].map((tab) => (
             <button
@@ -148,8 +148,8 @@ function OrdersPage() {
         </section>
       ) : (
         <section className="panel empty-state stack">
-          <h3>No transactions yet</h3>
-          <p className="muted">Your buy and sell history will appear here.</p>
+          <h3>No orders yet</h3>
+          <p className="muted">Start a trade to see your history here.</p>
           <div className="action-grid">
             <Link to="/trade?tab=buy" className="button">
               Buy crypto

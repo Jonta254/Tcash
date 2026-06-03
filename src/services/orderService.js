@@ -3,6 +3,7 @@ import { fetchAdminOrderQueue, syncAdminOrder, syncAdminOrders } from "./backend
 import { getCurrentUser } from "./authService";
 import { readStorage, writeStorage } from "./localStorage";
 import {
+  notifyAdminOrderCreated,
   notifyAdminReferralEvent,
   notifyWorldUserOrderCreated,
   notifyWorldUserOrderStatus,
@@ -160,6 +161,7 @@ export async function createOrder(payload) {
 
   await syncOrderToAdminQueue(order);
   writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
+  void notifyAdminOrderCreated(order).catch(() => null);
   void notifyWorldUserOrderCreated(order).catch(() => null);
   return order;
 }

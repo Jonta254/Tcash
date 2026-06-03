@@ -138,6 +138,14 @@ function ProfilePage() {
     }
   }, [location.hash, location.pathname, location.state, navigate]);
 
+  const normalizeKenyanPhone = (raw) => {
+    const cleaned = raw.replace(/\s+/g, "").replace(/-/g, "");
+    if (/^\+254[17]\d{8}$/.test(cleaned)) return cleaned.slice(1);
+    if (/^254[17]\d{8}$/.test(cleaned)) return `0${cleaned.slice(3)}`;
+    if (/^0[17]\d{8}$/.test(cleaned)) return cleaned;
+    return null;
+  };
+
   const handleSavePayoutNumber = () => {
     setPayoutError("");
     setPayoutMessage("");
@@ -147,7 +155,14 @@ function ProfilePage() {
       return;
     }
 
-    updateCurrentUserProfile({ mpesaPhoneNumber: payoutPhone.trim() });
+    const normalized = normalizeKenyanPhone(payoutPhone.trim());
+    if (!normalized) {
+      setPayoutError("Enter a valid Kenyan M-Pesa number, e.g. 0712345678 or +254712345678.");
+      return;
+    }
+
+    setPayoutPhone(normalized);
+    updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
     setPayoutMessage("Payout number saved. TMpesa will use it for sell settlements and referral rewards.");
   };
 

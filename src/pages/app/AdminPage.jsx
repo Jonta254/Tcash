@@ -30,7 +30,12 @@ function AdminPage() {
   const [operatorError, setOperatorError] = useState("");
   const liveRates = useExchangeRates();
   const liveSettings = useAppSettings();
-  const [orders, setOrders] = useState(getAllOrders());
+  const [orders, setOrders] = useState(() =>
+    getAllOrders().slice().sort((a, b) => {
+      const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
+      return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+    }),
+  );
   const [adminAlerts, setAdminAlerts] = useState(getAdminAlerts());
   const [referralClaims, setReferralClaims] = useState(getAllReferralClaims());
   const [feeInputs, setFeeInputs] = useState(() => ({
@@ -69,7 +74,10 @@ function AdminPage() {
 
     const syncAdminData = async () => {
       setUser(getCurrentUser());
-      setOrders(getAllOrders());
+      setOrders(getAllOrders().slice().sort((a, b) => {
+        const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
+        return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+      }));
       setReferralClaims(getAllReferralClaims());
       setAdminAlerts(getAdminAlerts());
 
@@ -87,7 +95,11 @@ function AdminPage() {
           return;
         }
 
-        setOrders(payload.orders || getAllOrders());
+        const rawOrders = payload.orders || getAllOrders();
+        setOrders(rawOrders.slice().sort((a, b) => {
+          const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
+          return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+        }));
         setOrderQueueMessage(payload.orders?.length ? "Shared admin queue loaded." : "");
         setOrderQueueError("");
       } catch (error) {
@@ -215,6 +227,15 @@ function AdminPage() {
   }
 
   const handleStatusUpdate = async (order, status) => {
+    const confirmMessages = {
+      completed: "Mark this order as completed? This will notify the user.",
+      rejected: "Mark this order as failed? This cannot be undone.",
+      paid: "Mark this order as paid?",
+    };
+    const confirmMsg = confirmMessages[status] || `Update order status to ${status}?`;
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
     setOrderQueueError("");
     const updated = updateOrder(order.id, { status }, order, { sync: false });
 
@@ -228,7 +249,10 @@ function AdminPage() {
       );
     }
 
-    setOrders(getAllOrders());
+    setOrders(getAllOrders().slice().sort((a, b) => {
+      const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
+      return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+    }));
   };
 
   const handleFeeSave = () => {
@@ -290,6 +314,12 @@ function AdminPage() {
             <div>
               <span>Total orders</span>
               <strong>{orders.length}</strong>
+            </div>
+            <div>
+              <span>Pending</span>
+              <strong style={{ color: orders.filter(o => o.status === "pending" || o.status === "paid").length ? "var(--warning)" : "inherit" }}>
+                {orders.filter(o => o.status === "pending" || o.status === "paid").length}
+              </strong>
             </div>
             <div>
               <span>Unread alerts</span>
@@ -583,7 +613,7 @@ function AdminPage() {
           {orders.map((order) => (
             <OrderCard key={order.id} order={order}>
               <div className="action-grid">
-                {order.status !== "paid" ? (
+                {order.status !== "paid" && order.status !== "completed" && order.status !== "rejected" ? (
                   <button
                     type="button"
                     className="button-secondary"
@@ -592,7 +622,7 @@ function AdminPage() {
                     Mark Paid
                   </button>
                 ) : null}
-                {order.status !== "completed" ? (
+                {order.status !== "completed" && order.status !== "rejected" ? (
                   <button
                     type="button"
                     className="button"
@@ -601,12 +631,22 @@ function AdminPage() {
                     Mark Completed
                   </button>
                 ) : null}
+                {order.status !== "completed" && order.status !== "rejected" ? (
+                  <button
+                    type="button"
+                    className="button-ghost"
+                    style={{ color: "var(--error, #f87171)" }}
+                    onClick={() => handleStatusUpdate(order, "rejected")}
+                  >
+                    Mark Failed
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="button-ghost"
                   onClick={() => openOrderSupportEmail(order, "support")}
                 >
-                  Email User Support
+                  Email User
                 </button>
               </div>
             </OrderCard>

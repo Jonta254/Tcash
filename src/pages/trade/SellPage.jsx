@@ -266,7 +266,7 @@ function SellPage() {
               onClick={handleCreateSellOrder}
               disabled={orderCreating}
             >
-              {orderCreating ? "Submitting order..." : "Review and Create Sell Order"}
+              {orderCreating ? "Submitting order..." : "Confirm sell order"}
             </button>
           </div>
         ) : null}
@@ -342,10 +342,9 @@ function SellPage() {
 
             {step === 3 ? (
               <div className="success-panel">
-                <strong>Payment received for review</strong>
+                <strong>Order submitted</strong>
                 <p>
-                  Your wallet transfer is recorded. The admin will confirm the World payment and
-                  send KES to <strong>{currentOrder.payoutPhoneNumber}</strong>.
+                  Your order is pending manual review. The admin will confirm your payment and send KES to <strong>{currentOrder.payoutPhoneNumber}</strong>.
                 </p>
               </div>
             ) : null}

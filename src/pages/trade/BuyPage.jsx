@@ -143,7 +143,7 @@ function BuyPage() {
               onClick={handleCreateBuyOrder}
               disabled={orderCreating}
             >
-              {orderCreating ? "Submitting order..." : "Create Buy Order"}
+              {orderCreating ? "Submitting order..." : "Confirm buy order"}
             </button>
           </div>
         ) : null}
@@ -224,10 +224,9 @@ function BuyPage() {
 
             {step === 3 ? (
               <div className="success-panel">
-                <strong>M-Pesa payment submitted</strong>
+                <strong>Order submitted</strong>
                 <p>
-                  The admin will verify your code and send {currentOrder.asset} to your recorded
-                  destination.
+                  Your order is pending manual review. The admin will verify your M-Pesa payment and send {currentOrder.asset} to your wallet.
                 </p>
               </div>
             ) : null}

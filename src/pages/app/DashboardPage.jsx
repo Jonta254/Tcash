@@ -126,6 +126,14 @@ function DashboardPage() {
     loadWalletPortfolio().catch(() => null);
   }, [loadWalletPortfolio]);
 
+  const normalizeKenyanPhone = (raw) => {
+    const cleaned = raw.replace(/\s+/g, "").replace(/-/g, "");
+    if (/^\+254[17]\d{8}$/.test(cleaned)) return cleaned.slice(1);
+    if (/^254[17]\d{8}$/.test(cleaned)) return `0${cleaned.slice(3)}`;
+    if (/^0[17]\d{8}$/.test(cleaned)) return cleaned;
+    return null;
+  };
+
   const handleProfileSave = () => {
     setProfileError("");
     setProfileMessage("");
@@ -135,7 +143,14 @@ function DashboardPage() {
       return;
     }
 
-    const nextUser = updateCurrentUserProfile({ mpesaPhoneNumber: profilePhone.trim() });
+    const normalized = normalizeKenyanPhone(profilePhone.trim());
+    if (!normalized) {
+      setProfileError("Enter a valid Kenyan M-Pesa number, e.g. 0712345678 or +254712345678.");
+      return;
+    }
+
+    setProfilePhone(normalized);
+    const nextUser = updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
     setUser(nextUser);
     setProfileMessage("Payout number saved.");
   };

@@ -22,6 +22,7 @@
   --muted: #97a3bf;
   --success: #36d399;
   --warning: #fbbf24;
+  --error: #f87171;
   --emerald: #47d7ac;
   --diamond: #9ae7ff;
 }
@@ -47,6 +48,7 @@
   --muted: #55657f;
   --success: #16a56f;
   --warning: #c88a12;
+  --error: #dc4a62;
   --emerald: #11b682;
   --diamond: #2ca1df;
 }
@@ -1566,6 +1568,12 @@ button:disabled {
 .status-pill.completed {
   background: rgba(54, 211, 153, 0.18);
   color: #9af3ca;
+}
+
+.status-pill.rejected,
+.status-pill.cancelled {
+  background: rgba(248, 113, 113, 0.14);
+  color: #fca5a5;
 }
 
 .highlight-box,

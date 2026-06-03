@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   getCachedWorldWalletPortfolio,
+  formatKES,
   formatWorldLaunchSource,
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
 } from "../../services";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
+
+function truncateAddress(address) {
+  if (!address || address.length < 12) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
 
 function WalletPage() {
   const user = getCurrentUser();
@@ -106,7 +112,7 @@ function WalletPage() {
           </div>
           <div className="profile-summary-card">
             <span>KES equivalent</span>
-            <strong>KES {Math.round(totalKes * 100) / 100}</strong>
+            <strong>{totalKes > 0 ? formatKES(totalKes) : "KES 0.00"}</strong>
           </div>
         </div>
       </section>
@@ -144,12 +150,20 @@ function WalletPage() {
         </div>
         <div className="info-box">
           <strong>Wallet address</strong>
-          <code>{user?.walletAddress || "Connect your World wallet first."}</code>
+          <code style={{ wordBreak: "break-all", fontSize: "0.82em" }}>
+            {user?.walletAddress ? truncateAddress(user.walletAddress) : "Connect your World wallet first."}
+          </code>
+          {user?.walletAddress ? (
+            <small className="muted" style={{ fontSize: "0.75em", marginTop: 2 }}>
+              {user.walletAddress}
+            </small>
+          ) : null}
         </div>
+        <div className="soft-note">Only send WLD or USDC on World Chain to this address.</div>
         {copyMessage ? <div className="notice">{copyMessage}</div> : null}
         <div className="button-row compact-actions">
           <button type="button" className="button" onClick={handleCopyAddress} disabled={!user?.walletAddress}>
-            Copy address
+            Copy full address
           </button>
         </div>
       </section>
