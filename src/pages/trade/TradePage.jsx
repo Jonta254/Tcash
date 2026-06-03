@@ -17,7 +17,7 @@ function TradePage() {
   };
 
   return (
-    <div className="stack">
+    <div className="stack page-enter">
       <section className="panel stack trade-desk-shell">
         <div className="trade-desk-head">
           <div className="trade-desk-copy">

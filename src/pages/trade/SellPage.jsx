@@ -199,6 +199,7 @@ function SellPage() {
               <input
                 id="cryptoAmount"
                 type="number"
+                inputMode="decimal"
                 min="0"
                 step="0.01"
                 value={cryptoAmount}

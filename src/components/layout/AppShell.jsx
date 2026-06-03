@@ -184,7 +184,9 @@ function AppShell() {
               <div className="brand-inline-copy">
                 <div className="brand-inline-row">
                   <h1>{APP_CONFIG.appName}</h1>
-                  <span className="brand-status">World exchange ready</span>
+                  <span className="brand-status">
+                    {hasWorldSession ? "World session" : "Exchange ready"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -212,15 +214,6 @@ function AppShell() {
             </button>
           </div>
         </header>
-
-        <div className="context-strip context-strip-compact">
-          <span>{hasWorldSession ? "World App session" : "Open in World App"}</span>
-          {!hasWorldSession && !worldApp.isInstalled && settings.worldAppId ? (
-            <a href={worldAppLink} className="text-link">
-              Open in World App
-            </a>
-          ) : null}
-        </div>
 
         <nav className="tab-bar" aria-label="Primary">
           {navItems.map((item) => (
@@ -253,17 +246,16 @@ function AppShell() {
               >
                 {"\u00D7"}
               </button>
-              <div className="notification-prompt-icon" aria-hidden="true">
-                {"\u2726"}
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div className="notification-prompt-icon" aria-hidden="true">\ud83d\udd14</div>
+                <div>
+                  <span className="brand-kicker">World notifications</span>
+                  <h3 style={{ margin: "6px 0 0" }}>Stay updated on your orders</h3>
+                </div>
               </div>
-              <div className="stack">
-                <span className="brand-kicker">World notifications</span>
-                <h3>Stay updated on every TMpesa order</h3>
-                <p className="muted">
-                  Turn on notifications to receive a World alert when your order is placed,
-                  reviewed, or completed.
-                </p>
-              </div>
+              <p className="muted" style={{ margin: 0, lineHeight: 1.5 }}>
+                Get a World App alert the moment your order is placed, reviewed, or completed. Never miss a status update.
+              </p>
               {notificationPromptError ? <div className="error">{notificationPromptError}</div> : null}
               <div className="button-row compact-actions">
                 <button
@@ -271,12 +263,13 @@ function AppShell() {
                   className="button"
                   onClick={handleEnableNotifications}
                   disabled={notificationPromptLoading}
+                  style={{ minHeight: 52 }}
                 >
-                  {notificationPromptLoading ? "Opening World permission..." : "Open World permission"}
+                  {notificationPromptLoading ? "Opening World App..." : "Enable World notifications"}
                 </button>
                 <button
                   type="button"
-                  className="button-secondary"
+                  className="button-ghost"
                   onClick={closeNotificationPrompt}
                 >
                   Not now

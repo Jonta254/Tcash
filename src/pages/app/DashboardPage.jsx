@@ -262,7 +262,7 @@ function DashboardPage() {
   );
 
   return (
-    <div className="stack">
+    <div className="stack page-enter">
       {!user?.isAdmin && !user?.mpesaPhoneNumber ? (
         <section className="panel stack compact-setup-panel">
           <div className="split">
@@ -295,7 +295,11 @@ function DashboardPage() {
         <div className="home-wallet-head">
           <div>
             <span className="brand-kicker">Portfolio</span>
+            <h3 style={{ margin: "4px 0 0" }}>Wallet balance</h3>
           </div>
+          <Link to="/wallet" className="text-link" style={{ fontSize: "0.88rem" }}>
+            Wallet →
+          </Link>
         </div>
 
         <div className="home-balance-card">
@@ -379,20 +383,24 @@ function DashboardPage() {
         </div>
         <div className="quick-action-grid home-quick-actions compact-home-actions">
           <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
+            <span className="quick-action-icon">⇅</span>
             <strong>Buy &amp; Sell</strong>
-            <span>Trade now</span>
+            <span>Trade WLD · USDC</span>
           </Link>
           <Link to="/wallet#receive" className="quick-action-card quick-action-card-sell">
+            <span className="quick-action-icon">◎</span>
             <strong>Receive</strong>
-            <span>Copy address</span>
+            <span>Copy wallet address</span>
           </Link>
           <Link to="/orders" className="quick-action-card quick-action-card-orders">
+            <span className="quick-action-icon">◷</span>
             <strong>History</strong>
-            <span>Track orders</span>
+            <span>Track your orders</span>
           </Link>
           <Link to="/support" className="quick-action-card quick-action-card-orders">
+            <span className="quick-action-icon">◈</span>
             <strong>Support</strong>
-            <span>Get help</span>
+            <span>Get help fast</span>
           </Link>
         </div>
       </section>
@@ -405,7 +413,7 @@ function DashboardPage() {
           </div>
           <span className="status-pill paid">Code {referralSummary.code}</span>
         </div>
-        <p className="muted compact-referral-copy">Share TMpesa and earn referral rewards.</p>
+        <p className="muted compact-referral-copy">Invite World users to TMpesa and earn referral rewards after they complete eligible activity.</p>
         {referralMessage ? <div className="notice">{referralMessage}</div> : null}
         {referralError ? <div className="error">{referralError}</div> : null}
         <div className="referral-milestone-grid">
@@ -441,14 +449,20 @@ function DashboardPage() {
             {recentActivity.map((order) => (
               <div key={order.id} className="recent-activity-item">
                 <div>
-                  <strong>
-                    {order.type === "buy" ? "Buy" : "Sell"} {order.asset}
+                  <span className={`activity-type-badge activity-type-${order.type}`}>
+                    {order.type === "buy" ? "Buy" : "Sell"}
+                  </span>
+                  <strong style={{ marginTop: 6, display: "block" }}>
+                    {order.cryptoAmount ? `${order.cryptoAmount} ` : ""}{order.asset}
                   </strong>
                   <small>{new Date(order.createdAt).toLocaleDateString()}</small>
                 </div>
-                <div>
+                <div style={{ textAlign: "right" }}>
                   <strong>{formatKES(order.kesAmount)}</strong>
-                  <small>{order.status}</small>
+                  <small style={{ display: "flex", alignItems: "center", gap: 5, justifyContent: "flex-end", marginTop: 4 }}>
+                    <span className={`activity-status-dot ${order.status}`} />
+                    {order.status === "paid" ? "Reviewing" : order.status}
+                  </small>
                 </div>
               </div>
             ))}

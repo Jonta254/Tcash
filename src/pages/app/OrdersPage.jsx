@@ -69,7 +69,7 @@ function OrdersPage() {
   }, [activeTab, orders]);
 
   return (
-    <div className="stack">
+    <div className="stack page-enter">
       <section className="panel stack task-panel">
         <div className="page-section-head compact-page-head">
           <div>

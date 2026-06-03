@@ -95,6 +95,7 @@ function BuyPage() {
               <input
                 id="buyAmountKes"
                 type="number"
+                inputMode="decimal"
                 min="0"
                 step="1"
                 value={buyKesInput}

@@ -234,14 +234,27 @@ function ProfilePage() {
   };
 
   return (
-    <div className="stack">
+    <div className="stack page-enter">
       <section className="panel profile-hero">
         <div className="profile-hero-head">
-          <div className="profile-avatar">{(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}</div>
-          <div>
-            <span className="brand-kicker">Account</span>
-            <h2>{user?.username ? `@${user.username}` : user?.fullName || "TMpesa user"}</h2>
-            <p className="muted">Payout details, rewards, and account tools.</p>
+          <div className="profile-avatar" aria-hidden="true">
+            {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+              <span className="brand-kicker">Account</span>
+              {user?.username ? (
+                <span className="live-badge live-badge-small" style={{ fontSize: "0.72rem" }}>
+                  World verified
+                </span>
+              ) : null}
+            </div>
+            <h2 style={{ margin: "4px 0 0", overflowWrap: "anywhere" }}>
+              {user?.username ? `@${user.username}` : user?.fullName || "TMpesa user"}
+            </h2>
+            <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.93rem" }}>
+              Payout settings, referral rewards, and account tools.
+            </p>
           </div>
         </div>
         <div className="profile-summary-grid">
@@ -272,9 +285,9 @@ function ProfilePage() {
         <div className="split">
           <div>
             <span className="brand-kicker">Payout settings</span>
-            <h3>Save the M-Pesa number TMpesa should use</h3>
+            <h3>Save your M-Pesa payout number</h3>
             <p className="muted">
-              TMpesa uses this number for sell settlements and manual referral reward payouts.
+              Save the M-Pesa number used for sell settlements and referral reward payouts. Use a number registered for M-Pesa.
             </p>
           </div>
         </div>
@@ -287,7 +300,9 @@ function ProfilePage() {
             value={payoutPhone}
             onChange={(event) => setPayoutPhone(event.target.value)}
             placeholder="0712345678"
+            inputMode="tel"
           />
+          <span className="muted field-hint">Accepted formats: 0712345678 · +254712345678 · 254712345678</span>
         </div>
         <div className="button-row compact-actions">
           <button type="button" className="button" onClick={handleSavePayoutNumber}>
@@ -426,14 +441,13 @@ function ProfilePage() {
         <div className="split">
           <div>
             <span className="brand-kicker">Push notifications</span>
-            <h3>Receive transaction alerts in World App</h3>
+            <h3>Get World App order alerts</h3>
             <p className="muted">
-              Turn on World notifications so TMpesa can alert you when an order is received,
-              reviewed, or completed.
+              Turn on World notifications so TMpesa can alert you when an order is placed, reviewed, or completed. Alerts are delivered inside World App.
             </p>
           </div>
           <span className={`status-pill ${notificationsEnabled ? "completed" : "pending"}`}>
-            {notificationsEnabled ? "Enabled" : "Off"}
+            {notificationsEnabled ? "✓ Active" : "Off"}
           </span>
         </div>
         {notificationError ? <div className="error">{notificationError}</div> : null}
@@ -443,11 +457,15 @@ function ProfilePage() {
             className="button"
             onClick={handleEnableNotifications}
             disabled={notificationLoading}
+            style={{ minHeight: 52 }}
           >
-            {notificationLoading ? "Opening World permission..." : "Enable Notifications"}
+            {notificationLoading ? "Opening World App..." : "Enable World notifications"}
           </button>
         ) : (
-          <div className="notice">World push notifications are active for this TMpesa account.</div>
+          <div className="notice" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: "1.1rem" }}>🔔</span>
+            <span>World push notifications are active for your TMpesa account.</span>
+          </div>
         )}
       </section>
 

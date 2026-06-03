@@ -91,7 +91,7 @@ function WalletPage() {
   };
 
   return (
-    <div className="stack">
+    <div className="stack page-enter">
       <section className="panel profile-hero">
         <div className="profile-hero-head">
           <div>
