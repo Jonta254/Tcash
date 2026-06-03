@@ -70,8 +70,8 @@ export async function fetchAdminOrderQueue() {
   return readJsonResponse(response);
 }
 
-export async function syncAdminOrder(order) {
-  return syncAdminOrders([order]);
+export async function syncAdminOrder(order, options = {}) {
+  return syncAdminOrders([order], options);
 }
 
 export async function syncAdminOrders(orders, options = {}) {

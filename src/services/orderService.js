@@ -79,8 +79,8 @@ export async function fetchSharedAdminOrders() {
   };
 }
 
-export async function syncOrderToAdminQueue(order) {
-  return syncAdminOrder(order);
+export async function syncOrderToAdminQueue(order, options = {}) {
+  return syncAdminOrder(order, options);
 }
 
 export async function backfillExistingOrdersToAdminQueue() {
@@ -159,7 +159,9 @@ export async function createOrder(payload) {
     createdAt: new Date().toISOString(),
   };
 
-  await syncOrderToAdminQueue(order);
+  // Sync order to shared queue without re-triggering email/World notifications;
+  // notifyAdminOrderCreated below is the single notification path.
+  await syncOrderToAdminQueue(order, { notifyAdmin: false });
   writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
   void notifyAdminOrderCreated(order).catch(() => null);
   void notifyWorldUserOrderCreated(order).catch(() => null);

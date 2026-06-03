@@ -240,7 +240,9 @@ function AdminPage() {
     const updated = updateOrder(order.id, { status }, order, { sync: false });
 
     try {
-      await syncOrderToAdminQueue(updated);
+      // Admin is doing this update — no need to re-notify admin; user gets
+      // notified via notifyWorldUserOrderStatus inside updateOrder above.
+      await syncOrderToAdminQueue(updated, { notifyAdmin: false });
     } catch (error) {
       setOrderQueueError(
         error instanceof Error

@@ -5,7 +5,7 @@ const ORDER_PREFIX = "tmpesa/orders/";
 const ADMIN_EMAIL = "brianokindo2022@gmail.com";
 const FROM_EMAIL = "TMpesa <onboarding@resend.dev>";
 const ADMIN_WORLD_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
-const FALLBACK_APP_ID = "app_02bd6decc052fc1dfa29487444f6c6f";
+const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const WORLD_NOTIFICATIONS_URL = "https://developer.world.org/api/v2/minikit/send-notification";
 const ADMIN_NOTIFY_TIMEOUT_MS = 5000;
 
