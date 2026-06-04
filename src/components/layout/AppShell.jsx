@@ -5,9 +5,11 @@ import { useThemeMode } from "../../hooks/useThemeMode";
 import {
   APP_CONFIG,
   buildWorldAppDeeplink,
+  closeMiniApp,
   getCurrentUser,
   getWorldAppContext,
   getWorldNotificationPermissionState,
+  haptic,
   logoutUser,
   requestWorldNotificationPermission,
 } from "../../services";
@@ -126,8 +128,11 @@ function AppShell() {
     };
   }, [notificationRequestInFlight, showNotificationPrompt, worldApp.isInstalled]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    haptic("light");
     logoutUser();
+    // If inside World App, close the mini app — otherwise navigate to login
+    await closeMiniApp().catch(() => null);
     navigate("/login");
   };
 

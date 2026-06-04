@@ -6,6 +6,7 @@ import {
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
+  haptic,
 } from "../../services";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 
@@ -77,12 +78,10 @@ function WalletPage() {
   );
 
   const handleCopyAddress = async () => {
-    if (!user?.walletAddress) {
-      return;
-    }
-
+    if (!user?.walletAddress) return;
     try {
       await navigator.clipboard.writeText(user.walletAddress);
+      haptic("light");
       setCopyMessage("Wallet address copied.");
       window.setTimeout(() => setCopyMessage(""), 1800);
     } catch {

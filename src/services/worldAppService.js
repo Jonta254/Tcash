@@ -462,3 +462,31 @@ export async function openWorldChatInvite({ message }) {
   await runMiniKitCommand("chat", { message });
   return { opened: true };
 }
+
+/**
+ * Haptic feedback — silently ignored outside World App.
+ * type: "light" | "medium" | "heavy" | "soft" | "rigid" | "success" | "warning" | "error"
+ */
+export function haptic(type = "light") {
+  if (!MiniKit.isInstalled()) return;
+  try {
+    MiniKit.commands?.sendHapticFeedback?.({ hapticType: type });
+  } catch {
+    // silently ignore — haptics are enhancement only
+  }
+}
+
+/**
+ * Gracefully close the mini app (calls World's closeMiniApp command).
+ * Falls back to logoutUser + navigation if not inside World App.
+ */
+export async function closeMiniApp() {
+  if (MiniKit.isInstalled()) {
+    try {
+      await runMiniKitCommand("closeMiniApp", {});
+      return;
+    } catch {
+      // fall through to normal logout
+    }
+  }
+}

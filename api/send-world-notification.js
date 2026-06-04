@@ -1,7 +1,7 @@
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
 const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
-const WORLD_NOTIFICATIONS_URL = "https://developer.world.org/api/v2/minikit/send-notification";
+const WORLD_NOTIFICATIONS_URL = "https://developer.worldcoin.org/api/v2/minikit/send-notification";
 const recentNotifications = new Map();
 const duplicateWindowMs = 1000 * 60;
 const walletWindowMs = 1000 * 60;
@@ -73,8 +73,13 @@ function buildNotificationPayload({ walletAddress, title, message, miniAppPath =
   return {
     app_id: appId,
     wallet_addresses: [walletAddress],
-    title,
-    message,
+    localisations: [
+      {
+        language: "en",
+        title: String(title || "").slice(0, 64),
+        message: String(message || "").slice(0, 180),
+      },
+    ],
     mini_app_path: buildMiniAppPath(appId, miniAppPath),
   };
 }

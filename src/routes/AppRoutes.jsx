@@ -13,8 +13,18 @@ const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
 const TradePage = lazy(() => import("../pages/trade/TradePage"));
 
+function PageLoader() {
+  return (
+    <div className="page-loader" role="status" aria-label="Loading">
+      <div className="page-loader-dot" />
+      <div className="page-loader-dot" />
+      <div className="page-loader-dot" />
+    </div>
+  );
+}
+
 function withSuspense(element) {
-  return <Suspense fallback={<div className="notice">Loading TMpesa...</div>}>{element}</Suspense>;
+  return <Suspense fallback={<PageLoader />}>{element}</Suspense>;
 }
 
 function AppRoutes() {

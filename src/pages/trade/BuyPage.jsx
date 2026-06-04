@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
-import { formatCryptoAmount, formatKES, getCurrentUser } from "../../services";
+import { formatCryptoAmount, formatKES, getCurrentUser, haptic } from "../../services";
 
 function BuyPage() {
   const settings = useAppSettings();
@@ -30,25 +30,20 @@ function BuyPage() {
     supportedAssets,
   } = useOrderFlow("buy");
   const handleCreateBuyOrder = async () => {
-    if (orderCreating) {
-      return;
-    }
-
+    if (orderCreating) return;
+    haptic("medium");
     setOrderCreating(true);
-
-    await placeOrder();
+    const order = await placeOrder();
+    if (order) haptic("success");
     setOrderCreating(false);
   };
 
   const copyPaymentValue = async (label, value) => {
     const text = String(value || "").trim();
-
-    if (!text) {
-      return;
-    }
-
+    if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
+      haptic("light");
       setCopiedValue(label);
       window.setTimeout(() => setCopiedValue(""), 1800);
     } catch {

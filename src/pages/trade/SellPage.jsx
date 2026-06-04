@@ -10,6 +10,7 @@ import {
   getCurrentUser,
   getWorldAppContext,
   getWorldWalletPortfolio,
+  haptic,
   requestWorldPayment,
   syncOrderToAdminQueue,
   updateOrder,
@@ -150,13 +151,11 @@ function SellPage() {
   };
 
   const handleCreateSellOrder = async () => {
-    if (orderCreating) {
-      return;
-    }
-
+    if (orderCreating) return;
+    haptic("medium");
     setOrderCreating(true);
-
-    await placeOrder();
+    const order = await placeOrder();
+    if (order) haptic("success");
     setOrderCreating(false);
   };
 

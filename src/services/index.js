@@ -74,10 +74,12 @@ export {
 export {
   buildWorldAppDeeplink,
   canUseWorldPay,
+  closeMiniApp,
   connectWithWorldAppWallet,
   formatWorldLaunchSource,
   getWorldAppContext,
   getWorldNotificationPermissionState,
+  haptic,
   openWorldChatInvite,
   requestWorldPayment,
   requestWorldNotificationPermission,

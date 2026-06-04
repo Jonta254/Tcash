@@ -6,7 +6,7 @@ const ADMIN_EMAIL = "brianokindo2022@gmail.com";
 const FROM_EMAIL = "TMpesa <onboarding@resend.dev>";
 const ADMIN_WORLD_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
 const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
-const WORLD_NOTIFICATIONS_URL = "https://developer.world.org/api/v2/minikit/send-notification";
+const WORLD_NOTIFICATIONS_URL = "https://developer.worldcoin.org/api/v2/minikit/send-notification";
 const ADMIN_NOTIFY_TIMEOUT_MS = 5000;
 
 function sanitizeOrderId(value) {
@@ -171,8 +171,13 @@ async function notifyAdminWorld(order) {
     body: JSON.stringify({
       app_id: appId,
       wallet_addresses: [process.env.ADMIN_WORLD_WALLET || ADMIN_WORLD_WALLET],
-      title: "New TMpesa order",
-      message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
+      localisations: [
+        {
+          language: "en",
+          title: "New TMpesa order",
+          message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
+        },
+      ],
       mini_app_path: buildMiniAppPath(appId, "/tmpesa-admin"),
     }),
   });

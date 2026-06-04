@@ -23,8 +23,8 @@ This app is built as a World App Mini App first. The normal web URL is only for 
 
 ## Required World Developer Portal Setup
 
-- World App ID captured from Developer Portal: `app_02bd6decc052fc1dfa29487444f6c6f`.
-- Set `APP_ID` and `VITE_WORLD_APP_ID` in Vercel to `app_02bd6decc052fc1dfa29487444f6c6f`.
+- World App ID captured from Developer Portal: `app_02bd6decc052cfd1dfa2948744af6c6f`.
+- Set `APP_ID` and `VITE_WORLD_APP_ID` in Vercel to `app_02bd6decc052cfd1dfa2948744af6c6f`.
 - Create a Developer Portal API key and set it as `DEV_PORTAL_API_KEY` in Vercel.
 - Set `RESEND_API_KEY` in Vercel so Gmail order notifications send to admin.
 - Set `ORDER_NOTIFICATION_EMAIL` to `brianokindo2022@gmail.com`.
