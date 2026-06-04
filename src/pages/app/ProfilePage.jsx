@@ -249,7 +249,7 @@ function ProfilePage() {
                 </span>
               ) : null}
             </div>
-            <h2 style={{ margin: "4px 0 0", overflowWrap: "anywhere" }}>
+            <h2 style={{ margin: "2px 0 0", overflowWrap: "anywhere", wordBreak: "break-word" }}>
               {user?.username ? `@${user.username}` : user?.fullName || "TMpesa user"}
             </h2>
             <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.93rem" }}>

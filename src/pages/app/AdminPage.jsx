@@ -134,7 +134,7 @@ function AdminPage() {
 
   if (!user?.isAdmin) {
     return (
-      <div className="stack">
+      <div className="stack page-enter">
         <section className="panel stack task-panel auth-layout-single">
           <div className="page-section-head">
             <div>
@@ -302,7 +302,7 @@ function AdminPage() {
   };
 
   return (
-    <div className="stack">
+    <div className="stack page-enter">
       <section className="panel stack task-panel">
         <div className="page-section-head">
           <div>

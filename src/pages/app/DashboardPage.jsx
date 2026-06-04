@@ -383,22 +383,22 @@ function DashboardPage() {
         </div>
         <div className="quick-action-grid home-quick-actions compact-home-actions">
           <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
-            <span className="quick-action-icon">⇅</span>
+            <span className="quick-action-icon" aria-hidden="true">💱</span>
             <strong>Buy &amp; Sell</strong>
             <span>Trade WLD · USDC</span>
           </Link>
           <Link to="/wallet#receive" className="quick-action-card quick-action-card-sell">
-            <span className="quick-action-icon">◎</span>
+            <span className="quick-action-icon" aria-hidden="true">📥</span>
             <strong>Receive</strong>
             <span>Copy wallet address</span>
           </Link>
           <Link to="/orders" className="quick-action-card quick-action-card-orders">
-            <span className="quick-action-icon">◷</span>
+            <span className="quick-action-icon" aria-hidden="true">🕐</span>
             <strong>History</strong>
             <span>Track your orders</span>
           </Link>
           <Link to="/support" className="quick-action-card quick-action-card-orders">
-            <span className="quick-action-icon">◈</span>
+            <span className="quick-action-icon" aria-hidden="true">💬</span>
             <strong>Support</strong>
             <span>Get help fast</span>
           </Link>

@@ -1449,7 +1449,7 @@ button:disabled {
 
 .mini-metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 10px;
 }
 
@@ -2883,7 +2883,7 @@ button:disabled {
 .history-tab-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .history-tab {
@@ -2891,11 +2891,13 @@ button:disabled {
   background: rgba(255, 255, 255, 0.04);
   color: var(--muted);
   border-radius: 999px;
-  padding: 10px 8px;
+  padding: 10px 6px;
   font-weight: 700;
-  font-size: 0.98rem;
+  font-size: clamp(0.76rem, 3.2vw, 0.94rem);
   white-space: nowrap;
   text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .history-tab.active {
@@ -3764,7 +3766,7 @@ button:disabled {
 
 @media (max-width: 420px) {
   .page-bg {
-    padding: 14px 12px 116px;
+    padding: 14px 12px calc(116px + env(safe-area-inset-bottom, 0px));
   }
 
   .auth-card,
@@ -4064,4 +4066,274 @@ button:disabled {
     width: min(100%, 680px);
     transform: translateX(-50%);
   }
+}
+
+/* ─── Layout & spacing polish ─────────────────────────────────────────────── */
+
+/* Consistent heading margins inside panels */
+.panel h2,
+.panel h3 {
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.panel p {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+/* Panel padding tighter on mobile to give more content room */
+@media (max-width: 480px) {
+  .action-card,
+  .panel,
+  .order-card,
+  .summary-card {
+    padding: 16px 14px;
+  }
+
+  .task-panel {
+    gap: 14px;
+  }
+
+  /* Topbar: ensure brand + actions always fit in one row */
+  .topbar-shell {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .brand-inline-copy h1 {
+    font-size: 1.3rem;
+  }
+
+  .brand-status {
+    font-size: 0.72rem;
+    padding: 4px 8px;
+  }
+
+  /* Profile hero: stack avatar + text cleanly */
+  .profile-hero-head {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Rate cards: slightly smaller number on very small phones */
+  .rate-quote-market strong {
+    font-size: clamp(1.3rem, 6vw, 1.65rem);
+  }
+
+  /* Referral milestone grid: 2 col always */
+  .referral-milestone-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Profile summary grid: 2 col on small (not 1 col stacked) */
+  .profile-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Quick action icon slightly smaller */
+  .quick-action-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+  }
+
+  /* Order card detail grid: single column on small */
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Payout / receipt card code overflow */
+  .info-box code,
+  .receipt-card code {
+    font-size: 0.84rem;
+    word-break: break-all;
+  }
+}
+
+/* Topbar: never let content overflow */
+.brand-inline-copy h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+/* Brand status: always single line */
+.brand-status {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Profile username: wrap gracefully, never overflow */
+.profile-hero-head h2 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* Wallet address: always break */
+.info-box code {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+/* Amount lines: prevent long numbers breaking layout */
+.amount-line strong {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* Order card: never let any text overflow card edges */
+.order-card {
+  overflow: hidden;
+}
+
+.order-meta span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-size: 0.84rem;
+}
+
+/* Asset rows: balance number clips properly */
+.asset-row strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tab bar: labels never overflow icons */
+.tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  font-size: 0.74rem;
+}
+
+/* Tab link shell: fixed min-height for alignment */
+.tab-link-shell {
+  min-height: 66px;
+}
+
+/* Topbar actions: don't let Exit button shrink to 0 */
+.topbar-logout {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Profile launch button: clip long usernames */
+.profile-launch-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 110px;
+  display: block;
+}
+
+/* Trade page: input type=number spinner hidden for clean look */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Payment instructions: make copy-detail-list tighter on phones */
+@media (max-width: 400px) {
+  .copy-detail-list div {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .copy-detail-list code {
+    font-size: 0.9rem;
+  }
+}
+
+/* Stack: tighter gap on small phones */
+@media (max-width: 380px) {
+  .stack {
+    gap: 10px;
+  }
+
+  .app-shell {
+    gap: 10px;
+  }
+}
+
+/* Empty state padding */
+.empty-state {
+  padding: 32px 20px 28px;
+}
+
+/* Success panel: ensure text fits */
+.success-panel strong {
+  display: block;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+/* Referral code pill on Home: never overflow */
+.home-referral-panel .status-pill {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+/* Compact support strip: wrap on very small screens */
+.compact-support-strip {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Home balance: KES number scales down on tiny screens */
+@media (max-width: 360px) {
+  .home-balance-main strong {
+    font-size: clamp(1.6rem, 8vw, 2rem);
+  }
+
+  .home-quick-actions {
+    gap: 10px;
+  }
+
+  .quick-action-card {
+    min-height: 100px;
+    padding: 14px 12px;
+  }
+
+  .history-tab {
+    font-size: 0.72rem;
+    padding: 9px 4px;
+  }
+}
+
+/* Button rows: ensure buttons are always at least 44px tall (touch target) */
+.button,
+.button-secondary,
+.button-ghost {
+  min-height: 46px;
+}
+
+/* Notification prompt: safe padding on very small screens */
+.notification-prompt-overlay {
+  padding-bottom: max(120px, calc(104px + env(safe-area-inset-bottom, 0px)));
+}
+
+/* Panel focus ring: don't clip content */
+.panel-focus-ring {
+  overflow: visible;
+}
+
+/* Context strip was removed but rule may still exist — hide safely */
+.context-strip {
+  display: none !important;
 }
