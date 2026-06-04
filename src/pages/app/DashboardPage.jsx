@@ -225,33 +225,101 @@ function DashboardPage() {
   const displayName = user?.username ? `@${user.username}` : user?.fullName || null;
   const hasWorldSession = Boolean(user?.username);
 
+  /* Avatar initials */
+  const avatarLetter = user?.username
+    ? user.username[0].toUpperCase()
+    : user?.fullName
+    ? user.fullName[0].toUpperCase()
+    : "T";
+
   return (
     <div className="stack page-enter">
 
-      {/* ── 1. GREETING ─────────────────────────────────────── */}
-      <section className="home-greeting">
-        <div className="home-greeting-inner">
-          <div className="home-greeting-text">
-            <p className="home-greeting-salutation">{greeting}{displayName ? "," : "."}</p>
-            {displayName ? (
-              <h2 className="home-greeting-name">{displayName}</h2>
-            ) : (
-              <h2 className="home-greeting-name">Welcome to TMpesa</h2>
-            )}
+      {/* ══ HERO PROFILE CARD ══════════════════════════════════
+           Unified greeting + identity + portfolio balance card  */}
+      <section className="hero-profile-card">
+        {/* decorative glow blobs */}
+        <div className="hero-glow hero-glow-a" aria-hidden="true" />
+        <div className="hero-glow hero-glow-b" aria-hidden="true" />
+        <div className="hero-glow hero-glow-c" aria-hidden="true" />
+
+        {/* ── top row: avatar · identity · actions ── */}
+        <div className="hero-top-row">
+          <div className="hero-avatar-ring">
+            <div className="hero-avatar" aria-hidden="true">{avatarLetter}</div>
           </div>
-          {hasWorldSession ? (
-            <span className="home-greeting-badge">
-              <span className="home-greeting-dot" aria-hidden="true" />
-              World verified
-            </span>
+
+          <div className="hero-identity">
+            <p className="hero-salutation">{greeting}{displayName ? "," : "."}</p>
+            <h2 className="hero-username">{displayName || "Welcome to TMpesa"}</h2>
+          </div>
+
+          <div className="hero-top-actions">
+            {hasWorldSession ? (
+              <span className="hero-verified-badge" title="World ID verified">
+                <span className="hero-verified-dot" aria-hidden="true" />
+                Verified
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className="hero-refresh-btn"
+              onClick={handleRefreshWallet}
+              aria-label="Refresh wallet"
+            >
+              {walletRefreshing ? <span className="spin">↻</span> : "↻"}
+            </button>
+          </div>
+        </div>
+
+        {/* ── balance ── */}
+        <div className="hero-balance-block">
+          <span className="hero-balance-label">Total Portfolio</span>
+          <strong className="hero-balance-number">{balanceLabel}</strong>
+          <small className="hero-balance-sub">{balanceSublabel}</small>
+        </div>
+
+        {/* ── asset chips + live rate ── */}
+        <div className="hero-chips-row">
+          <div className="hero-asset-chip hero-chip-wld">
+            <span className="hero-chip-sym hero-sym-wld">W</span>
+            <div className="hero-chip-body">
+              <span className="hero-chip-name">WLD</span>
+              <strong className="hero-chip-val">{assetVal(walletBoard.wld)}</strong>
+            </div>
+          </div>
+          <div className="hero-asset-chip hero-chip-usdc">
+            <span className="hero-chip-sym hero-sym-usdc">$</span>
+            <div className="hero-chip-body">
+              <span className="hero-chip-name">USDC</span>
+              <strong className="hero-chip-val">{assetVal(walletBoard.usdc)}</strong>
+            </div>
+          </div>
+          {hasLiveMarketRates ? (
+            <div className="hero-rate-chip">
+              <span className="rate-live-dot live" aria-hidden="true" />
+              <span>1&nbsp;WLD&nbsp;=&nbsp;{formatKES(homeMarketRates[0]?.priceKes)}</span>
+            </div>
           ) : null}
         </div>
-        <p className="home-greeting-sub muted">
-          Buy or sell WLD · USDC with M-Pesa settlement.
-        </p>
+
+        {/* ── wallet error ── */}
+        {walletError && !hasWalletBalances ? (
+          <div className="home-balance-error">{walletError}</div>
+        ) : null}
+
+        {/* ── wallet / setup footer ── */}
+        <div className="hero-footer-row">
+          <span className={`live-badge live-badge-small${user?.walletAddress ? "" : " muted-badge"}`}>
+            {user?.walletAddress ? "Wallet connected" : "No wallet"}
+          </span>
+          <Link to="/wallet" className="text-link hero-wallet-link">
+            View wallet →
+          </Link>
+        </div>
       </section>
 
-      {/* ── 2. PAYOUT SETUP (only if needed) ───────────────── */}
+      {/* ── PAYOUT SETUP NUDGE (only when M-Pesa number missing) ── */}
       {!user?.isAdmin && !user?.mpesaPhoneNumber ? (
         <section className="panel stack home-setup-nudge">
           <div className="home-setup-nudge-head">
@@ -282,59 +350,6 @@ function DashboardPage() {
           </div>
         </section>
       ) : null}
-
-      {/* ── 3. PORTFOLIO BALANCE ────────────────────────────── */}
-      <section className="panel home-wallet-board">
-        <div className="home-wallet-head">
-          <span className="brand-kicker">Portfolio</span>
-          <Link to="/wallet" className="text-link home-wallet-link">
-            Wallet →
-          </Link>
-        </div>
-
-        <div className="home-balance-card">
-          <div className="home-balance-meta">
-            <span className={`live-badge live-badge-small${user?.walletAddress ? "" : " muted-badge"}`}>
-              {user?.walletAddress ? "Wallet connected" : "No wallet"}
-            </span>
-            <button
-              type="button"
-              className="icon-button icon-button-compact"
-              onClick={handleRefreshWallet}
-              aria-label="Refresh wallet"
-            >
-              {walletRefreshing ? <span className="spin">↻</span> : "↻"}
-            </button>
-          </div>
-
-          <div className="home-balance-hero-block">
-            <span className="home-balance-label">Total balance</span>
-            <strong className="home-balance-number">{balanceLabel}</strong>
-            <small className="home-balance-sub">{balanceSublabel}</small>
-          </div>
-
-          <div className="home-asset-rows">
-            <div className="asset-row">
-              <div className="asset-row-left">
-                <span className="asset-symbol-badge asset-symbol-wld">W</span>
-                <span className="asset-row-name">WLD</span>
-              </div>
-              <strong>{assetVal(walletBoard.wld)}</strong>
-            </div>
-            <div className="asset-row">
-              <div className="asset-row-left">
-                <span className="asset-symbol-badge asset-symbol-usdc">$</span>
-                <span className="asset-row-name">USDC</span>
-              </div>
-              <strong>{assetVal(walletBoard.usdc)}</strong>
-            </div>
-          </div>
-
-          {walletError && !hasWalletBalances ? (
-            <div className="home-balance-error">{walletError}</div>
-          ) : null}
-        </div>
-      </section>
 
       {/* ── 4. QUICK ACTIONS ────────────────────────────────── */}
       <section className="panel stack home-actions-panel">
