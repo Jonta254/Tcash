@@ -224,8 +224,6 @@ function DashboardPage() {
   const greeting = getGreeting();
   const displayName = user?.username ? `@${user.username}` : user?.fullName || null;
   const hasWorldSession = Boolean(user?.username);
-
-  /* Avatar initials */
   const avatarLetter = user?.username
     ? user.username[0].toUpperCase()
     : user?.fullName
@@ -233,93 +231,161 @@ function DashboardPage() {
     : "T";
 
   return (
-    <div className="stack page-enter">
+    <div className="dash-root page-enter">
 
-      {/* ══ HERO PROFILE CARD ══════════════════════════════════
-           Unified greeting + identity + portfolio balance card  */}
-      <section className="hero-profile-card">
-        {/* decorative glow blobs */}
-        <div className="hero-glow hero-glow-a" aria-hidden="true" />
-        <div className="hero-glow hero-glow-b" aria-hidden="true" />
-        <div className="hero-glow hero-glow-c" aria-hidden="true" />
+      {/* ══════════════════════════════════════════════════════
+          SECTION 1 — APP BAR  (always visible, ~52 px)
+          ══════════════════════════════════════════════════ */}
+      <header className="dash-appbar">
+        <div className="dash-appbar-brand">
+          <span className="dash-appbar-logo" aria-hidden="true">M</span>
+          <span className="dash-appbar-name">TMpesa</span>
+        </div>
+        <div className="dash-appbar-right">
+          {hasWorldSession ? (
+            <span className="dash-verified-pill">
+              <span className="dash-verified-dot" aria-hidden="true" />
+              World Verified
+            </span>
+          ) : null}
+          {displayName ? (
+            <span className="dash-appbar-user">{displayName}</span>
+          ) : null}
+        </div>
+      </header>
 
-        {/* ── top row: avatar · identity · actions ── */}
-        <div className="hero-top-row">
-          <div className="hero-avatar-ring">
-            <div className="hero-avatar" aria-hidden="true">{avatarLetter}</div>
+      {/* ══════════════════════════════════════════════════════
+          SECTION 2 — BALANCE CARD  (~148 px)
+          ══════════════════════════════════════════════════ */}
+      <section className="dash-balance-card" aria-label="Portfolio balance">
+        {/* decorative glow */}
+        <div className="dbc-glow dbc-glow-tl" aria-hidden="true" />
+        <div className="dbc-glow dbc-glow-br" aria-hidden="true" />
+
+        <div className="dbc-inner">
+          {/* left: total KES */}
+          <div className="dbc-total">
+            <span className="dbc-label">Portfolio value</span>
+            <strong className="dbc-number">{balanceLabel}</strong>
+            <small className="dbc-sub">{balanceSublabel}</small>
           </div>
 
-          <div className="hero-identity">
-            <p className="hero-salutation">{greeting}{displayName ? "," : "."}</p>
-            <h2 className="hero-username">{displayName || "Welcome to TMpesa"}</h2>
-          </div>
-
-          <div className="hero-top-actions">
-            {hasWorldSession ? (
-              <span className="hero-verified-badge" title="World ID verified">
-                <span className="hero-verified-dot" aria-hidden="true" />
-                Verified
-              </span>
-            ) : null}
+          {/* right: refresh + wallet link */}
+          <div className="dbc-actions">
             <button
               type="button"
-              className="hero-refresh-btn"
+              className="dbc-refresh-btn"
               onClick={handleRefreshWallet}
               aria-label="Refresh wallet"
             >
               {walletRefreshing ? <span className="spin">↻</span> : "↻"}
             </button>
+            <Link to="/wallet" className="dbc-wallet-link">Wallet →</Link>
           </div>
         </div>
 
-        {/* ── balance ── */}
-        <div className="hero-balance-block">
-          <span className="hero-balance-label">Total Portfolio</span>
-          <strong className="hero-balance-number">{balanceLabel}</strong>
-          <small className="hero-balance-sub">{balanceSublabel}</small>
+        {/* asset row */}
+        <div className="dbc-assets">
+          <div className="dbc-asset dbc-asset-wld">
+            <span className="dbc-asset-sym">W</span>
+            <div className="dbc-asset-info">
+              <span className="dbc-asset-label">WLD</span>
+              <strong className="dbc-asset-val">{assetVal(walletBoard.wld)}</strong>
+            </div>
+            {homeMarketRates[0]?.priceKes > 1 ? (
+              <span className="dbc-asset-rate">{formatKES(homeMarketRates[0].priceKes)}</span>
+            ) : null}
+          </div>
+          <div className="dbc-asset dbc-asset-usdc">
+            <span className="dbc-asset-sym">$</span>
+            <div className="dbc-asset-info">
+              <span className="dbc-asset-label">USDC</span>
+              <strong className="dbc-asset-val">{assetVal(walletBoard.usdc)}</strong>
+            </div>
+            {homeMarketRates[1]?.priceKes > 1 ? (
+              <span className="dbc-asset-rate">{formatKES(homeMarketRates[1].priceKes)}</span>
+            ) : null}
+          </div>
+          <div className={`dbc-conn-pill${user?.walletAddress ? "" : " dbc-conn-none"}`}>
+            <span className="dbc-conn-dot" aria-hidden="true" />
+            {user?.walletAddress ? "Connected" : "No wallet"}
+          </div>
         </div>
 
-        {/* ── asset chips + live rate ── */}
-        <div className="hero-chips-row">
-          <div className="hero-asset-chip hero-chip-wld">
-            <span className="hero-chip-sym hero-sym-wld">W</span>
-            <div className="hero-chip-body">
-              <span className="hero-chip-name">WLD</span>
-              <strong className="hero-chip-val">{assetVal(walletBoard.wld)}</strong>
-            </div>
-          </div>
-          <div className="hero-asset-chip hero-chip-usdc">
-            <span className="hero-chip-sym hero-sym-usdc">$</span>
-            <div className="hero-chip-body">
-              <span className="hero-chip-name">USDC</span>
-              <strong className="hero-chip-val">{assetVal(walletBoard.usdc)}</strong>
-            </div>
-          </div>
-          {hasLiveMarketRates ? (
-            <div className="hero-rate-chip">
-              <span className="rate-live-dot live" aria-hidden="true" />
-              <span>1&nbsp;WLD&nbsp;=&nbsp;{formatKES(homeMarketRates[0]?.priceKes)}</span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* ── wallet error ── */}
         {walletError && !hasWalletBalances ? (
-          <div className="home-balance-error">{walletError}</div>
+          <div className="home-balance-error" style={{ margin: "0 0 2px" }}>{walletError}</div>
         ) : null}
-
-        {/* ── wallet / setup footer ── */}
-        <div className="hero-footer-row">
-          <span className={`live-badge live-badge-small${user?.walletAddress ? "" : " muted-badge"}`}>
-            {user?.walletAddress ? "Wallet connected" : "No wallet"}
-          </span>
-          <Link to="/wallet" className="text-link hero-wallet-link">
-            View wallet →
-          </Link>
-        </div>
       </section>
 
-      {/* ── PAYOUT SETUP NUDGE (only when M-Pesa number missing) ── */}
+      {/* ══════════════════════════════════════════════════════
+          SECTION 3 — QUICK ACTIONS  (~72 px)
+          ══════════════════════════════════════════════════ */}
+      <div className="dash-actions-row" role="navigation" aria-label="Quick actions">
+        <Link to="/trade?tab=buy" className="dash-action dash-action-buy">
+          <span className="dash-action-icon" aria-hidden="true">↑</span>
+          <span className="dash-action-label">Buy</span>
+        </Link>
+        <Link to="/trade?tab=sell" className="dash-action dash-action-sell">
+          <span className="dash-action-icon" aria-hidden="true">↓</span>
+          <span className="dash-action-label">Sell</span>
+        </Link>
+        <Link to="/wallet#receive" className="dash-action dash-action-receive">
+          <span className="dash-action-icon" aria-hidden="true">⬡</span>
+          <span className="dash-action-label">Receive</span>
+        </Link>
+        <Link to="/orders" className="dash-action dash-action-history">
+          <span className="dash-action-icon" aria-hidden="true">≡</span>
+          <span className="dash-action-label">History</span>
+        </Link>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════
+          SECTION 4 — LIVE MARKET PRICES  (~84 px)
+          ══════════════════════════════════════════════════ */}
+      <section className="dash-market-row" aria-label="Live prices">
+        <div className="dash-market-head">
+          <span className="dash-market-title">Market</span>
+          <div className="dash-market-meta">
+            {marketRefreshing
+              ? <span className="dash-market-status">Syncing…</span>
+              : hasLiveMarketRates
+              ? <span className="dash-market-status live">● Live</span>
+              : null}
+            <button
+              type="button"
+              className="dbc-refresh-btn"
+              onClick={handleRefreshRates}
+              aria-label="Refresh prices"
+            >
+              {marketRefreshing ? <span className="spin">↻</span> : "↻"}
+            </button>
+          </div>
+        </div>
+        {marketRefreshError ? (
+          <div className="error" style={{ fontSize: "0.82rem", padding: "8px 10px" }}>
+            {marketRefreshError}
+          </div>
+        ) : (
+          <div className="dash-market-tiles">
+            {homeMarketRates.map((r) => (
+              <div key={r.asset} className="dash-market-tile">
+                <div className="dmt-head">
+                  <span className="dmt-sym">{r.asset}</span>
+                  <span className={`rate-live-dot${r.priceKes > 1 ? " live" : ""}`} aria-hidden="true" />
+                </div>
+                <strong className="dmt-price">
+                  {r.priceKes > 1 ? formatKES(r.priceKes) : "—"}
+                </strong>
+                <span className="dmt-sub">per 1 {r.asset}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ══════════════════════════════════════════════════════
+          SETUP NUDGE  (only when M-Pesa number missing)
+          ══════════════════════════════════════════════════ */}
       {!user?.isAdmin && !user?.mpesaPhoneNumber ? (
         <section className="panel stack home-setup-nudge">
           <div className="home-setup-nudge-head">
@@ -351,113 +417,35 @@ function DashboardPage() {
         </section>
       ) : null}
 
-      {/* ── 4. QUICK ACTIONS ────────────────────────────────── */}
-      <section className="panel stack home-actions-panel">
-        <span className="brand-kicker">Actions</span>
-        <div className="home-actions-grid">
-          <Link to="/trade?tab=buy" className="home-action-card home-action-buy">
-            <span className="home-action-icon" aria-hidden="true">↑</span>
-            <strong>Buy</strong>
-            <span>Pay KES · get crypto</span>
-          </Link>
-          <Link to="/trade?tab=sell" className="home-action-card home-action-sell">
-            <span className="home-action-icon" aria-hidden="true">↓</span>
-            <strong>Sell</strong>
-            <span>Send crypto · get KES</span>
-          </Link>
-          <Link to="/wallet#receive" className="home-action-card home-action-receive">
-            <span className="home-action-icon" aria-hidden="true">⬡</span>
-            <strong>Receive</strong>
-            <span>Copy address</span>
-          </Link>
-          <Link to="/orders" className="home-action-card home-action-history">
-            <span className="home-action-icon" aria-hidden="true">≡</span>
-            <strong>History</strong>
-            <span>Track orders</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* ── 5. LIVE PRICES ──────────────────────────────────── */}
-      <section className="panel stack home-rates-panel">
-        <div className="split compact-panel-head">
-          <div>
-            <span className="brand-kicker">Market</span>
-            <h3>Live prices</h3>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {marketRefreshError ? null : (
-              <small className="market-panel-note">
-                {marketRefreshing ? "Syncing…" : hasLiveMarketRates ? "Live" : "Syncing…"}
-              </small>
-            )}
-            <button
-              type="button"
-              className="icon-button icon-button-compact"
-              onClick={handleRefreshRates}
-              aria-label="Refresh prices"
-            >
-              {marketRefreshing ? <span className="spin">↻</span> : "↻"}
-            </button>
-          </div>
-        </div>
-
-        {marketRefreshError ? (
-          <div className="error" style={{ fontSize: "0.86rem", padding: "10px 12px" }}>
-            {marketRefreshError}
-          </div>
-        ) : null}
-
-        <div className="rates-board-compact">
-          {homeMarketRates.map((r) => (
-            <div key={r.asset} className="rate-quote-card rate-quote-card-compact">
-              <div className="rate-quote-head">
-                <strong>{r.asset}</strong>
-                <span className={`rate-live-dot${r.priceKes > 1 ? " live" : ""}`} aria-hidden="true" />
-              </div>
-              <div className="rate-quote-market">
-                <strong>
-                  {r.priceKes > 1 ? formatKES(r.priceKes) : "KES —"}
-                </strong>
-                <span>{r.priceKes > 1 ? `per 1 ${r.asset}` : "Loading…"}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── 6. RECENT ORDERS ────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════
+          SECTION 5 — RECENT ACTIVITY  (scrollable start)
+          ══════════════════════════════════════════════════ */}
       {recentActivity.length ? (
-        <section className="panel stack compact-activity-panel">
-          <div className="split compact-panel-head">
-            <div>
-              <span className="brand-kicker">Activity</span>
-              <h3>Recent orders</h3>
-            </div>
-            <Link to="/orders" className="text-link" style={{ fontSize: "0.88rem" }}>
-              See all →
-            </Link>
+        <section className="dash-activity-panel">
+          <div className="dash-activity-head">
+            <span className="dash-section-label">Recent orders</span>
+            <Link to="/orders" className="dash-see-all">See all →</Link>
           </div>
-          <div className="recent-activity-list">
+          <div className="dash-activity-list">
             {recentActivity.map((order) => (
               <Link
                 key={order.id}
                 to="/orders"
-                className="recent-activity-item recent-activity-link"
+                className="dash-activity-item"
               >
-                <div className="recent-activity-left">
-                  <span className={`activity-type-badge activity-type-${order.type}`}>
-                    {order.type === "buy" ? "Buy" : "Sell"}
-                  </span>
-                  <strong>
+                <span className={`dash-type-badge dash-type-${order.type}`}>
+                  {order.type === "buy" ? "Buy" : "Sell"}
+                </span>
+                <div className="dai-mid">
+                  <strong className="dai-asset">
                     {order.cryptoAmount ? `${formatCryptoAmount(order.cryptoAmount)} ` : ""}
                     {order.asset}
                   </strong>
-                  <small>{new Date(order.createdAt).toLocaleDateString()}</small>
+                  <small className="dai-date">{new Date(order.createdAt).toLocaleDateString()}</small>
                 </div>
-                <div className="recent-activity-right">
-                  <strong>{formatKES(order.kesAmount)}</strong>
-                  <small>
+                <div className="dai-right">
+                  <strong className="dai-kes">{formatKES(order.kesAmount)}</strong>
+                  <small className="dai-status">
                     <span className={`activity-status-dot ${order.status}`} />
                     {statusLabel(order.status)}
                   </small>
@@ -468,7 +456,9 @@ function DashboardPage() {
         </section>
       ) : null}
 
-      {/* ── 7. REFERRAL ─────────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════
+          SECTION 6 — REFERRAL STRIP
+          ══════════════════════════════════════════════════ */}
       <section className="panel home-referral-strip">
         <div className="home-referral-left">
           <span className="home-referral-icon" aria-hidden="true">🎁</span>
@@ -492,33 +482,29 @@ function DashboardPage() {
         </div>
       </section>
 
-      {/* ── 8. HELP STRIP ───────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════
+          SECTION 7 — HELP STRIP
+          ══════════════════════════════════════════════════ */}
       <section className="panel home-help-strip">
         <span className="home-help-label">Need help?</span>
         <div className="home-help-actions">
-          <Link to="/support" className="button-ghost home-help-btn">
-            Guide
-          </Link>
+          <Link to="/support" className="button-ghost home-help-btn">Guide</Link>
           <button
             type="button"
             className="button-secondary home-help-btn"
-            onClick={() =>
-              openSupportEmail({
-                subject: "TMpesa support request",
-                body: `Hello TMpesa support,\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
-              })
-            }
+            onClick={() => openSupportEmail({
+              subject: "TMpesa support request",
+              body: `Hello TMpesa support,\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
+            })}
           >
             Email
           </button>
           <button
             type="button"
             className="button-ghost home-help-btn"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: `Hello TMpesa,\n\nI need help with a delayed order.\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
-              })
-            }
+            onClick={() => openWhatsAppSupport({
+              message: `Hello TMpesa,\n\nI need help.\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
+            })}
           >
             WhatsApp
           </button>
