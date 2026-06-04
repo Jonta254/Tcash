@@ -11,12 +11,27 @@ import {
   getOrdersForCurrentUser,
   getReferralSummary,
   getWorldWalletPortfolio,
+  haptic,
   markReferralShared,
   openSupportEmail,
   openWhatsAppSupport,
   shareMiniAppInvite,
   updateCurrentUserProfile,
 } from "../../services";
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function statusLabel(status) {
+  if (status === "paid") return "Reviewing";
+  if (status === "completed") return "Completed";
+  if (status === "rejected" || status === "cancelled") return "Failed";
+  return "Pending";
+}
 
 function DashboardPage() {
   const initialUser = getCurrentUser();
@@ -42,122 +57,107 @@ function DashboardPage() {
     () =>
       getOrdersForCurrentUser()
         .slice()
-        .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
-        .slice(0, 2),
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user],
   );
 
   const homeMarketRates = useMemo(
     () => [
-      {
-        asset: "WLD",
-        priceKes: Number(liveRates?.WLD) || 0,
-      },
-      {
-        asset: "USDC",
-        priceKes: Number(liveRates?.USDC) || 0,
-      },
+      { asset: "WLD", priceKes: Number(liveRates?.WLD) || 0 },
+      { asset: "USDC", priceKes: Number(liveRates?.USDC) || 0 },
     ],
     [liveRates],
   );
 
-  const hasLiveMarketRates = homeMarketRates.every((entry) => entry.priceKes > 1);
+  const hasLiveMarketRates = homeMarketRates.every((r) => r.priceKes > 1);
 
   const walletBoard = useMemo(() => {
-    const assets = walletPortfolio.assets.map((assetEntry) => ({
-      ...assetEntry,
-      marketPriceKes: Number(liveRates[assetEntry.symbol] || 0),
+    const assets = walletPortfolio.assets.map((a) => ({
+      ...a,
+      marketPriceKes: Number(liveRates[a.symbol] || 0),
     }));
-
     return {
       assets,
       totalKes: calculateKesWalletBalance(assets, liveRates),
-      wld: assets.find((entry) => entry.symbol === "WLD"),
-      usdc: assets.find((entry) => entry.symbol === "USDC"),
+      wld: assets.find((a) => a.symbol === "WLD"),
+      usdc: assets.find((a) => a.symbol === "USDC"),
     };
   }, [liveRates, walletPortfolio.assets]);
 
   const hasWalletBalances = useMemo(
-    () =>
-      walletPortfolio.assets.some((assetEntry) => Number(assetEntry.formattedBalance || 0) > 0),
+    () => walletPortfolio.assets.some((a) => Number(a.formattedBalance || 0) > 0),
     [walletPortfolio.assets],
   );
 
-  const loadWalletPortfolio = useCallback(async ({ showErrors = false } = {}) => {
-    if (!user?.walletAddress) {
-      setWalletPortfolio({ walletAddress: "", assets: [], supported: false });
-      setWalletError("");
-      setWalletLoading(false);
-      return;
-    }
-
-    setWalletLoading(true);
-    setWalletError("");
-
-    try {
-      const portfolio = await getWorldWalletPortfolio(user.walletAddress);
-      setWalletPortfolio(portfolio);
-    } catch (error) {
-      const cachedPortfolio = getCachedWorldWalletPortfolio(user.walletAddress);
-
-      if (cachedPortfolio.assets.length) {
-        setWalletPortfolio(cachedPortfolio);
+  const loadWalletPortfolio = useCallback(
+    async ({ showErrors = false } = {}) => {
+      if (!user?.walletAddress) {
+        setWalletPortfolio({ walletAddress: "", assets: [], supported: false });
         setWalletError("");
-      } else {
-        setWalletPortfolio({
-          walletAddress: user.walletAddress,
-          assets: [],
-          supported: true,
-        });
-        setWalletError(
-          showErrors
-            ? error instanceof Error
-              ? error.message
-              : "Unable to refresh your World wallet right now."
-            : "",
-        );
+        setWalletLoading(false);
+        return;
       }
-    } finally {
-      setWalletLoading(false);
-    }
-  }, [user?.walletAddress]);
+      setWalletLoading(true);
+      setWalletError("");
+      try {
+        const portfolio = await getWorldWalletPortfolio(user.walletAddress);
+        setWalletPortfolio(portfolio);
+      } catch (error) {
+        const cached = getCachedWorldWalletPortfolio(user.walletAddress);
+        if (cached.assets.length) {
+          setWalletPortfolio(cached);
+        } else {
+          setWalletPortfolio({ walletAddress: user.walletAddress, assets: [], supported: true });
+          if (showErrors) {
+            setWalletError(
+              error instanceof Error ? error.message : "Unable to refresh wallet.",
+            );
+          }
+        }
+      } finally {
+        setWalletLoading(false);
+      }
+    },
+    [user?.walletAddress],
+  );
 
   useEffect(() => {
     loadWalletPortfolio().catch(() => null);
   }, [loadWalletPortfolio]);
 
   const normalizeKenyanPhone = (raw) => {
-    const cleaned = raw.replace(/\s+/g, "").replace(/-/g, "");
-    if (/^\+254[17]\d{8}$/.test(cleaned)) return cleaned.slice(1);
-    if (/^254[17]\d{8}$/.test(cleaned)) return `0${cleaned.slice(3)}`;
-    if (/^0[17]\d{8}$/.test(cleaned)) return cleaned;
+    const c = raw.replace(/\s+/g, "").replace(/-/g, "");
+    if (/^\+254[17]\d{8}$/.test(c)) return c.slice(1);
+    if (/^254[17]\d{8}$/.test(c)) return `0${c.slice(3)}`;
+    if (/^0[17]\d{8}$/.test(c)) return c;
     return null;
   };
 
   const handleProfileSave = () => {
     setProfileError("");
     setProfileMessage("");
-
     if (!profilePhone.trim()) {
-      setProfileError("Enter the M-Pesa phone number you want payouts sent to.");
+      setProfileError("Enter your M-Pesa number for sell payouts.");
       return;
     }
-
     const normalized = normalizeKenyanPhone(profilePhone.trim());
     if (!normalized) {
-      setProfileError("Enter a valid Kenyan M-Pesa number, e.g. 0712345678 or +254712345678.");
+      setProfileError("Enter a valid Kenyan number — e.g. 0712345678.");
       return;
     }
-
     setProfilePhone(normalized);
-    const nextUser = updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
-    setUser(nextUser);
-    setProfileMessage("Payout number saved.");
+    const next = updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
+    setUser(next);
+    haptic("success");
+    setProfileMessage("Saved.");
   };
 
-  const handleRefreshWalletBalances = async () => {
+  const handleRefreshWallet = async () => {
     setWalletError("");
     setWalletRefreshing(true);
+    haptic("light");
     try {
       await loadWalletPortfolio({ showErrors: true });
     } finally {
@@ -165,19 +165,16 @@ function DashboardPage() {
     }
   };
 
-  const handleRefreshMarketRates = async () => {
+  const handleRefreshRates = async () => {
     setMarketRefreshError("");
     setMarketRefreshing(true);
+    haptic("light");
     try {
-      const result = await fetchWorldMarketRates();
-
-      if (!result?.isFallback) {
-        setMarketRefreshError("");
-      }
+      await fetchWorldMarketRates();
     } catch (error) {
       if (!hasLiveMarketRates) {
         setMarketRefreshError(
-          error instanceof Error ? error.message : "Unable to refresh live market prices.",
+          error instanceof Error ? error.message : "Unable to refresh prices.",
         );
       }
     } finally {
@@ -188,116 +185,109 @@ function DashboardPage() {
   const handleShareInvite = async () => {
     setReferralError("");
     setReferralMessage("");
-
+    haptic("medium");
     try {
       await shareMiniAppInvite({
         title: "Join TMpesa",
-        text: `Use my TMpesa invite code ${referralSummary.code} to join the World mini app and trade WLD or USDC with M-Pesa settlement.`,
+        text: `Use my TMpesa invite code ${referralSummary.code} to trade WLD and USDC with M-Pesa settlement inside World App.`,
         url: referralSummary.appLink,
       });
       setReferralSummary(markReferralShared(user));
-      setReferralMessage("Invite ready to share.");
+      setReferralMessage("Invite shared.");
     } catch (error) {
-      setReferralError(error instanceof Error ? error.message : "Unable to open the invite link.");
+      setReferralError(error instanceof Error ? error.message : "Unable to share invite.");
     }
   };
 
   const balanceLabel = useMemo(() => {
-    if (!user?.walletAddress) {
-      return "KES --.--";
-    }
-
-    if (!hasLiveMarketRates && !hasWalletBalances) {
-      return "KES --.--";
-    }
-
+    if (!user?.walletAddress) return "KES —";
+    if (!hasLiveMarketRates && !hasWalletBalances) return "KES —";
     return formatKES(walletBoard.totalKes);
   }, [hasLiveMarketRates, hasWalletBalances, user?.walletAddress, walletBoard.totalKes]);
 
-  const portfolioSyncLabel = useMemo(() => {
-    if (!user?.walletAddress) {
-      return "Connect wallet to view your portfolio.";
-    }
-
-    if (walletRefreshing) {
-      return "Syncing wallet...";
-    }
-
-    if (walletLoading && !hasWalletBalances) {
-      return "Syncing wallet...";
-    }
-
-    if (walletError && !hasWalletBalances) {
-      return "Unable to sync. Tap refresh.";
-    }
-
-    return "Live portfolio balance";
+  const balanceSublabel = useMemo(() => {
+    if (!user?.walletAddress) return "Connect wallet to see your balance";
+    if (walletRefreshing || (walletLoading && !hasWalletBalances)) return "Syncing wallet…";
+    if (walletError && !hasWalletBalances) return "Sync failed — tap ↻ to retry";
+    return "Total portfolio value in KES";
   }, [hasWalletBalances, user?.walletAddress, walletError, walletLoading, walletRefreshing]);
 
-  const marketSyncLabel = useMemo(() => {
-    if (marketRefreshing) {
-      return "Syncing market...";
-    }
-
-    if (!hasLiveMarketRates) {
-      return marketRefreshError ? "Unable to sync. Tap refresh." : "Syncing market...";
-    }
-
-    return "Market prices update live";
-  }, [hasLiveMarketRates, marketRefreshError, marketRefreshing]);
-
-  const getAssetDisplayValue = useCallback(
-    (assetEntry) => {
-      if (assetEntry) {
-        return formatCryptoAmount(assetEntry.formattedBalance);
-      }
-
-      if (!user?.walletAddress || walletLoading) {
-        return "--";
-      }
-
+  const assetVal = useCallback(
+    (entry) => {
+      if (entry) return formatCryptoAmount(entry.formattedBalance);
+      if (!user?.walletAddress || walletLoading) return "—";
       return "0";
     },
     [user?.walletAddress, walletLoading],
   );
 
+  const greeting = getGreeting();
+  const displayName = user?.username ? `@${user.username}` : user?.fullName || null;
+  const hasWorldSession = Boolean(user?.username);
+
   return (
     <div className="stack page-enter">
+
+      {/* ── 1. GREETING ─────────────────────────────────────── */}
+      <section className="home-greeting">
+        <div className="home-greeting-inner">
+          <div className="home-greeting-text">
+            <p className="home-greeting-salutation">{greeting}{displayName ? "," : "."}</p>
+            {displayName ? (
+              <h2 className="home-greeting-name">{displayName}</h2>
+            ) : (
+              <h2 className="home-greeting-name">Welcome to TMpesa</h2>
+            )}
+          </div>
+          {hasWorldSession ? (
+            <span className="home-greeting-badge">
+              <span className="home-greeting-dot" aria-hidden="true" />
+              World verified
+            </span>
+          ) : null}
+        </div>
+        <p className="home-greeting-sub muted">
+          Buy or sell WLD · USDC with M-Pesa settlement.
+        </p>
+      </section>
+
+      {/* ── 2. PAYOUT SETUP (only if needed) ───────────────── */}
       {!user?.isAdmin && !user?.mpesaPhoneNumber ? (
-        <section className="panel stack compact-setup-panel">
-          <div className="split">
+        <section className="panel stack home-setup-nudge">
+          <div className="home-setup-nudge-head">
+            <span className="home-setup-nudge-icon" aria-hidden="true">📲</span>
             <div>
-              <span className="brand-kicker">Payout setup</span>
-              <h3>Save your M-Pesa number</h3>
+              <strong>Finish setup</strong>
+              <p className="muted" style={{ margin: "2px 0 0", fontSize: "0.9rem" }}>
+                Add your M-Pesa number to enable sell payouts and referral rewards.
+              </p>
             </div>
-            <Link to="/profile" className="text-link">
-              Profile
-            </Link>
           </div>
           {profileError ? <div className="error">{profileError}</div> : null}
           {profileMessage ? <div className="notice">{profileMessage}</div> : null}
-          <div className="field">
-            <label htmlFor="profileMpesaPhone">M-Pesa payout number</label>
-            <input
-              id="profileMpesaPhone"
-              value={profilePhone}
-              onChange={(event) => setProfilePhone(event.target.value)}
-              placeholder="0712345678"
-            />
+          <div className="home-setup-row">
+            <div className="field" style={{ flex: 1 }}>
+              <input
+                id="profileMpesaPhone"
+                value={profilePhone}
+                onChange={(e) => setProfilePhone(e.target.value)}
+                placeholder="e.g. 0712345678"
+                inputMode="tel"
+                aria-label="M-Pesa payout number"
+              />
+            </div>
+            <button type="button" className="button home-setup-btn" onClick={handleProfileSave}>
+              Save
+            </button>
           </div>
-          <button type="button" className="button" onClick={handleProfileSave}>
-            Save payout number
-          </button>
         </section>
       ) : null}
 
+      {/* ── 3. PORTFOLIO BALANCE ────────────────────────────── */}
       <section className="panel home-wallet-board">
         <div className="home-wallet-head">
-          <div>
-            <span className="brand-kicker">Portfolio</span>
-            <h3 style={{ margin: "4px 0 0" }}>Wallet balance</h3>
-          </div>
-          <Link to="/wallet" className="text-link" style={{ fontSize: "0.88rem" }}>
+          <span className="brand-kicker">Portfolio</span>
+          <Link to="/wallet" className="text-link home-wallet-link">
             Wallet →
           </Link>
         </div>
@@ -305,193 +295,202 @@ function DashboardPage() {
         <div className="home-balance-card">
           <div className="home-balance-meta">
             <span className={`live-badge live-badge-small${user?.walletAddress ? "" : " muted-badge"}`}>
-              {user?.walletAddress ? "Wallet connected" : "Wallet not connected"}
+              {user?.walletAddress ? "Wallet connected" : "No wallet"}
             </span>
             <button
               type="button"
               className="icon-button icon-button-compact"
-              onClick={handleRefreshWalletBalances}
-              aria-label="Refresh wallet balance"
-              title="Refresh wallet balance"
+              onClick={handleRefreshWallet}
+              aria-label="Refresh wallet"
             >
-              {walletRefreshing ? "..." : "\u21BB"}
+              {walletRefreshing ? <span className="spin">↻</span> : "↻"}
             </button>
           </div>
 
-          <div className="home-balance-main home-balance-main-compact">
-            <div className="home-balance-meta">
-              <span>Balance in KES</span>
-            </div>
-            <strong>{balanceLabel}</strong>
-            <small>{portfolioSyncLabel}</small>
+          <div className="home-balance-hero-block">
+            <span className="home-balance-label">Total balance</span>
+            <strong className="home-balance-number">{balanceLabel}</strong>
+            <small className="home-balance-sub">{balanceSublabel}</small>
           </div>
 
           <div className="home-asset-rows">
             <div className="asset-row">
-              <span>WLD</span>
-              <strong>{getAssetDisplayValue(walletBoard.wld)}</strong>
+              <div className="asset-row-left">
+                <span className="asset-symbol-badge asset-symbol-wld">W</span>
+                <span className="asset-row-name">WLD</span>
+              </div>
+              <strong>{assetVal(walletBoard.wld)}</strong>
             </div>
             <div className="asset-row">
-              <span>USDC</span>
-              <strong>{getAssetDisplayValue(walletBoard.usdc)}</strong>
+              <div className="asset-row-left">
+                <span className="asset-symbol-badge asset-symbol-usdc">$</span>
+                <span className="asset-row-name">USDC</span>
+              </div>
+              <strong>{assetVal(walletBoard.usdc)}</strong>
             </div>
           </div>
+
+          {walletError && !hasWalletBalances ? (
+            <div className="home-balance-error">{walletError}</div>
+          ) : null}
         </div>
       </section>
 
+      {/* ── 4. QUICK ACTIONS ────────────────────────────────── */}
+      <section className="panel stack home-actions-panel">
+        <span className="brand-kicker">Actions</span>
+        <div className="home-actions-grid">
+          <Link to="/trade?tab=buy" className="home-action-card home-action-buy">
+            <span className="home-action-icon" aria-hidden="true">↑</span>
+            <strong>Buy</strong>
+            <span>Pay KES · get crypto</span>
+          </Link>
+          <Link to="/trade?tab=sell" className="home-action-card home-action-sell">
+            <span className="home-action-icon" aria-hidden="true">↓</span>
+            <strong>Sell</strong>
+            <span>Send crypto · get KES</span>
+          </Link>
+          <Link to="/wallet#receive" className="home-action-card home-action-receive">
+            <span className="home-action-icon" aria-hidden="true">⬡</span>
+            <strong>Receive</strong>
+            <span>Copy address</span>
+          </Link>
+          <Link to="/orders" className="home-action-card home-action-history">
+            <span className="home-action-icon" aria-hidden="true">≡</span>
+            <strong>History</strong>
+            <span>Track orders</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 5. LIVE PRICES ──────────────────────────────────── */}
       <section className="panel stack home-rates-panel">
         <div className="split compact-panel-head">
           <div>
             <span className="brand-kicker">Market</span>
             <h3>Live prices</h3>
           </div>
-          <div className="home-wallet-actions home-wallet-actions-compact">
-            <small className="market-panel-note">{marketSyncLabel}</small>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {marketRefreshError ? null : (
+              <small className="market-panel-note">
+                {marketRefreshing ? "Syncing…" : hasLiveMarketRates ? "Live" : "Syncing…"}
+              </small>
+            )}
             <button
               type="button"
               className="icon-button icon-button-compact"
-              onClick={handleRefreshMarketRates}
-              aria-label="Refresh live prices"
-              title="Refresh live prices"
+              onClick={handleRefreshRates}
+              aria-label="Refresh prices"
             >
-              {marketRefreshing ? "..." : "\u21BB"}
+              {marketRefreshing ? <span className="spin">↻</span> : "↻"}
             </button>
           </div>
         </div>
+
+        {marketRefreshError ? (
+          <div className="error" style={{ fontSize: "0.86rem", padding: "10px 12px" }}>
+            {marketRefreshError}
+          </div>
+        ) : null}
+
         <div className="rates-board-compact">
-          {homeMarketRates.map((rateCard) => (
-            <div key={rateCard.asset} className="rate-quote-card rate-quote-card-compact">
+          {homeMarketRates.map((r) => (
+            <div key={r.asset} className="rate-quote-card rate-quote-card-compact">
               <div className="rate-quote-head">
-                <strong>{rateCard.asset}</strong>
-                <small>KES market</small>
+                <strong>{r.asset}</strong>
+                <span className={`rate-live-dot${r.priceKes > 1 ? " live" : ""}`} aria-hidden="true" />
               </div>
               <div className="rate-quote-market">
-                <strong>{rateCard.priceKes > 1 ? formatKES(rateCard.priceKes) : "KES --.--"}</strong>
-                <span>{rateCard.priceKes > 1 ? `per 1 ${rateCard.asset}` : marketSyncLabel}</span>
+                <strong>
+                  {r.priceKes > 1 ? formatKES(r.priceKes) : "KES —"}
+                </strong>
+                <span>{r.priceKes > 1 ? `per 1 ${r.asset}` : "Loading…"}</span>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="panel stack">
-        <div className="split compact-panel-head">
-          <div>
-            <span className="brand-kicker">Actions</span>
-            <h3>Quick actions</h3>
-          </div>
-        </div>
-        <div className="quick-action-grid home-quick-actions compact-home-actions">
-          <Link to="/trade?tab=buy" className="quick-action-card quick-action-card-buy">
-            <span className="quick-action-icon" aria-hidden="true">💱</span>
-            <strong>Buy &amp; Sell</strong>
-            <span>Trade WLD · USDC</span>
-          </Link>
-          <Link to="/wallet#receive" className="quick-action-card quick-action-card-sell">
-            <span className="quick-action-icon" aria-hidden="true">📥</span>
-            <strong>Receive</strong>
-            <span>Copy wallet address</span>
-          </Link>
-          <Link to="/orders" className="quick-action-card quick-action-card-orders">
-            <span className="quick-action-icon" aria-hidden="true">🕐</span>
-            <strong>History</strong>
-            <span>Track your orders</span>
-          </Link>
-          <Link to="/support" className="quick-action-card quick-action-card-orders">
-            <span className="quick-action-icon" aria-hidden="true">💬</span>
-            <strong>Support</strong>
-            <span>Get help fast</span>
-          </Link>
-        </div>
-      </section>
-
-      <section className="panel stack home-referral-panel">
-        <div className="split compact-panel-head">
-          <div>
-            <span className="brand-kicker">Referral</span>
-            <h3>Invite</h3>
-          </div>
-          <span className="status-pill paid">Code {referralSummary.code}</span>
-        </div>
-        <p className="muted compact-referral-copy">Invite World users to TMpesa and earn referral rewards after they complete eligible activity.</p>
-        {referralMessage ? <div className="notice">{referralMessage}</div> : null}
-        {referralError ? <div className="error">{referralError}</div> : null}
-        <div className="referral-milestone-grid">
-          {referralSummary.rewardMilestones.map((milestone) => (
-            <div key={milestone.users} className="referral-mini-card">
-              <span>{milestone.users} users</span>
-              <strong>{formatKES(milestone.rewardKes)}</strong>
-            </div>
-          ))}
-        </div>
-        <div className="button-row compact-actions">
-          <button type="button" className="button" onClick={handleShareInvite}>
-            Share invite
-          </button>
-          <Link to="/profile" className="button-secondary">
-            Referral center
-          </Link>
-        </div>
-      </section>
-
+      {/* ── 6. RECENT ORDERS ────────────────────────────────── */}
       {recentActivity.length ? (
         <section className="panel stack compact-activity-panel">
           <div className="split compact-panel-head">
             <div>
-              <span className="brand-kicker">Recent activity</span>
-              <h3>Latest orders</h3>
+              <span className="brand-kicker">Activity</span>
+              <h3>Recent orders</h3>
             </div>
-            <Link to="/orders" className="text-link">
-              View history
+            <Link to="/orders" className="text-link" style={{ fontSize: "0.88rem" }}>
+              See all →
             </Link>
           </div>
           <div className="recent-activity-list">
             {recentActivity.map((order) => (
-              <div key={order.id} className="recent-activity-item">
-                <div>
+              <Link
+                key={order.id}
+                to="/orders"
+                className="recent-activity-item recent-activity-link"
+              >
+                <div className="recent-activity-left">
                   <span className={`activity-type-badge activity-type-${order.type}`}>
                     {order.type === "buy" ? "Buy" : "Sell"}
                   </span>
-                  <strong style={{ marginTop: 6, display: "block" }}>
-                    {order.cryptoAmount ? `${order.cryptoAmount} ` : ""}{order.asset}
+                  <strong>
+                    {order.cryptoAmount ? `${formatCryptoAmount(order.cryptoAmount)} ` : ""}
+                    {order.asset}
                   </strong>
                   <small>{new Date(order.createdAt).toLocaleDateString()}</small>
                 </div>
-                <div style={{ textAlign: "right" }}>
+                <div className="recent-activity-right">
                   <strong>{formatKES(order.kesAmount)}</strong>
-                  <small style={{ display: "flex", alignItems: "center", gap: 5, justifyContent: "flex-end", marginTop: 4 }}>
+                  <small>
                     <span className={`activity-status-dot ${order.status}`} />
-                    {order.status === "paid" ? "Reviewing" : order.status}
+                    {statusLabel(order.status)}
                   </small>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
       ) : null}
 
-      <section className="panel compact-support-strip">
-        <div className="compact-support-copy">
-          <strong>Help</strong>
-          <small>Guide, email, or delay support</small>
+      {/* ── 7. REFERRAL ─────────────────────────────────────── */}
+      <section className="panel home-referral-strip">
+        <div className="home-referral-left">
+          <span className="home-referral-icon" aria-hidden="true">🎁</span>
+          <div>
+            <strong>Invite &amp; earn</strong>
+            <p className="muted">
+              Share your code <span className="home-referral-code">{referralSummary.code}</span> and
+              earn rewards when friends trade.
+            </p>
+          </div>
         </div>
-        <div className="compact-support-actions">
-          <Link to="/support#guide" className="button-ghost">
+        <div className="home-referral-actions">
+          {referralMessage ? (
+            <small className="home-referral-msg">{referralMessage}</small>
+          ) : referralError ? (
+            <small className="home-referral-err">{referralError}</small>
+          ) : null}
+          <button type="button" className="button home-referral-btn" onClick={handleShareInvite}>
+            Share
+          </button>
+        </div>
+      </section>
+
+      {/* ── 8. HELP STRIP ───────────────────────────────────── */}
+      <section className="panel home-help-strip">
+        <span className="home-help-label">Need help?</span>
+        <div className="home-help-actions">
+          <Link to="/support" className="button-ghost home-help-btn">
             Guide
           </Link>
           <button
             type="button"
-            className="button-secondary"
+            className="button-secondary home-help-btn"
             onClick={() =>
               openSupportEmail({
                 subject: "TMpesa support request",
-                body: [
-                  "Hello TMpesa support,",
-                  "",
-                  "I need help with my account or order.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
+                body: `Hello TMpesa support,\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
               })
             }
           >
@@ -499,23 +498,18 @@ function DashboardPage() {
           </button>
           <button
             type="button"
-            className="button-ghost"
+            className="button-ghost home-help-btn"
             onClick={() =>
               openWhatsAppSupport({
-                message: [
-                  "Hello TMpesa support,",
-                  "",
-                  "My payment or settlement is delayed and I need assistance.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
+                message: `Hello TMpesa,\n\nI need help with a delayed order.\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
               })
             }
           >
-            Delay
+            WhatsApp
           </button>
         </div>
       </section>
+
     </div>
   );
 }
