@@ -86,11 +86,11 @@ function SellPage() {
         description: `TMpesa sell order ${currentOrder.id}`,
         to:          settings.sellWalletAddress,
       });
-      if (!payment.verified) throw new Error(
-        payment.transactionStatus
-          ? `World payment is ${payment.transactionStatus}. Wait for confirmation and try again.`
-          : "World payment could not be verified yet. Please try again.",
-      );
+      // Only block if the payment definitively failed (not just pending/unindexed)
+      const failedStatuses = ["failed", "reverted", "rejected"];
+      if (failedStatuses.includes(payment.transactionStatus)) {
+        throw new Error(`World payment ${payment.transactionStatus}. Please contact support.`);
+      }
       const updated = updateOrder(
         currentOrder.id,
         {

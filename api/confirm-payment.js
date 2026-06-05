@@ -67,9 +67,15 @@ export default async function handler(req, res) {
       }),
     );
 
+    // "mined" = confirmed on-chain
+    // "pending" / "unknown" = submitted but not yet indexed — still a valid payment
+    // anything else (e.g. "failed", "reverted") = genuinely failed
+    const status = transaction?.transaction_status || "unknown";
+    const submitted = ["mined", "pending", "unknown"].includes(status);
+
     sendJson(res, 200, {
-      verified: transaction?.transaction_status === "mined",
-      transactionStatus: transaction?.transaction_status || "unknown",
+      verified: submitted,
+      transactionStatus: status,
       reference: payload.reference,
       transactionId,
       transaction,
