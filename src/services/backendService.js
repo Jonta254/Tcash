@@ -84,7 +84,7 @@ export async function syncAdminOrders(orders, options = {}) {
     },
     body: JSON.stringify({
       orders,
-      notifyAdmin: options.notifyAdmin !== false,
+      notifyAdmin: false,
     }),
   }).catch(() => {
     throw new Error("TMpesa could not sync orders to admin.");

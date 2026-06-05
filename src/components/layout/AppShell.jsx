@@ -34,6 +34,7 @@ function AppShell() {
   const insets = worldApp.deviceProperties?.safeAreaInsets;
   const worldAppLink = buildWorldAppDeeplink(location.pathname);
   const hasWorldSession = user?.authMethod === "world-app" || Boolean(user?.username);
+  const isDashboard = location.pathname === "/";
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [notificationPromptLoading, setNotificationPromptLoading] = useState(false);
   const [notificationPromptError, setNotificationPromptError] = useState("");
@@ -182,7 +183,7 @@ function AppShell() {
       }}
     >
       <div className="app-layout app-shell">
-        <header className="topbar topbar-shell">
+        {!isDashboard && <header className="topbar topbar-shell">
           <div className="brand-block brand-block-compact">
             <div className="brand-shell brand-shell-compact">
               <img src="/tmpesa-icon.svg" alt="TMpesa" className="brand-logo-mark" />
@@ -218,7 +219,7 @@ function AppShell() {
               Exit
             </button>
           </div>
-        </header>
+        </header>}
 
         <nav className="tab-bar" aria-label="Primary">
           {navItems.map((item) => (
