@@ -1,44 +1,55 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import { formatCryptoAmount, formatKES, getCurrentUser, haptic } from "../../services";
 
 function BuyPage() {
-  const settings = useAppSettings();
-  const currentUser = getCurrentUser();
-  const [copiedValue, setCopiedValue] = useState("");
-  const [orderCreating, setOrderCreating] = useState(false);
+  const settings     = useAppSettings();
+  const currentUser  = getCurrentUser();
+  const navigate     = useNavigate();
+  const [copiedValue,    setCopiedValue]    = useState("");
+  const [orderCreating,  setOrderCreating]  = useState(false);
+  const [orderJustPlaced, setOrderJustPlaced] = useState(false);
+
   const {
-    asset,
-    setAsset,
-    buyKesInput,
-    setBuyKesInput,
+    asset, setAsset,
+    buyKesInput, setBuyKesInput,
     quotedCryptoAmount,
-    walletAddress,
-    setWalletAddress,
-    paymentReference,
-    setPaymentReference,
-    step,
+    walletAddress, setWalletAddress,
+    paymentReference, setPaymentReference,
+    step, setStep,
+    setCurrentOrder,
     currentOrder,
-    error,
-    setError,
+    error, setError,
     kesAmount,
-    buyKesMin,
-    buyKesMax,
-    placeOrder,
-    markAsPaid,
+    buyKesMin, buyKesMax,
+    placeOrder, markAsPaid,
     supportedAssets,
   } = useOrderFlow("buy");
+
   const handleCreateBuyOrder = async () => {
     if (orderCreating) return;
     haptic("medium");
     setOrderCreating(true);
     const order = await placeOrder();
-    if (order) haptic("success");
+    if (order) {
+      haptic("success");
+      setOrderJustPlaced(true);
+    }
     setOrderCreating(false);
   };
 
-  const copyPaymentValue = async (label, value) => {
+  const resetFlow = () => {
+    setStep(1);
+    setCurrentOrder(null);
+    setOrderJustPlaced(false);
+    setError("");
+    setBuyKesInput("");
+    setPaymentReference("");
+  };
+
+  const copyValue = async (label, value) => {
     const text = String(value || "").trim();
     if (!text) return;
     try {
@@ -47,41 +58,38 @@ function BuyPage() {
       setCopiedValue(label);
       window.setTimeout(() => setCopiedValue(""), 1800);
     } catch {
-      setError(`Copy failed. Long-press ${label} and copy it manually.`);
+      setError(`Copy failed — long-press ${label} to copy manually.`);
     }
   };
 
-  return (
-    <div className="content-grid">
-      <section className="panel stack task-panel">
-        <div className="page-section-head">
-          <div>
-            <span className="brand-kicker">Buy WLD/USDC</span>
-            <h2>Pay with M-Pesa and receive crypto</h2>
+  /* ── STEP 1: Enter amount ─────────────────────────────────────── */
+  if (step === 1) {
+    return (
+      <div className="content-grid">
+        <section className="panel stack task-panel">
+          <div className="page-section-head">
+            <div>
+              <span className="brand-kicker">Buy crypto</span>
+              <h2>Pay M-Pesa, receive WLD or USDC</h2>
+            </div>
           </div>
-        </div>
 
-        {error ? <div className="error">{error}</div> : null}
+          {error && <div className="error">{error}</div>}
 
-        {step === 1 ? (
           <div className="stack">
-            {currentUser?.walletAddress || currentUser?.username ? (
+            {(currentUser?.walletAddress || currentUser?.username) && (
               <div className="info-box receipt-card">
-                <strong>Destination ready</strong>
-                <span>Used for crypto delivery after review.</span>
-                {currentUser?.username ? <code>Username: @{currentUser.username}</code> : null}
-                {currentUser?.walletAddress ? <code>Wallet connected</code> : null}
+                <strong>Delivery destination</strong>
+                <span>Crypto is sent here after admin review.</span>
+                {currentUser?.username    && <code>@{currentUser.username}</code>}
+                {currentUser?.walletAddress && <code>Wallet connected</code>}
               </div>
-            ) : null}
+            )}
 
             <div className="field">
               <label htmlFor="buyAsset">Asset</label>
-              <select id="buyAsset" value={asset} onChange={(event) => setAsset(event.target.value)}>
-                {supportedAssets.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
+              <select id="buyAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
+                {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
 
@@ -94,44 +102,43 @@ function BuyPage() {
                 min="0"
                 step="1"
                 value={buyKesInput}
-                onChange={(event) => setBuyKesInput(event.target.value)}
+                onChange={(e) => setBuyKesInput(e.target.value)}
                 placeholder="600"
               />
               <span className="muted field-hint">
-                Buy limits: {formatKES(buyKesMin)} to {formatKES(buyKesMax)}.
+                Limits: {formatKES(buyKesMin)} – {formatKES(buyKesMax)}
               </span>
             </div>
 
-            {!currentUser?.walletAddress && !currentUser?.username ? (
+            {!currentUser?.walletAddress && !currentUser?.username && (
               <div className="field">
                 <label htmlFor="walletAddress">Destination wallet address</label>
                 <input
                   id="walletAddress"
                   value={walletAddress}
-                  onChange={(event) => setWalletAddress(event.target.value)}
+                  onChange={(e) => setWalletAddress(e.target.value)}
                   placeholder="0xYourWalletAddress"
                 />
               </div>
-            ) : null}
+            )}
 
-            <div className="amount-line">
-              <span>You pay</span>
-              <strong>{formatKES(kesAmount)}</strong>
-            </div>
-            <div className="amount-line">
-              <span>You will receive</span>
-              <strong>
-                {quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}
-              </strong>
-            </div>
-            <div className="soft-note">TMpesa fee included. Manual review required.</div>
-
-            {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput ? (
-              <div className="notice">
-                Adjust the amount so the final buy total stays between {formatKES(buyKesMin)} and{" "}
-                {formatKES(buyKesMax)}.
+            <div className="trade-summary-box">
+              <div className="tsb-row">
+                <span>You pay</span>
+                <strong>{formatKES(kesAmount)}</strong>
               </div>
-            ) : null}
+              <div className="tsb-row tsb-row-receive">
+                <span>You receive</span>
+                <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
+              </div>
+              <p className="tsb-note">TMpesa fee included · Manual review required</p>
+            </div>
+
+            {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput && (
+              <div className="notice">
+                Adjust so the total stays between {formatKES(buyKesMin)} and {formatKES(buyKesMax)}.
+              </div>
+            )}
 
             <button
               type="button"
@@ -139,95 +146,138 @@ function BuyPage() {
               onClick={handleCreateBuyOrder}
               disabled={orderCreating}
             >
-              {orderCreating ? "Submitting order..." : "Confirm buy order"}
+              {orderCreating ? "Placing order…" : "Confirm buy order"}
             </button>
           </div>
-        ) : null}
+        </section>
+      </div>
+    );
+  }
 
-        {step >= 2 && currentOrder ? (
-          <div className="stack">
-            <div className="payment-card payment-instructions-card">
-              <span>Pay KES by M-Pesa PayBill</span>
-              <strong>{formatKES(currentOrder.kesAmount)}</strong>
-              <div className="copy-detail-list">
-                <div>
-                  <span>PayBill</span>
-                  <code>{settings.mpesaPaybillNumber}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => copyPaymentValue("PayBill", settings.mpesaPaybillNumber)}
-                  >
-                    {copiedValue === "PayBill" ? "Copied" : "Copy"}
-                  </button>
-                </div>
-                <div>
-                  <span>Account</span>
-                  <code>{settings.mpesaAccountNumber}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => copyPaymentValue("Account", settings.mpesaAccountNumber)}
-                  >
-                    {copiedValue === "Account" ? "Copied" : "Copy"}
-                  </button>
-                </div>
-                <div>
-                  <span>Name</span>
-                  <code>{settings.mpesaTillName}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => copyPaymentValue("Name", settings.mpesaTillName)}
-                  >
-                    {copiedValue === "Name" ? "Copied" : "Copy"}
-                  </button>
-                </div>
+  /* ── STEP 3: Payment submitted — full success screen ──────────── */
+  if (step === 3 && currentOrder) {
+    return (
+      <div className="content-grid">
+        <section className="panel stack task-panel">
+          <div className="order-success-screen">
+            <div className="oss-ring" aria-hidden="true">
+              <span className="oss-check">✓</span>
+            </div>
+            <h2 className="oss-title">Payment submitted!</h2>
+            <p className="oss-body">
+              Admin will verify your M-Pesa payment and release{" "}
+              <strong>{formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset}</strong>{" "}
+              to your wallet.
+            </p>
+            <div className="oss-summary">
+              <div className="oss-sum-row">
+                <span>Order type</span>
+                <strong>Buy {currentOrder.asset}</strong>
               </div>
-              <p>Use PayBill, then paste the M-Pesa transaction code below.</p>
-            </div>
-
-            <div className="info-box receipt-card">
-              <strong>Crypto delivery destination</strong>
-              <span>Used for crypto delivery after review.</span>
-              {currentOrder.destinationUsername ? <code>@{currentOrder.destinationUsername}</code> : null}
-              {currentOrder.walletAddress ? <code>Wallet connected</code> : null}
-            </div>
-
-            <div className="sr-only">
-              <code>PayBill Number: {settings.mpesaPaybillNumber}</code>
-              <code>Account Number: {settings.mpesaAccountNumber}</code>
-              <code>Amount: KES {currentOrder.kesAmount.toLocaleString()}</code>
-            </div>
-
-            {step === 2 ? (
-              <>
-                <div className="field">
-                  <label htmlFor="mpesaCode">M-Pesa transaction code</label>
-                  <input
-                    id="mpesaCode"
-                    value={paymentReference}
-                    onChange={(event) => setPaymentReference(event.target.value)}
-                    placeholder="QWE123XYZ"
-                  />
-                </div>
-
-                <button type="button" className="button" onClick={() => markAsPaid(paymentReference)}>
-                  I HAVE PAID
-                </button>
-              </>
-            ) : null}
-
-            {step === 3 ? (
-              <div className="success-panel">
-                <strong>Order submitted</strong>
-                <p>
-                  Your order is pending manual review. The admin will verify your M-Pesa payment and send {currentOrder.asset} to your wallet.
-                </p>
+              <div className="oss-sum-row">
+                <span>You paid</span>
+                <strong>{formatKES(currentOrder.kesAmount)}</strong>
               </div>
-            ) : null}
+              <div className="oss-sum-row">
+                <span>You receive</span>
+                <strong>{formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset}</strong>
+              </div>
+              {currentOrder.paymentReference && (
+                <div className="oss-sum-row">
+                  <span>M-Pesa code</span>
+                  <strong>{currentOrder.paymentReference}</strong>
+                </div>
+              )}
+            </div>
+            <div className="oss-actions">
+              <Link to="/orders" className="button">View in History</Link>
+              <button type="button" className="button-ghost" onClick={resetFlow}>New trade</button>
+            </div>
           </div>
-        ) : null}
+        </section>
+      </div>
+    );
+  }
+
+  /* ── STEP 2: Payment instructions ────────────────────────────── */
+  return (
+    <div className="content-grid">
+      <section className="panel stack task-panel">
+
+        {/* Order placed banner */}
+        {orderJustPlaced && currentOrder && (
+          <div className="order-placed-banner">
+            <span className="opb-check" aria-hidden="true">✓</span>
+            <div className="opb-body">
+              <strong>Order placed!</strong>
+              <span>
+                {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} buy is saved.
+              </span>
+            </div>
+            <Link to="/orders" className="opb-preview">Preview →</Link>
+          </div>
+        )}
+
+        {error && <div className="error">{error}</div>}
+
+        <div className="page-section-head compact-page-head">
+          <div>
+            <span className="brand-kicker">Step 2 of 2</span>
+            <h2>Complete your M-Pesa payment</h2>
+          </div>
+        </div>
+
+        <div className="stack">
+          <div className="payment-card payment-instructions-card">
+            <span className="pic-label">Pay via M-Pesa PayBill</span>
+            <strong className="pic-amount">{formatKES(currentOrder.kesAmount)}</strong>
+
+            <div className="copy-detail-list">
+              {[
+                { label: "PayBill", value: settings.mpesaPaybillNumber },
+                { label: "Account", value: settings.mpesaAccountNumber },
+                { label: "Name",    value: settings.mpesaTillName },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <span>{label}</span>
+                  <code>{value}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => copyValue(label, value)}
+                  >
+                    {copiedValue === label ? "Copied ✓" : "Copy"}
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="pic-note">Pay on M-Pesa, then paste the confirmation code below.</p>
+          </div>
+
+          <div className="info-box receipt-card">
+            <strong>Crypto delivery destination</strong>
+            {currentOrder.destinationUsername && <code>@{currentOrder.destinationUsername}</code>}
+            {currentOrder.walletAddress        && <code>Wallet connected</code>}
+          </div>
+
+          <div className="field">
+            <label htmlFor="mpesaCode">M-Pesa transaction code</label>
+            <input
+              id="mpesaCode"
+              value={paymentReference}
+              onChange={(e) => setPaymentReference(e.target.value)}
+              placeholder="QWE123XYZ"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="button"
+            onClick={() => markAsPaid(paymentReference)}
+          >
+            I have paid — submit code
+          </button>
+        </div>
       </section>
     </div>
   );

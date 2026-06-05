@@ -10,111 +10,109 @@ import {
   updateOrder,
 } from "../../services";
 
+const TABS = [
+  { id: "all",       label: "All" },
+  { id: "pending",   label: "Pending" },
+  { id: "completed", label: "Done" },
+  { id: "failed",    label: "Failed" },
+];
+
 function OrdersPage() {
-  const [orders, setOrders] = useState(getOrdersForCurrentUser());
-  const [activeTab, setActiveTab] = useState("all");
+  const [orders,       setOrders]       = useState(getOrdersForCurrentUser);
+  const [activeTab,    setActiveTab]    = useState("all");
   const [paymentCodes, setPaymentCodes] = useState({});
-  const [message, setMessage] = useState("");
+  const [message,      setMessage]      = useState("");
   const user = getCurrentUser();
 
-  const handlePaymentCodeChange = (orderId, value) => {
-    setPaymentCodes((current) => ({ ...current, [orderId]: value }));
-  };
+  const handlePaymentCodeChange = (id, val) =>
+    setPaymentCodes((p) => ({ ...p, [id]: val }));
 
   const handleMarkBuyPaid = async (orderId) => {
     const code = (paymentCodes[orderId] || "").trim().toUpperCase();
-
-    if (!code) {
-      setMessage("Enter the M-Pesa code before marking the buy order as paid.");
-      return;
-    }
-
-    const updated = updateOrder(
-      orderId,
-      { paymentReference: code, status: "paid" },
-      null,
-      { sync: false },
-    );
-
+    if (!code) { setMessage("Enter the M-Pesa code before marking as paid."); return; }
+    const updated = updateOrder(orderId, { paymentReference: code, status: "paid" }, null, { sync: false });
     try {
       await syncOrderToAdminQueue(updated);
-    } catch (error) {
+    } catch (err) {
       setOrders(getOrdersForCurrentUser());
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Payment saved locally, but TMpesa could not notify admin. Please try again.",
-      );
+      setMessage(err instanceof Error ? err.message : "Saved locally — could not notify admin.");
       return;
     }
-
     setOrders(getOrdersForCurrentUser());
-    setMessage("Payment code submitted. Admin will confirm and send your crypto.");
+    setMessage("Payment code submitted. Admin will confirm and release your crypto.");
   };
 
+  /* counts per tab */
+  const counts = useMemo(() => ({
+    all:       orders.length,
+    pending:   orders.filter((o) => o.status === "pending" || o.status === "paid").length,
+    completed: orders.filter((o) => o.status === "completed").length,
+    failed:    orders.filter((o) => o.status === "rejected" || o.status === "cancelled").length,
+  }), [orders]);
+
   const filteredOrders = useMemo(() => {
-    if (activeTab === "pending") {
-      return orders.filter((order) => order.status === "pending" || order.status === "paid");
-    }
-
-    if (activeTab === "completed") {
-      return orders.filter((order) => order.status === "completed");
-    }
-
-    if (activeTab === "failed") {
-      return orders.filter((order) => order.status === "rejected" || order.status === "cancelled");
-    }
-
+    if (activeTab === "pending")   return orders.filter((o) => o.status === "pending"  || o.status === "paid");
+    if (activeTab === "completed") return orders.filter((o) => o.status === "completed");
+    if (activeTab === "failed")    return orders.filter((o) => o.status === "rejected"  || o.status === "cancelled");
     return orders;
   }, [activeTab, orders]);
 
   return (
     <div className="stack page-enter">
-      <section className="panel stack task-panel">
-        <div className="page-section-head compact-page-head">
+
+      {/* ── HEADER ─────────────────────────────────────────────── */}
+      <section className="panel stack orders-header-panel">
+        <div className="orders-header-row">
           <div>
-            <span className="brand-kicker">History</span>
-            <h2>Transaction history</h2>
-            <p className="muted">Your buy and sell orders appear here.</p>
+            <span className="brand-kicker">Transaction history</span>
+            <h2>Your orders</h2>
+          </div>
+          <div className="orders-header-meta">
+            <span className="orders-total-badge">{orders.length}</span>
+            {user?.isAdmin && (
+              <Link to="/tmpesa-admin" className="button-secondary" style={{ fontSize: "0.8rem", padding: "6px 14px" }}>
+                Admin desk
+              </Link>
+            )}
           </div>
         </div>
-        {message ? <div className="notice">{message}</div> : null}
-        <div className="history-tab-row">
-          {[
-            { id: "all", label: "All" },
-            { id: "pending", label: "Pending" },
-            { id: "completed", label: "Completed" },
-            { id: "failed", label: "Failed" },
-          ].map((tab) => (
+
+        {message && <div className="notice">{message}</div>}
+
+        {/* Tab filter */}
+        <div className="orders-tab-row">
+          {TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
-              className={`history-tab${activeTab === tab.id ? " active" : ""}`}
+              className={`orders-tab${activeTab === tab.id ? " active" : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
+              {counts[tab.id] > 0 && (
+                <span className={`orders-tab-count${activeTab === tab.id ? " active" : ""}`}>
+                  {counts[tab.id]}
+                </span>
+              )}
             </button>
           ))}
         </div>
-        {user?.isAdmin ? (
-          <Link to="/tmpesa-admin" className="text-link">
-            Admin desk
-          </Link>
-        ) : null}
       </section>
 
-      {filteredOrders.length ? (
+      {/* ── ORDER LIST ─────────────────────────────────────────── */}
+      {filteredOrders.length > 0 ? (
         <section className="order-grid">
           {filteredOrders.map((order) => (
             <OrderCard key={order.id} order={order}>
-              {order.type === "buy" && order.status === "pending" ? (
+              {/* Buy pending: submit M-Pesa code */}
+              {order.type === "buy" && order.status === "pending" && (
                 <div className="inline-payment-form">
                   <div className="field">
                     <label htmlFor={`mpesa-${order.id}`}>M-Pesa transaction code</label>
                     <input
                       id={`mpesa-${order.id}`}
                       value={paymentCodes[order.id] || ""}
-                      onChange={(event) => handlePaymentCodeChange(order.id, event.target.value)}
+                      onChange={(e) => handlePaymentCodeChange(order.id, e.target.value)}
                       placeholder="QWE123XYZ"
                     />
                   </div>
@@ -123,11 +121,12 @@ function OrdersPage() {
                     className="button"
                     onClick={() => handleMarkBuyPaid(order.id)}
                   >
-                    I Have Paid
+                    I have paid — submit code
                   </button>
                 </div>
-              ) : null}
-              <div className="button-row">
+              )}
+
+              <div className="order-card-actions">
                 <button
                   type="button"
                   className="button-secondary"
@@ -147,24 +146,35 @@ function OrdersPage() {
           ))}
         </section>
       ) : (
-        <section className="panel empty-state stack">
-          <h3>No orders yet</h3>
-          <p className="muted">Start a trade to see your history here.</p>
-          <div className="action-grid">
-            <Link to="/trade?tab=buy" className="button">
-              Buy crypto
-            </Link>
-            <Link to="/trade?tab=sell" className="button-secondary">
-              Sell crypto
-            </Link>
+        <section className="panel orders-empty-state">
+          <div className="oes-icon" aria-hidden="true">
+            {activeTab === "completed" ? "✓" : activeTab === "failed" ? "✕" : activeTab === "pending" ? "⏳" : "◷"}
           </div>
+          <h3>
+            {activeTab === "all"       && "No orders yet"}
+            {activeTab === "pending"   && "No pending orders"}
+            {activeTab === "completed" && "No completed orders"}
+            {activeTab === "failed"    && "No failed orders"}
+          </h3>
+          <p className="muted">
+            {activeTab === "all"
+              ? "Start a trade to see your transaction history here."
+              : "Switch to All to see your full history."}
+          </p>
+          {activeTab === "all" && (
+            <div className="oes-actions">
+              <Link to="/trade?tab=buy"  className="button">Buy crypto</Link>
+              <Link to="/trade?tab=sell" className="button-secondary">Sell crypto</Link>
+            </div>
+          )}
         </section>
       )}
 
-      {orders.length ? (
+      {/* ── DELAY SUPPORT FOOTER ───────────────────────────────── */}
+      {orders.length > 0 && (
         <section className="support-footer support-footer-emphasis">
           <div>
-            <strong>Payment delay support</strong>
+            <strong>Payment delay?</strong>
             <p>Open WhatsApp for urgent help with a delayed payment or payout.</p>
           </div>
           <button
@@ -175,17 +185,18 @@ function OrdersPage() {
                 message: [
                   "Hello TMpesa support,",
                   "",
-                  "I have already placed an order and my payment or settlement is delayed.",
+                  "My payment or settlement is delayed.",
                   "",
                   `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
                 ].join("\n"),
               })
             }
           >
-            Delay
+            WhatsApp
           </button>
         </section>
-      ) : null}
+      )}
+
     </div>
   );
 }

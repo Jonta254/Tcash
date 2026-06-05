@@ -1,103 +1,111 @@
 import { getCurrentUser } from "../../services";
 import StatusPill from "./StatusPill";
 
-function formatDate(dateValue) {
-  return new Date(dateValue).toLocaleString();
+function fmt(date) {
+  return new Date(date).toLocaleString(undefined, {
+    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
 }
 
+const STAGE = {
+  completed: 3,
+  paid:      2,
+  rejected:  0,
+  cancelled: 0,
+};
+
 function OrderCard({ order, children }) {
-  const user = getCurrentUser();
-  const isSell = order.type === "sell";
-  const currentStage =
-    order.status === "completed"
-      ? 3
-      : order.status === "paid"
-        ? 2
-        : order.status === "rejected" || order.status === "cancelled"
-          ? 0
-          : 1;
+  const user     = getCurrentUser();
+  const isSell   = order.type === "sell";
+  const stage    = STAGE[order.status] ?? 1;
+  const isFailed = order.status === "rejected" || order.status === "cancelled";
 
   return (
-    <article className="order-card stack">
-      <div className="split">
-        <div>
-          <span className="tag">{order.type}</span>
-          <h3>
+    <article className={`order-card stack${isFailed ? " order-card-failed" : ""}`}>
+
+      {/* ── Card header ─────────────────────────────────────── */}
+      <div className="oc-header">
+        <div className="oc-type-block">
+          <span className={`oc-type-badge oc-type-${order.type}`}>
+            {order.type === "buy" ? "↑ Buy" : "↓ Sell"}
+          </span>
+          <h3 className="oc-title">
             {order.cryptoAmount} {order.asset}
           </h3>
         </div>
         <StatusPill status={order.status} />
       </div>
 
-      <div className="detail-grid">
-        <div className="detail-item">
+      {/* ── Key figures ─────────────────────────────────────── */}
+      <div className="oc-figures">
+        <div className="oc-fig">
           <span>{isSell ? "KES payout" : "KES to pay"}</span>
-          <strong>KES {order.kesAmount.toLocaleString()}</strong>
+          <strong>KES {Number(order.kesAmount).toLocaleString()}</strong>
         </div>
-        <div className="detail-item">
-          <span>Asset amount</span>
-          <strong>
-            {order.cryptoAmount} {order.asset}
-          </strong>
+        <div className="oc-fig">
+          <span>Asset</span>
+          <strong>{order.cryptoAmount} {order.asset}</strong>
         </div>
-        {order.userLabel ? (
-          <div className="detail-item">
-            <span>User</span>
-            <strong>{order.userLabel}</strong>
-          </div>
-        ) : null}
-        {order.destinationUsername ? (
-          <div className="detail-item">
-            <span>World username</span>
-            <strong>@{order.destinationUsername}</strong>
-          </div>
-        ) : null}
-        {order.payoutPhoneNumber ? (
-          <div className="detail-item">
-            <span>M-Pesa payout</span>
+        {order.payoutPhoneNumber && (
+          <div className="oc-fig">
+            <span>M-Pesa</span>
             <strong>{order.payoutPhoneNumber}</strong>
           </div>
-        ) : null}
-        {order.paymentReference ? (
-          <div className="detail-item">
+        )}
+        {order.paymentReference && (
+          <div className="oc-fig">
             <span>Reference</span>
-            <strong>{order.paymentReference}</strong>
+            <strong className="oc-ref">{order.paymentReference}</strong>
           </div>
-        ) : null}
-        {user?.isAdmin && order.humanVerificationStatus ? (
-          <div className="detail-item">
-            <span>Human check</span>
-            <strong>
-              {order.humanVerificationStatus}
+        )}
+        {order.destinationUsername && (
+          <div className="oc-fig">
+            <span>World user</span>
+            <strong>@{order.destinationUsername}</strong>
+          </div>
+        )}
+      </div>
+
+      {/* ── Admin-only details ──────────────────────────────── */}
+      {user?.isAdmin && (
+        <div className="oc-admin-meta">
+          {order.userPhone         && <span>Phone: {order.userPhone}</span>}
+          {order.userWalletAddress && <span>Wallet: {order.userWalletAddress}</span>}
+          {order.userLabel         && <span>User: {order.userLabel}</span>}
+          {order.humanVerificationStatus && (
+            <span>
+              Verified: {order.humanVerificationStatus}
               {order.humanVerificationLevel ? ` (${order.humanVerificationLevel})` : ""}
-            </strong>
-          </div>
-        ) : null}
-      </div>
+            </span>
+          )}
+        </div>
+      )}
 
-      <div className="order-meta">
-        {user?.isAdmin && order.userPhone ? <span>Login phone: {order.userPhone}</span> : null}
-        {user?.isAdmin && order.userWalletAddress ? <span>User wallet: {order.userWalletAddress}</span> : null}
-        {user?.isAdmin && order.walletAddress ? <span>Delivery wallet: {order.walletAddress}</span> : null}
-        {user?.isAdmin && order.paymentMethod ? <span>Method: {order.paymentMethod}</span> : null}
-        {user?.isAdmin && order.paymentSummary ? <span>Payment note: {order.paymentSummary}</span> : null}
-        {user?.isAdmin && order.paymentVerificationStatus ? <span>Verification: {order.paymentVerificationStatus}</span> : null}
-        <span>Created: {formatDate(order.createdAt)}</span>
-      </div>
+      {/* ── Timeline ────────────────────────────────────────── */}
+      {!isFailed ? (
+        <div className="oc-timeline" aria-label="Order progress">
+          {["Placed", "Under review", "Completed"].map((label, i) => (
+            <div key={label} className={`oc-step${stage > i ? " done" : stage === i + 1 ? " active" : ""}`}>
+              <div className="oc-step-dot">
+                {stage > i ? <span className="oc-step-tick">✓</span> : null}
+              </div>
+              <small>{label}</small>
+            </div>
+          ))}
+          <div className="oc-timeline-line" />
+        </div>
+      ) : (
+        <div className="oc-failed-note">
+          Order {order.status} — contact support if you need help.
+        </div>
+      )}
 
-      <div className="order-timeline" aria-label="Order timeline">
-        <div className={`order-timeline-step${currentStage >= 1 ? " active" : ""}`}>
-          <span />
-          <small>Placed</small>
-        </div>
-        <div className={`order-timeline-step${currentStage >= 2 ? " active" : ""}`}>
-          <span />
-          <small>Manual Review</small>
-        </div>
-        <div className={`order-timeline-step${currentStage >= 3 ? " active" : ""}`}>
-          <span />
-          <small>Completed</small>
-        </div>
+      {/* ── Footer timestamp ────────────────────────────────── */}
+      <div className="oc-footer">
+        <span className="oc-date">{fmt(order.createdAt)}</span>
+        {order.updatedAt && order.updatedAt !== order.createdAt && (
+          <span className="oc-date">Updated {fmt(order.updatedAt)}</span>
+        )}
       </div>
 
       {children}
