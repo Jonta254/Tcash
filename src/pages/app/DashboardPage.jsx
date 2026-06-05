@@ -20,386 +20,360 @@ import {
 } from "../../services";
 
 function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 5)  return "Good night";
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
+  const h = new Date().getHours();
+  if (h < 5)  return "Good night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
   return "Good evening";
 }
 
-function statusLabel(status) {
-  if (status === "paid")                            return "Reviewing";
-  if (status === "completed")                       return "Completed";
-  if (status === "rejected" || status === "cancelled") return "Failed";
+function statusLabel(s) {
+  if (s === "paid")                      return "Reviewing";
+  if (s === "completed")                 return "Completed";
+  if (s === "rejected" || s === "cancelled") return "Failed";
   return "Pending";
 }
 
-function DashboardPage() {
+function statusColor(s) {
+  if (s === "completed")                 return "var(--success)";
+  if (s === "paid")                      return "var(--primary)";
+  if (s === "rejected" || s === "cancelled") return "var(--error)";
+  return "var(--gold)";
+}
+
+export default function DashboardPage() {
   const initialUser      = getCurrentUser();
   const initialPortfolio = getCachedWorldWalletPortfolio(initialUser?.walletAddress);
 
-  const [user,             setUser]             = useState(initialUser);
-  const [profilePhone,     setProfilePhone]     = useState(initialUser?.mpesaPhoneNumber || initialUser?.phone || "");
-  const [profileMessage,   setProfileMessage]   = useState("");
-  const [profileError,     setProfileError]     = useState("");
-  const [walletPortfolio,  setWalletPortfolio]  = useState(() => initialPortfolio);
-  const [walletLoading,    setWalletLoading]    = useState(false);
-  const [walletError,      setWalletError]      = useState("");
-  const [marketRefreshError, setMarketRefreshError] = useState("");
-  const [marketRefreshing, setMarketRefreshing] = useState(false);
-  const [walletRefreshing, setWalletRefreshing] = useState(false);
-  const [referralSummary,  setReferralSummary]  = useState(() => getReferralSummary(initialUser));
-  const [referralMessage,  setReferralMessage]  = useState("");
-  const [referralError,    setReferralError]    = useState("");
+  const [user,            setUser]            = useState(initialUser);
+  const [profilePhone,    setProfilePhone]    = useState(initialUser?.mpesaPhoneNumber || initialUser?.phone || "");
+  const [profileMessage,  setProfileMessage]  = useState("");
+  const [profileError,    setProfileError]    = useState("");
+  const [walletPortfolio, setWalletPortfolio] = useState(() => initialPortfolio);
+  const [walletLoading,   setWalletLoading]   = useState(false);
+  const [walletError,     setWalletError]     = useState("");
+  const [mktError,        setMktError]        = useState("");
+  const [mktRefreshing,   setMktRefreshing]   = useState(false);
+  const [wltRefreshing,   setWltRefreshing]   = useState(false);
+  const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
+  const [referralMsg,     setReferralMsg]     = useState("");
+  const [referralErr,     setReferralErr]     = useState("");
   const liveRates = useExchangeRates();
 
-  const recentActivity = useMemo(
-    () =>
-      getOrdersForCurrentUser()
-        .slice()
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 3),
+  const recentOrders = useMemo(
+    () => getOrdersForCurrentUser().slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [user],
   );
 
-  const homeMarketRates = useMemo(
-    () => [
-      { asset: "WLD",  priceKes: Number(liveRates?.WLD)  || 0 },
-      { asset: "USDC", priceKes: Number(liveRates?.USDC) || 0 },
-    ],
-    [liveRates],
-  );
+  const mktRates = useMemo(() => [
+    { asset: "WLD",  kes: Number(liveRates?.WLD)  || 0 },
+    { asset: "USDC", kes: Number(liveRates?.USDC) || 0 },
+  ], [liveRates]);
 
-  const hasLiveMarketRates = homeMarketRates.every((r) => r.priceKes > 1);
+  const hasLiveRates = mktRates.every(r => r.kes > 1);
 
   const walletBoard = useMemo(() => {
-    const assets = walletPortfolio.assets.map((a) => ({
-      ...a,
-      marketPriceKes: Number(liveRates[a.symbol] || 0),
-    }));
+    const assets = walletPortfolio.assets.map(a => ({ ...a, marketPriceKes: Number(liveRates[a.symbol] || 0) }));
     return {
       assets,
       totalKes: calculateKesWalletBalance(assets, liveRates),
-      wld:  assets.find((a) => a.symbol === "WLD"),
-      usdc: assets.find((a) => a.symbol === "USDC"),
+      wld:  assets.find(a => a.symbol === "WLD"),
+      usdc: assets.find(a => a.symbol === "USDC"),
     };
   }, [liveRates, walletPortfolio.assets]);
 
-  const hasWalletBalances = useMemo(
-    () => walletPortfolio.assets.some((a) => Number(a.formattedBalance || 0) > 0),
+  const hasBalances = useMemo(
+    () => walletPortfolio.assets.some(a => Number(a.formattedBalance || 0) > 0),
     [walletPortfolio.assets],
   );
 
-  const loadWalletPortfolio = useCallback(
-    async ({ showErrors = false } = {}) => {
-      if (!user?.walletAddress) {
-        setWalletPortfolio({ walletAddress: "", assets: [], supported: false });
-        setWalletError("");
-        setWalletLoading(false);
-        return;
+  const loadPortfolio = useCallback(async ({ showErrors = false } = {}) => {
+    if (!user?.walletAddress) {
+      setWalletPortfolio({ walletAddress: "", assets: [], supported: false });
+      setWalletLoading(false);
+      return;
+    }
+    setWalletLoading(true);
+    setWalletError("");
+    try {
+      setWalletPortfolio(await getWorldWalletPortfolio(user.walletAddress));
+    } catch (e) {
+      const cached = getCachedWorldWalletPortfolio(user.walletAddress);
+      if (cached.assets.length) setWalletPortfolio(cached);
+      else {
+        setWalletPortfolio({ walletAddress: user.walletAddress, assets: [], supported: true });
+        if (showErrors) setWalletError(e instanceof Error ? e.message : "Unable to refresh wallet.");
       }
-      setWalletLoading(true);
-      setWalletError("");
-      try {
-        const portfolio = await getWorldWalletPortfolio(user.walletAddress);
-        setWalletPortfolio(portfolio);
-      } catch (error) {
-        const cached = getCachedWorldWalletPortfolio(user.walletAddress);
-        if (cached.assets.length) {
-          setWalletPortfolio(cached);
-        } else {
-          setWalletPortfolio({ walletAddress: user.walletAddress, assets: [], supported: true });
-          if (showErrors) setWalletError(error instanceof Error ? error.message : "Unable to refresh wallet.");
-        }
-      } finally {
-        setWalletLoading(false);
-      }
-    },
-    [user?.walletAddress],
-  );
+    } finally {
+      setWalletLoading(false);
+    }
+  }, [user?.walletAddress]);
 
-  useEffect(() => { loadWalletPortfolio().catch(() => null); }, [loadWalletPortfolio]);
+  useEffect(() => { loadPortfolio().catch(() => null); }, [loadPortfolio]);
 
-  const normalizeKenyanPhone = (raw) => {
-    const c = raw.replace(/\s+/g, "").replace(/-/g, "");
+  const normalizePhone = raw => {
+    const c = raw.replace(/[\s-]/g, "");
     if (/^\+254[17]\d{8}$/.test(c)) return c.slice(1);
     if (/^254[17]\d{8}$/.test(c))   return `0${c.slice(3)}`;
     if (/^0[17]\d{8}$/.test(c))     return c;
     return null;
   };
 
-  const handleProfileSave = () => {
+  const handleSavePhone = () => {
     setProfileError(""); setProfileMessage("");
-    if (!profilePhone.trim()) { setProfileError("Enter your M-Pesa number for sell payouts."); return; }
-    const normalized = normalizeKenyanPhone(profilePhone.trim());
-    if (!normalized) { setProfileError("Enter a valid Kenyan number — e.g. 0712345678."); return; }
-    setProfilePhone(normalized);
-    const next = updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
-    setUser(next);
+    if (!profilePhone.trim()) { setProfileError("Enter your M-Pesa number."); return; }
+    const n = normalizePhone(profilePhone.trim());
+    if (!n) { setProfileError("Use a valid Kenyan number e.g. 0712345678"); return; }
+    setProfilePhone(n);
+    setUser(updateCurrentUserProfile({ mpesaPhoneNumber: n }));
     haptic("success");
-    setProfileMessage("Saved.");
+    setProfileMessage("Saved ✓");
   };
 
   const handleRefreshWallet = async () => {
-    setWalletError(""); setWalletRefreshing(true); haptic("light");
-    try { await loadWalletPortfolio({ showErrors: true }); }
-    finally { setWalletRefreshing(false); }
+    setWltRefreshing(true); haptic("light");
+    try { await loadPortfolio({ showErrors: true }); }
+    finally { setWltRefreshing(false); }
   };
 
   const handleRefreshRates = async () => {
-    setMarketRefreshError(""); setMarketRefreshing(true); haptic("light");
+    setMktError(""); setMktRefreshing(true); haptic("light");
     try { await fetchWorldMarketRates(); }
-    catch (error) { if (!hasLiveMarketRates) setMarketRefreshError(error instanceof Error ? error.message : "Unable to refresh prices."); }
-    finally { setMarketRefreshing(false); }
+    catch (e) { if (!hasLiveRates) setMktError(e instanceof Error ? e.message : "Could not refresh."); }
+    finally { setMktRefreshing(false); }
   };
 
-  const handleShareInvite = async () => {
-    setReferralError(""); setReferralMessage(""); haptic("medium");
+  const handleShare = async () => {
+    setReferralErr(""); setReferralMsg(""); haptic("medium");
     try {
       await shareMiniAppInvite({
         title: "Join TMpesa",
-        text:  `Use my TMpesa invite code ${referralSummary.code} to trade WLD and USDC with M-Pesa settlement inside World App.`,
+        text:  `Use code ${referralSummary.code} to trade WLD & USDC with M-Pesa in World App.`,
         url:   referralSummary.appLink,
       });
       setReferralSummary(markReferralShared(user));
-      setReferralMessage("Invite shared.");
-    } catch (error) {
-      setReferralError(error instanceof Error ? error.message : "Unable to share invite.");
-    }
+      setReferralMsg("Shared!");
+    } catch (e) { setReferralErr(e instanceof Error ? e.message : "Could not share."); }
   };
 
   const balanceLabel = useMemo(() => {
-    if (!user?.walletAddress)                       return "KES —";
-    if (!hasLiveMarketRates && !hasWalletBalances)  return "KES —";
+    if (!user?.walletAddress)          return "KES —";
+    if (!hasLiveRates && !hasBalances) return "KES —";
     return formatKES(walletBoard.totalKes);
-  }, [hasLiveMarketRates, hasWalletBalances, user?.walletAddress, walletBoard.totalKes]);
+  }, [hasLiveRates, hasBalances, user?.walletAddress, walletBoard.totalKes]);
 
-  const balanceSublabel = useMemo(() => {
-    if (!user?.walletAddress)                                      return "Connect wallet to see your balance";
-    if (walletRefreshing || (walletLoading && !hasWalletBalances)) return "Syncing wallet…";
-    if (walletError && !hasWalletBalances)                         return "Sync failed — tap ↻ to retry";
-    return "Total portfolio value in KES";
-  }, [hasWalletBalances, user?.walletAddress, walletError, walletLoading, walletRefreshing]);
+  const balanceSub = useMemo(() => {
+    if (!user?.walletAddress)                                return "Connect World wallet to track";
+    if (wltRefreshing || (walletLoading && !hasBalances))    return "Syncing…";
+    if (walletError && !hasBalances)                         return "Sync failed · tap ↻";
+    return "Total portfolio in KES";
+  }, [hasBalances, user?.walletAddress, walletError, walletLoading, wltRefreshing]);
 
-  const assetVal = useCallback(
-    (entry) => {
-      if (entry) return formatCryptoAmount(entry.formattedBalance);
-      if (!user?.walletAddress || walletLoading) return "—";
-      return "0";
-    },
-    [user?.walletAddress, walletLoading],
-  );
+  const assetAmt = useCallback(entry => {
+    if (entry) return formatCryptoAmount(entry.formattedBalance);
+    if (!user?.walletAddress || walletLoading) return "—";
+    return "0";
+  }, [user?.walletAddress, walletLoading]);
 
-  const greeting      = getGreeting();
-  const displayName   = user?.username ? `@${user.username}` : user?.fullName || null;
-  const hasWorldSession = Boolean(user?.username);
-  const avatarLetter  = user?.username
-    ? user.username[0].toUpperCase()
-    : user?.fullName
-    ? user.fullName[0].toUpperCase()
-    : "T";
+  const greeting    = getGreeting();
+  const displayName = user?.username ? `@${user.username}` : user?.fullName || null;
+  const hasWorld    = Boolean(user?.username);
+  const initials    = (user?.username || user?.fullName || "T")[0].toUpperCase();
 
   return (
-    <div className="dash-root page-enter">
+    <div className="home-root page-enter">
 
-      {/* ── APP BAR ──────────────────────────────────────────── */}
-      <header className="dash-appbar">
-        <div className="dash-appbar-brand">
-          <span className="dash-appbar-logo" aria-hidden="true">M</span>
-          <span className="dash-appbar-name">TMpesa</span>
-        </div>
-        <div className="dash-appbar-right">
-          {hasWorldSession && (
-            <span className="dash-verified-pill">
-              <span className="dash-verified-dot" aria-hidden="true" />
-              World
-            </span>
-          )}
-          <Link to="/profile" className="dash-avatar-btn" aria-label="Profile">
-            {avatarLetter}
+      {/* ════════════════════════════════════════════
+          HERO CARD — brand + greeting + balance + actions
+          ════════════════════════════════════════════ */}
+      <div className="home-hero">
+        {/* ambient glows */}
+        <div className="hh-glow hh-glow-a" aria-hidden="true" />
+        <div className="hh-glow hh-glow-b" aria-hidden="true" />
+        <div className="hh-glow hh-glow-c" aria-hidden="true" />
+
+        {/* ── top row: brand + avatar ── */}
+        <div className="hh-toprow">
+          <div className="hh-brand">
+            <span className="hh-brand-mark" aria-hidden="true">M</span>
+            <span className="hh-brand-name">TMpesa</span>
+            {hasWorld && (
+              <span className="hh-verified-chip">
+                <span className="hh-verified-dot" aria-hidden="true" />
+                World
+              </span>
+            )}
+          </div>
+          <Link to="/profile" className="hh-avatar" aria-label="Profile">
+            {initials}
           </Link>
         </div>
-      </header>
 
-      {/* ── GREETING ─────────────────────────────────────────── */}
-      <div className="dash-greeting-row">
-        <span className="dash-greeting-text">
-          {greeting}{displayName ? `, ${displayName}` : ""}
-        </span>
-        <span className="dash-greeting-sub">
-          {hasWorldSession ? "World verified account" : "Welcome to TMpesa"}
-        </span>
-      </div>
-
-      {/* ── BALANCE CARD ─────────────────────────────────────── */}
-      <section className="dash-balance-card" aria-label="Portfolio balance">
-        <div className="dbc-glow dbc-glow-tl" aria-hidden="true" />
-        <div className="dbc-glow dbc-glow-br" aria-hidden="true" />
-
-        <div className="dbc-inner">
-          <div className="dbc-total">
-            <span className="dbc-label">Portfolio value</span>
-            <strong className="dbc-number">{balanceLabel}</strong>
-            <small className="dbc-sub">{balanceSublabel}</small>
-          </div>
-          <div className="dbc-actions">
+        {/* ── greeting + balance ── */}
+        <div className="hh-balance-section">
+          <p className="hh-greeting">
+            {greeting}{displayName ? `, ${displayName}` : ""}
+          </p>
+          <div className="hh-balance-row">
+            <strong className="hh-balance-num">{balanceLabel}</strong>
             <button
               type="button"
-              className="dbc-refresh-btn"
+              className="hh-refresh-btn"
               onClick={handleRefreshWallet}
-              aria-label="Refresh wallet"
+              aria-label="Refresh"
             >
-              <span className={walletRefreshing ? "spin" : ""}>↻</span>
+              <span className={wltRefreshing ? "spin" : ""}>↻</span>
             </button>
-            <Link to="/wallet" className="dbc-wallet-link">Wallet →</Link>
           </div>
+          <div className="hh-balance-meta">
+            <span className="hh-balance-sub">{balanceSub}</span>
+            <Link to="/wallet" className="hh-wallet-link">Wallet →</Link>
+          </div>
+          {walletError && !hasBalances && (
+            <div className="hh-wallet-err">{walletError}</div>
+          )}
         </div>
 
-        <div className="dbc-assets">
-          <div className="dbc-asset dbc-asset-wld">
-            <span className="dbc-asset-sym">W</span>
-            <div className="dbc-asset-info">
-              <span className="dbc-asset-label">WLD</span>
-              <strong className="dbc-asset-val">{assetVal(walletBoard.wld)}</strong>
+        {/* ── asset chips ── */}
+        <div className="hh-assets">
+          <div className="hh-asset hh-asset-wld">
+            <span className="hh-asset-sym">W</span>
+            <div className="hh-asset-body">
+              <span className="hh-asset-name">WLD</span>
+              <strong className="hh-asset-amt">{assetAmt(walletBoard.wld)}</strong>
             </div>
-            {homeMarketRates[0]?.priceKes > 1 && (
-              <span className="dbc-asset-rate">{formatKES(homeMarketRates[0].priceKes)}</span>
+            {mktRates[0].kes > 1 && (
+              <span className="hh-asset-rate">{formatKES(mktRates[0].kes)}</span>
             )}
           </div>
-          <div className="dbc-asset dbc-asset-usdc">
-            <span className="dbc-asset-sym">$</span>
-            <div className="dbc-asset-info">
-              <span className="dbc-asset-label">USDC</span>
-              <strong className="dbc-asset-val">{assetVal(walletBoard.usdc)}</strong>
+          <div className="hh-asset hh-asset-usdc">
+            <span className="hh-asset-sym">$</span>
+            <div className="hh-asset-body">
+              <span className="hh-asset-name">USDC</span>
+              <strong className="hh-asset-amt">{assetAmt(walletBoard.usdc)}</strong>
             </div>
-            {homeMarketRates[1]?.priceKes > 1 && (
-              <span className="dbc-asset-rate">{formatKES(homeMarketRates[1].priceKes)}</span>
+            {mktRates[1].kes > 1 && (
+              <span className="hh-asset-rate">{formatKES(mktRates[1].kes)}</span>
             )}
           </div>
-          <div className={`dbc-conn-pill${user?.walletAddress ? "" : " dbc-conn-none"}`}>
-            <span className="dbc-conn-dot" aria-hidden="true" />
+          <div className={`hh-conn-pill${user?.walletAddress ? "" : " hh-conn-none"}`}>
+            <span className="hh-conn-dot" aria-hidden="true" />
             {user?.walletAddress ? "Connected" : "No wallet"}
           </div>
         </div>
 
-        {walletError && !hasWalletBalances && (
-          <div className="home-balance-error">{walletError}</div>
-        )}
-      </section>
+        {/* ── divider ── */}
+        <div className="hh-divider" aria-hidden="true" />
 
-      {/* ── QUICK ACTIONS ────────────────────────────────────── */}
-      <div className="dash-actions-row" role="navigation" aria-label="Quick actions">
-        <Link to="/trade?tab=buy"   className="dash-action dash-action-buy">
-          <span className="dash-action-icon" aria-hidden="true">↑</span>
-          <span className="dash-action-label">Buy</span>
-        </Link>
-        <Link to="/trade?tab=sell"  className="dash-action dash-action-sell">
-          <span className="dash-action-icon" aria-hidden="true">↓</span>
-          <span className="dash-action-label">Sell</span>
-        </Link>
-        <Link to="/wallet#receive"  className="dash-action dash-action-receive">
-          <span className="dash-action-icon" aria-hidden="true">⬡</span>
-          <span className="dash-action-label">Receive</span>
-        </Link>
-        <Link to="/orders"          className="dash-action dash-action-history">
-          <span className="dash-action-icon" aria-hidden="true">≡</span>
-          <span className="dash-action-label">History</span>
-        </Link>
+        {/* ── quick actions ── */}
+        <nav className="hh-actions" aria-label="Quick actions">
+          <Link to="/trade?tab=buy"  className="hh-action hh-action-buy">
+            <span className="hh-action-icon">↑</span>
+            <span className="hh-action-label">Buy</span>
+          </Link>
+          <Link to="/trade?tab=sell" className="hh-action hh-action-sell">
+            <span className="hh-action-icon">↓</span>
+            <span className="hh-action-label">Sell</span>
+          </Link>
+          <Link to="/wallet#receive" className="hh-action hh-action-receive">
+            <span className="hh-action-icon">⬡</span>
+            <span className="hh-action-label">Receive</span>
+          </Link>
+          <Link to="/orders"         className="hh-action hh-action-history">
+            <span className="hh-action-icon">◷</span>
+            <span className="hh-action-label">History</span>
+          </Link>
+        </nav>
       </div>
 
-      {/* ── LIVE MARKET ──────────────────────────────────────── */}
-      <section className="dash-market-row" aria-label="Live prices">
-        <div className="dash-market-head">
-          <span className="dash-market-title">Market</span>
-          <div className="dash-market-meta">
-            {marketRefreshing
-              ? <span className="dash-market-status">Syncing…</span>
-              : hasLiveMarketRates
-              ? <span className="dash-market-status live">● Live</span>
+      {/* ════════════════════════════════════════════
+          MARKET RATES
+          ════════════════════════════════════════════ */}
+      <section className="home-market" aria-label="Live prices">
+        <div className="hm-head">
+          <span className="hm-title">Market</span>
+          <div className="hm-meta">
+            {mktRefreshing
+              ? <span className="hm-live-dot syncing" />
+              : hasLiveRates
+              ? <span className="hm-live-dot" />
               : null}
-            <button
-              type="button"
-              className="dbc-refresh-btn"
-              onClick={handleRefreshRates}
-              aria-label="Refresh prices"
-            >
-              <span className={marketRefreshing ? "spin" : ""}>↻</span>
+            {hasLiveRates && !mktRefreshing && <span className="hm-live-label">Live</span>}
+            <button type="button" className="hh-refresh-btn" onClick={handleRefreshRates} aria-label="Refresh prices">
+              <span className={mktRefreshing ? "spin" : ""}>↻</span>
             </button>
           </div>
         </div>
-        {marketRefreshError ? (
-          <div className="error" style={{ fontSize: "0.82rem", padding: "8px 10px" }}>{marketRefreshError}</div>
-        ) : (
-          <div className="dash-market-tiles">
-            {homeMarketRates.map((r) => (
-              <div key={r.asset} className="dash-market-tile">
-                <div className="dmt-head">
-                  <span className="dmt-sym">{r.asset}</span>
-                  <span className={`rate-live-dot${r.priceKes > 1 ? " live" : ""}`} aria-hidden="true" />
-                </div>
-                <strong className="dmt-price">{r.priceKes > 1 ? formatKES(r.priceKes) : "—"}</strong>
-                <span className="dmt-sub">per 1 {r.asset}</span>
+        {mktError && <div className="error" style={{ fontSize: "0.8rem" }}>{mktError}</div>}
+        <div className="hm-tiles">
+          {mktRates.map(r => (
+            <div key={r.asset} className={`hm-tile hm-tile-${r.asset.toLowerCase()}`}>
+              <div className="hmt-sym-row">
+                <span className="hmt-sym">{r.asset}</span>
+                <span className={`hmt-dot${r.kes > 1 ? " live" : ""}`} aria-hidden="true" />
               </div>
-            ))}
-          </div>
-        )}
+              <strong className="hmt-price">{r.kes > 1 ? formatKES(r.kes) : "—"}</strong>
+              <span className="hmt-label">per 1 {r.asset}</span>
+            </div>
+          ))}
+        </div>
       </section>
 
-      {/* ── SETUP NUDGE ──────────────────────────────────────── */}
+      {/* ════════════════════════════════════════════
+          SETUP NUDGE (M-Pesa number missing)
+          ════════════════════════════════════════════ */}
       {!user?.isAdmin && !user?.mpesaPhoneNumber && (
-        <section className="panel stack home-setup-nudge">
-          <div className="home-setup-nudge-head">
-            <span className="home-setup-nudge-icon" aria-hidden="true">📲</span>
+        <section className="home-nudge">
+          <div className="nudge-head">
+            <span className="nudge-icon" aria-hidden="true">📲</span>
             <div>
-              <strong>Finish setup</strong>
-              <p className="muted" style={{ margin: "2px 0 0", fontSize: "0.9rem" }}>
-                Add your M-Pesa number to enable sell payouts and referral rewards.
+              <strong>Add M-Pesa number</strong>
+              <p className="muted" style={{ margin: "2px 0 0", fontSize: "0.85rem" }}>
+                Required for sell payouts and referral rewards.
               </p>
             </div>
           </div>
           {profileError   && <div className="error">{profileError}</div>}
           {profileMessage && <div className="notice">{profileMessage}</div>}
-          <div className="home-setup-row">
-            <div className="field" style={{ flex: 1 }}>
-              <input
-                id="profileMpesaPhone"
-                value={profilePhone}
-                onChange={(e) => setProfilePhone(e.target.value)}
-                placeholder="e.g. 0712345678"
-                inputMode="tel"
-                aria-label="M-Pesa payout number"
-              />
-            </div>
-            <button type="button" className="button home-setup-btn" onClick={handleProfileSave}>Save</button>
+          <div className="nudge-row">
+            <input
+              value={profilePhone}
+              onChange={e => setProfilePhone(e.target.value)}
+              placeholder="e.g. 0712345678"
+              inputMode="tel"
+              aria-label="M-Pesa payout number"
+            />
+            <button type="button" className="button" onClick={handleSavePhone}>Save</button>
           </div>
         </section>
       )}
 
-      {/* ── RECENT ORDERS ────────────────────────────────────── */}
-      {recentActivity.length > 0 && (
-        <section className="dash-activity-panel">
-          <div className="dash-activity-head">
-            <span className="dash-section-label">Recent orders</span>
-            <Link to="/orders" className="dash-see-all">See all →</Link>
+      {/* ════════════════════════════════════════════
+          RECENT ORDERS
+          ════════════════════════════════════════════ */}
+      {recentOrders.length > 0 && (
+        <section className="home-activity">
+          <div className="ha-head">
+            <span className="ha-title">Recent orders</span>
+            <Link to="/orders" className="ha-see-all">See all →</Link>
           </div>
-          <div className="dash-activity-list">
-            {recentActivity.map((order) => (
-              <Link key={order.id} to="/orders" className="dash-activity-item">
-                <span className={`dash-type-badge dash-type-${order.type}`}>
-                  {order.type === "buy" ? "Buy" : "Sell"}
+          <div className="ha-list">
+            {recentOrders.map(o => (
+              <Link key={o.id} to="/orders" className="ha-item">
+                <span className={`ha-type ha-type-${o.type}`}>
+                  {o.type === "buy" ? "↑" : "↓"}
                 </span>
-                <div className="dai-mid">
-                  <strong className="dai-asset">
-                    {order.cryptoAmount ? `${formatCryptoAmount(order.cryptoAmount)} ` : ""}{order.asset}
+                <div className="ha-mid">
+                  <strong className="ha-asset">
+                    {o.cryptoAmount ? `${formatCryptoAmount(o.cryptoAmount)} ` : ""}{o.asset}
                   </strong>
-                  <small className="dai-date">{new Date(order.createdAt).toLocaleDateString()}</small>
+                  <small className="ha-date">{new Date(o.createdAt).toLocaleDateString()}</small>
                 </div>
-                <div className="dai-right">
-                  <strong className="dai-kes">{formatKES(order.kesAmount)}</strong>
-                  <small className="dai-status">
-                    <span className={`activity-status-dot ${order.status}`} />
-                    {statusLabel(order.status)}
+                <div className="ha-right">
+                  <strong className="ha-kes">{formatKES(o.kesAmount)}</strong>
+                  <small className="ha-status" style={{ color: statusColor(o.status) }}>
+                    {statusLabel(o.status)}
                   </small>
                 </div>
               </Link>
@@ -408,45 +382,43 @@ function DashboardPage() {
         </section>
       )}
 
-      {/* ── REFERRAL STRIP ───────────────────────────────────── */}
-      <section className="panel home-referral-strip">
-        <div className="home-referral-left">
-          <span className="home-referral-icon" aria-hidden="true">🎁</span>
+      {/* ════════════════════════════════════════════
+          REFERRAL + HELP
+          ════════════════════════════════════════════ */}
+      <section className="home-referral">
+        <div className="hr-left">
+          <span className="hr-icon" aria-hidden="true">🎁</span>
           <div>
             <strong>Invite &amp; earn</strong>
             <p className="muted">
-              Share code <span className="home-referral-code">{referralSummary.code}</span> and earn when friends trade.
+              Code <span className="hr-code">{referralSummary.code}</span>
             </p>
           </div>
         </div>
-        <div className="home-referral-actions">
-          {referralMessage && <small className="home-referral-msg">{referralMessage}</small>}
-          {referralError   && <small className="home-referral-err">{referralError}</small>}
-          <button type="button" className="button home-referral-btn" onClick={handleShareInvite}>Share</button>
+        <div className="hr-right">
+          {referralMsg && <small style={{ color: "var(--success)" }}>{referralMsg}</small>}
+          {referralErr && <small style={{ color: "var(--error)" }}>{referralErr}</small>}
+          <button type="button" className="button" style={{ padding: "8px 18px", fontSize: "0.82rem" }} onClick={handleShare}>
+            Share
+          </button>
         </div>
       </section>
 
-      {/* ── HELP STRIP ───────────────────────────────────────── */}
-      <section className="panel home-help-strip">
+      <section className="home-help">
         <span className="home-help-label">Need help?</span>
         <div className="home-help-actions">
           <Link to="/support" className="button-ghost home-help-btn">Guide</Link>
           <button
             type="button"
             className="button-secondary home-help-btn"
-            onClick={() => openSupportEmail({
-              subject: "TMpesa support request",
-              body: `Hello TMpesa support,\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
-            })}
+            onClick={() => openSupportEmail({ subject: "TMpesa support", body: `World: ${user?.username ? `@${user.username}` : "N/A"}` })}
           >
             Email
           </button>
           <button
             type="button"
             className="button-ghost home-help-btn"
-            onClick={() => openWhatsAppSupport({
-              message: `Hello TMpesa,\n\nI need help.\n\nWorld username: ${user?.username ? `@${user.username}` : "N/A"}`,
-            })}
+            onClick={() => openWhatsAppSupport({ message: `Hello TMpesa,\n\nI need help.\n\nWorld: ${user?.username ? `@${user.username}` : "N/A"}` })}
           >
             WhatsApp
           </button>
@@ -456,5 +428,3 @@ function DashboardPage() {
     </div>
   );
 }
-
-export default DashboardPage;
