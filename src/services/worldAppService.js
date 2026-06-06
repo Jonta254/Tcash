@@ -40,25 +40,25 @@ function toTokenUnits(amount, decimals) {
 }
 
 async function runMiniKitCommand(commandName, payload) {
-  const asyncCommandName = `${commandName}Async`;
+  // World docs: prefer commandsAsync (the documented async API)
   const command =
-    MiniKit[commandName] || MiniKit.commandsAsync?.[commandName] || MiniKit[asyncCommandName];
+    MiniKit.commandsAsync?.[commandName] ||
+    MiniKit[`${commandName}Async`] ||
+    MiniKit[commandName];
 
   if (!command) {
     throw new Error(`World App command ${commandName} is not available in this MiniKit version.`);
   }
 
   const result = await command.call(MiniKit, payload);
-  const data = result?.data || result?.finalPayload || result;
+
+  // World docs: async commands return { finalPayload } or { commandPayload, finalPayload }
+  const data = result?.finalPayload || result?.data || result;
 
   if (data?.status === "error") {
     const error = new Error(data?.message || `World App ${commandName} command was cancelled.`);
     error.code = data?.code || data?.error_code || data?.error;
     throw error;
-  }
-
-  if (result?.executedWith === "fallback") {
-    throw new Error(`Complete ${commandName} inside World App.`);
   }
 
   return { result, data };
