@@ -1,3 +1,20 @@
+const REQUEST_TIMEOUT_MS = 12000;
+
+// Bounded fetch so flaky mobile networks inside World App can never hang a
+// trade flow forever; callers get a normal rejection they already handle.
+async function fetchWithTimeout(url, options = {}) {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : null;
+
+  try {
+    return await fetch(url, { ...options, signal: controller?.signal });
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 async function readJsonResponse(response) {
   const payload = await response.json().catch(() => ({}));
 
@@ -9,7 +26,7 @@ async function readJsonResponse(response) {
 }
 
 export async function requestServerNonce() {
-  const response = await fetch("/api/nonce", {
+  const response = await fetchWithTimeout("/api/nonce", {
     credentials: "include",
   }).catch(() => {
     throw new Error("TMpesa secure login is temporarily unavailable. Please try again.");
@@ -19,7 +36,7 @@ export async function requestServerNonce() {
 }
 
 export async function completeSiweVerification(payload, nonce, nonceSignature) {
-  const response = await fetch("/api/complete-siwe", {
+  const response = await fetchWithTimeout("/api/complete-siwe", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -34,7 +51,7 @@ export async function completeSiweVerification(payload, nonce, nonceSignature) {
 }
 
 export async function createPaymentReference() {
-  const response = await fetch("/api/payment-reference", {
+  const response = await fetchWithTimeout("/api/payment-reference", {
     method: "POST",
     credentials: "include",
   }).catch(() => {
@@ -45,7 +62,7 @@ export async function createPaymentReference() {
 }
 
 export async function confirmWorldPayment(payload) {
-  const response = await fetch("/api/confirm-payment", {
+  const response = await fetchWithTimeout("/api/confirm-payment", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -60,7 +77,7 @@ export async function confirmWorldPayment(payload) {
 }
 
 export async function fetchAdminOrderQueue() {
-  const response = await fetch("/api/orders", {
+  const response = await fetchWithTimeout("/api/orders", {
     cache: "no-store",
     credentials: "include",
   }).catch(() => {
@@ -75,7 +92,7 @@ export async function syncAdminOrder(order, options = {}) {
 }
 
 export async function syncAdminOrders(orders, options = {}) {
-  const response = await fetch("/api/orders", {
+  const response = await fetchWithTimeout("/api/orders", {
     method: "POST",
     cache: "no-store",
     credentials: "include",

@@ -204,15 +204,12 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       { sync: false },
     );
 
+    // Payment is already saved locally; if the admin sync fails or times out,
+    // the boot-time backfill retries it, so never strand the user here.
     try {
       await syncOrderToAdminQueue(updated);
-    } catch (nextError) {
-      setError(
-        nextError instanceof Error
-          ? nextError.message
-          : "TMpesa saved this payment locally but could not notify admin. Please try again.",
-      );
-      return null;
+    } catch {
+      // Background backfill re-syncs this order on the next app open.
     }
 
     setPaymentReference(formattedReference);

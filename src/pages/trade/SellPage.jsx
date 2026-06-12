@@ -103,7 +103,9 @@ function SellPage() {
         null,
         { sync: false },
       );
-      await syncOrderToAdminQueue(updated);
+      // Crypto already left the user's wallet — never fail the flow on a
+      // queue sync hiccup; the boot-time backfill re-syncs the paid order.
+      await syncOrderToAdminQueue(updated).catch(() => null);
       setCurrentOrder(updated);
       setPaymentReference(payment.transactionId);
       setStep(3);

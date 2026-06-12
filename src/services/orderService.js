@@ -159,10 +159,12 @@ export async function createOrder(payload) {
     createdAt: new Date().toISOString(),
   };
 
-  // Sync order to shared queue without re-triggering email/World notifications;
+  // Save locally first so placing an order never blocks on the network.
+  // The admin queue sync runs in the background; if it fails, the boot-time
+  // backfill and later status syncs deliver the order, and
   // notifyAdminOrderCreated below is the single notification path.
-  await syncOrderToAdminQueue(order, { notifyAdmin: false });
   writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
+  void syncOrderToAdminQueue(order, { notifyAdmin: false }).catch(() => null);
   void notifyAdminOrderCreated(order).catch(() => null);
   void notifyWorldUserOrderCreated(order).catch(() => null);
   return order;
