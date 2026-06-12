@@ -103,10 +103,26 @@ export async function backfillExistingOrdersToAdminQueue() {
     return { ok: true, count: orders.length, skipped: true };
   }
 
-  const result = await syncAdminOrders(orders, { notifyAdmin: false });
+  // Only re-send orders that changed since the last successful backfill —
+  // re-uploading the full history on every app open is what exhausted the
+  // Blob store quota (the admin device holds every user's orders locally).
+  const lastSyncedOrderTime = Number(currentState.lastSyncedOrderTime || 0);
+  const pendingOrders = orders.filter((order) => getOrderTime(order) > lastSyncedOrderTime);
+
+  if (!pendingOrders.length) {
+    writeStorage(ORDER_BACKFILL_STATE_KEY, {
+      ...currentState,
+      signature,
+      syncedAt: Date.now(),
+    });
+    return { ok: true, count: 0, skipped: true };
+  }
+
+  const result = await syncAdminOrders(pendingOrders, { notifyAdmin: false });
   writeStorage(ORDER_BACKFILL_STATE_KEY, {
     signature,
     syncedAt: Date.now(),
+    lastSyncedOrderTime: Math.max(...pendingOrders.map(getOrderTime)),
   });
   return result;
 }

@@ -1,4 +1,4 @@
-import { list, put } from "@vercel/blob";
+import { del, list, put } from "@vercel/blob";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
 const ORDER_PREFIX = "tmpesa/orders/";
@@ -283,6 +283,20 @@ export default async function handler(req, res) {
         }
       }
 
+      // Purge superseded/legacy timestamped blobs so the store stays at one
+      // blob per order instead of growing forever (capped per request).
+      const keepUrls = new Set(
+        Array.from(latestById.values()).map((order) => order.adminQueueUrl),
+      );
+      const staleUrls = blobs
+        .map((blob) => blob.url)
+        .filter((url) => !keepUrls.has(url))
+        .slice(0, 500);
+
+      if (staleUrls.length) {
+        await del(staleUrls).catch(() => null);
+      }
+
       sendJson(res, 200, {
         ok: true,
         orders: Array.from(latestById.values()).sort(sortOrders),
@@ -314,12 +328,14 @@ export default async function handler(req, res) {
       orders.map((order) => {
         const orderId = sanitizeOrderId(order.id);
 
+        // One canonical blob per order, overwritten in place — appending a
+        // timestamped blob per sync is what blew the store's free quota.
         return put(
-          `${ORDER_PREFIX}${orderId}/${Date.now()}.json`,
+          `${ORDER_PREFIX}${orderId}.json`,
           JSON.stringify({ order, syncedAt }, null, 2),
           {
             access: "public",
-            addRandomSuffix: true,
+            allowOverwrite: true,
             contentType: "application/json",
           },
         );
