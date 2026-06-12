@@ -113,7 +113,9 @@ function AppShell() {
     setNotificationRequestInFlight(true);
     try {
       const perm = await requestWorldNotificationPermission();
-      if (!perm.granted) throw new Error("Approve notifications in World App, then return to TMpesa.");
+      if (!perm.granted) {
+        throw new Error(perm.message || "Approve notifications in World App, then return to TMpesa.");
+      }
       if (typeof window !== "undefined") window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
       setShowNotificationPrompt(false);
     } catch (error) {

@@ -101,7 +101,9 @@ function ProfilePage() {
       const permissionState = await requestWorldNotificationPermission();
 
       if (!permissionState.granted) {
-        throw new Error("World notification permission was not granted.");
+        throw new Error(
+          permissionState.message || "World notification permission was not granted.",
+        );
       }
 
       setNotificationsEnabled(true);

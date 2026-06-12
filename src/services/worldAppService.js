@@ -8,9 +8,14 @@ import {
 } from "./backendService";
 
 const NOTIFICATION_ALLOWED_STORAGE_KEY = "worldtmpesa_notification_allowed";
-const NOTIFICATION_REQUESTED_STORAGE_KEY = "worldtmpesa_notification_permission_requested";
 const NOTIFICATION_PERMISSION = "notifications";
-const NOTIFICATION_REQUEST_COOLDOWN_MS = 1000 * 60 * 2;
+// World App shows the notifications permission sheet only once per mini app.
+// After that, requestPermission returns already_requested and the user must
+// flip it on manually inside World App settings.
+const MANUAL_ENABLE_MESSAGE =
+  "World App shows the notifications prompt only once. Turn it on manually: World App → Settings → Apps → TMpesa → Notifications.";
+const PERMISSION_DISABLED_MESSAGE =
+  "Notifications are switched off for World App on this phone. Enable them in your phone settings for World App, then try again.";
 const notificationPermissionCache = {
   checkedAt: 0,
   value: null,
@@ -90,18 +95,6 @@ function readStoredNotificationPermission() {
     typeof window !== "undefined" &&
     window.localStorage.getItem(NOTIFICATION_ALLOWED_STORAGE_KEY) === "true"
   );
-}
-
-function readLastNotificationRequestAt() {
-  return typeof window === "undefined"
-    ? 0
-    : Number(window.localStorage.getItem(NOTIFICATION_REQUESTED_STORAGE_KEY) || 0);
-}
-
-function markNotificationPermissionRequested() {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(NOTIFICATION_REQUESTED_STORAGE_KEY, Date.now().toString());
-  }
 }
 
 function permissionGranted(data, targetPermission) {
@@ -370,20 +363,15 @@ export async function requestWorldNotificationPermission() {
     return notificationPermissionRequest;
   }
 
-  const currentPermissions = await getWorldNotificationPermissionState({ command: false });
+  // Ask World App for the real permission state first — if the user already
+  // enabled notifications (in settings or a past session), no prompt is needed.
+  const currentPermissions = await getWorldNotificationPermissionState({ command: true });
 
   if (currentPermissions.granted) {
     return currentPermissions;
   }
 
-  const lastRequestedAt = readLastNotificationRequestAt();
-
-  if (lastRequestedAt && Date.now() - lastRequestedAt < NOTIFICATION_REQUEST_COOLDOWN_MS) {
-    throw new Error("World permission was just requested. Wait a moment before trying again.");
-  }
-
   notificationPermissionRequest = (async () => {
-    markNotificationPermissionRequested();
     try {
       const { data } = await runMiniKitCommand("requestPermission", {
         permission: NOTIFICATION_PERMISSION,
@@ -401,10 +389,14 @@ export async function requestWorldNotificationPermission() {
         return permissionState;
       }
 
+      // The user declined the one-time prompt — from now on it can only be
+      // enabled manually, so point them at the World App settings path.
       return {
         granted: false,
         available: true,
         permissions: data || {},
+        reason: "declined",
+        message: MANUAL_ENABLE_MESSAGE,
       };
     } catch (error) {
       const code = getWorldCommandErrorCode(error);
@@ -426,6 +418,18 @@ export async function requestWorldNotificationPermission() {
           granted: false,
           available: true,
           permissions: {},
+          reason: code,
+          message: MANUAL_ENABLE_MESSAGE,
+        };
+      }
+
+      if (code === "permission_disabled") {
+        return {
+          granted: false,
+          available: true,
+          permissions: {},
+          reason: code,
+          message: PERMISSION_DISABLED_MESSAGE,
         };
       }
 
