@@ -2,12 +2,84 @@ import { del, list, put } from "@vercel/blob";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
 const ORDER_PREFIX = "tmpesa/orders/";
+// Upstash Redis via Vercel Marketplace — preferred order store (free tier is
+// ample). Falls back to Vercel Blob when Redis is not connected yet.
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+const REDIS_ORDERS_KEY = "tmpesa:orders";
 const ADMIN_EMAIL = "brianokindo2022@gmail.com";
 const FROM_EMAIL = "TMpesa <onboarding@resend.dev>";
 const ADMIN_WORLD_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
 const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const WORLD_NOTIFICATIONS_URL = "https://developer.worldcoin.org/api/v2/minikit/send-notification";
 const ADMIN_NOTIFY_TIMEOUT_MS = 5000;
+
+function redisConfigured() {
+  return Boolean(REDIS_URL && REDIS_TOKEN);
+}
+
+async function redisCommand(command) {
+  const response = await fetch(REDIS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${REDIS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error || `TMpesa order store command ${command[0]} failed.`);
+  }
+
+  return payload.result;
+}
+
+function parseStoredOrder(value) {
+  try {
+    const payload = JSON.parse(value);
+    const order = payload?.order || payload;
+
+    if (!isOrderRecord(order)) {
+      return null;
+    }
+
+    return { ...order, adminSyncedAt: payload?.syncedAt || "" };
+  } catch {
+    return null;
+  }
+}
+
+async function readRedisOrders() {
+  const values = await redisCommand(["HVALS", REDIS_ORDERS_KEY]);
+  return (values || []).map(parseStoredOrder).filter(Boolean);
+}
+
+async function writeRedisOrders(orders, syncedAt) {
+  // Stale-write guard: a device backfilling old local copies must not clobber
+  // a newer status the admin already set.
+  const existingValues = await redisCommand([
+    "HMGET",
+    REDIS_ORDERS_KEY,
+    ...orders.map((order) => order.id),
+  ]);
+  const hsetArgs = ["HSET", REDIS_ORDERS_KEY];
+
+  orders.forEach((order, index) => {
+    const existing = existingValues?.[index] ? parseStoredOrder(existingValues[index]) : null;
+
+    if (existing && sortOrders(order, existing) > 0) {
+      return;
+    }
+
+    hsetArgs.push(order.id, JSON.stringify({ order, syncedAt }));
+  });
+
+  if (hsetArgs.length > 2) {
+    await redisCommand(hsetArgs);
+  }
+}
 
 function sanitizeOrderId(value) {
   return String(value || "")
@@ -259,17 +331,32 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!redisConfigured() && !process.env.BLOB_READ_WRITE_TOKEN) {
     sendJson(res, 200, {
       ok: false,
       pendingSetup: true,
       orders: [],
-      message: "Set BLOB_READ_WRITE_TOKEN so TMpesa can share orders with admin.",
+      message:
+        "Connect Upstash Redis (or set BLOB_READ_WRITE_TOKEN) so TMpesa can share orders with admin.",
     });
     return;
   }
 
   if (req.method === "GET") {
+    if (redisConfigured()) {
+      try {
+        const orders = await readRedisOrders();
+        sendJson(res, 200, { ok: true, orders: orders.sort(sortOrders) });
+      } catch (error) {
+        sendJson(res, 502, {
+          ok: false,
+          orders: [],
+          error: error instanceof Error ? error.message : "Unable to load admin orders.",
+        });
+      }
+      return;
+    }
+
     try {
       const blobs = await listOrderBlobs();
       const snapshots = await Promise.all(blobs.map(readOrderBlob));
@@ -328,23 +415,29 @@ export default async function handler(req, res) {
     }
 
     const syncedAt = new Date().toISOString();
-    const blobs = await Promise.all(
-      orders.map((order) => {
-        const orderId = sanitizeOrderId(order.id);
 
-        // One canonical blob per order, overwritten in place — appending a
-        // timestamped blob per sync is what blew the store's free quota.
-        return put(
-          `${ORDER_PREFIX}${orderId}.json`,
-          JSON.stringify({ order, syncedAt }, null, 2),
-          {
-            access: "public",
-            allowOverwrite: true,
-            contentType: "application/json",
-          },
-        );
-      }),
-    );
+    if (redisConfigured()) {
+      await writeRedisOrders(orders, syncedAt);
+    } else {
+      await Promise.all(
+        orders.map((order) => {
+          const orderId = sanitizeOrderId(order.id);
+
+          // One canonical blob per order, overwritten in place — appending a
+          // timestamped blob per sync is what blew the store's free quota.
+          return put(
+            `${ORDER_PREFIX}${orderId}.json`,
+            JSON.stringify({ order, syncedAt }, null, 2),
+            {
+              access: "public",
+              allowOverwrite: true,
+              contentType: "application/json",
+            },
+          );
+        }),
+      );
+    }
+
     const shouldNotifyAdmin = payload.notifyAdmin !== false;
     const adminNotifications = shouldNotifyAdmin
       ? await Promise.all(orders.map((order) => notifyAdminForOrder(order)))
@@ -354,7 +447,6 @@ export default async function handler(req, res) {
       ok: true,
       count: orders.length,
       syncedAt,
-      urls: blobs.map((blob) => blob.url),
       adminNotifications,
     });
   } catch (error) {
