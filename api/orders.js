@@ -285,16 +285,20 @@ export default async function handler(req, res) {
 
       // Purge superseded/legacy timestamped blobs so the store stays at one
       // blob per order instead of growing forever (capped per request).
-      const keepUrls = new Set(
-        Array.from(latestById.values()).map((order) => order.adminQueueUrl),
-      );
-      const staleUrls = blobs
-        .map((blob) => blob.url)
-        .filter((url) => !keepUrls.has(url))
-        .slice(0, 500);
+      // Only when at least one blob read succeeded — if every read failed the
+      // problem is transient (CDN/suspension), not stale data, so keep it all.
+      if (latestById.size > 0) {
+        const keepUrls = new Set(
+          Array.from(latestById.values()).map((order) => order.adminQueueUrl),
+        );
+        const staleUrls = blobs
+          .map((blob) => blob.url)
+          .filter((url) => !keepUrls.has(url))
+          .slice(0, 500);
 
-      if (staleUrls.length) {
-        await del(staleUrls).catch(() => null);
+        if (staleUrls.length) {
+          await del(staleUrls).catch(() => null);
+        }
       }
 
       sendJson(res, 200, {
