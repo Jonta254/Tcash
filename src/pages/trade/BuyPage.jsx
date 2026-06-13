@@ -207,14 +207,13 @@ function BuyPage() {
         {/* Order placed banner */}
         {orderJustPlaced && currentOrder && (
           <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true">✓</span>
+            <span className="opb-check" aria-hidden="true">→</span>
             <div className="opb-body">
-              <strong>Order placed!</strong>
+              <strong>One step left</strong>
               <span>
-                {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} buy is saved.
+                Pay via M-Pesa below and submit the code to confirm — the order is saved only once you do.
               </span>
             </div>
-            <Link to="/orders" className="opb-preview">Preview →</Link>
           </div>
         )}
 

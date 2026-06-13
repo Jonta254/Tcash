@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
 import {
   APP_CONFIG,
+  buildDraftOrder,
   calculateBuyRate,
   calculateSellRate,
-  createOrder,
+  commitPaidOrder,
   getCurrentUser,
-  syncOrderToAdminQueue,
   updateCurrentUserProfile,
-  updateOrder,
 } from "../services";
 import { useAppSettings } from "./useAppSettings";
 import { useExchangeRate } from "./useExchangeRate";
@@ -152,7 +151,9 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     }
 
     try {
-      const order = await createOrder({
+      // Draft only — not saved or sent to admin until the user completes
+      // payment (markAsPaid / World Pay send). Abandoning here saves nothing.
+      const order = buildDraftOrder({
         type,
         asset,
         cryptoAmount: quotedCryptoAmount,
@@ -174,7 +175,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       setError(
         nextError instanceof Error
           ? nextError.message
-          : "TMpesa could not submit this order to admin. Please try again.",
+          : "TMpesa could not start this order. Please try again.",
       );
       return null;
     }
@@ -182,6 +183,11 @@ export function useOrderFlow(type, initialAsset = "WLD") {
 
   const markAsPaid = async (nextReference) => {
     setError("");
+
+    if (!currentOrder) {
+      setError("Start your order again — the draft was lost.");
+      return null;
+    }
 
     if (!nextReference.trim()) {
       setError(
@@ -194,23 +200,13 @@ export function useOrderFlow(type, initialAsset = "WLD") {
 
     const formattedReference =
       type === "buy" ? nextReference.trim().toUpperCase() : nextReference.trim();
-    const updated = updateOrder(
-      currentOrder.id,
-      {
-        paymentReference: formattedReference,
-        status: "paid",
-      },
-      null,
-      { sync: false },
-    );
 
-    // Payment is already saved locally; if the admin sync fails or times out,
-    // the boot-time backfill retries it, so never strand the user here.
-    try {
-      await syncOrderToAdminQueue(updated);
-    } catch {
-      // Background backfill re-syncs this order on the next app open.
-    }
+    // Order is complete now — this is the first time it's stored and admin is
+    // notified. Tolerant of sync failure; backfill re-syncs on next app open.
+    const updated = await commitPaidOrder(currentOrder, {
+      paymentReference: formattedReference,
+      status: "paid",
+    });
 
     setPaymentReference(formattedReference);
     setCurrentOrder(updated);

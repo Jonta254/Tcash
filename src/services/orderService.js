@@ -142,15 +142,17 @@ export function getOrdersForCurrentUser() {
   return orders.filter((order) => order.userId === currentUser.id);
 }
 
-export async function createOrder(payload) {
-  const orders = getAllOrders();
+// Build an in-memory draft order. Nothing is persisted, synced, or notified
+// here — a draft only becomes a real order once the user completes payment
+// (commitPaidOrder). If the user abandons the flow, the draft simply vanishes.
+export function buildDraftOrder(payload) {
   const currentUser = getCurrentUser();
 
   if (!currentUser) {
     throw new Error("You must be logged in to place an order.");
   }
 
-  const order = {
+  return {
     id: crypto.randomUUID(),
     userId: currentUser.id,
     userPhone: currentUser.phone,
@@ -174,16 +176,41 @@ export async function createOrder(payload) {
     status: "pending",
     createdAt: new Date().toISOString(),
   };
+}
 
-  // Save locally first so placing an order never blocks on the network.
-  // The admin queue sync runs in the background; if it fails, the boot-time
-  // backfill and later status syncs deliver the order, and
-  // notifyAdminOrderCreated below is the single notification path.
-  writeStorage(STORAGE_KEYS.orders, [order, ...orders]);
-  void syncOrderToAdminQueue(order, { notifyAdmin: false }).catch(() => null);
-  void notifyAdminOrderCreated(order).catch(() => null);
-  void notifyWorldUserOrderCreated(order).catch(() => null);
-  return order;
+// Commit a completed order: the user has actually sent the crypto (sell) or
+// paid via M-Pesa (buy). This is the ONLY point an order is stored locally,
+// pushed to the shared admin queue, and notifies admin. Drafts that never get
+// here are never saved anywhere.
+export async function commitPaidOrder(draftOrder, changes = {}) {
+  const committed = {
+    ...draftOrder,
+    ...changes,
+    status: changes.status || "paid",
+    createdAt: draftOrder.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const orders = getAllOrders();
+  const exists = orders.some((order) => order.id === committed.id);
+  writeStorage(
+    STORAGE_KEYS.orders,
+    exists
+      ? orders.map((order) => (order.id === committed.id ? committed : order))
+      : [committed, ...orders],
+  );
+
+  // Push to the shared admin queue (notifyAdmin:false — notifyAdminOrderCreated
+  // below is the single admin notification path). Awaited but tolerant: the
+  // bounded fetch can't hang, and the boot-time backfill re-syncs on failure.
+  try {
+    await syncOrderToAdminQueue(committed, { notifyAdmin: false });
+  } catch {
+    // Saved locally; backfill retries on next app open.
+  }
+  void notifyAdminOrderCreated(committed).catch(() => null);
+  void notifyWorldUserOrderCreated(committed).catch(() => null);
+  return committed;
 }
 
 export function updateOrder(orderId, changes, fallbackOrder = null, options = {}) {

@@ -5,6 +5,7 @@ import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
   APP_CONFIG,
   canUseWorldPay,
+  commitPaidOrder,
   formatCryptoAmount,
   formatKES,
   getCachedWorldWalletPortfolio,
@@ -13,8 +14,6 @@ import {
   getWorldWalletPortfolio,
   haptic,
   requestWorldPayment,
-  syncOrderToAdminQueue,
-  updateOrder,
 } from "../../services";
 
 function SellPage() {
@@ -91,21 +90,16 @@ function SellPage() {
       if (failedStatuses.includes(payment.transactionStatus)) {
         throw new Error(`World payment ${payment.transactionStatus}. Please contact support.`);
       }
-      const updated = updateOrder(
-        currentOrder.id,
-        {
-          paymentMethod:             "world-pay",
-          paymentReference:          payment.transactionId,
-          paymentSummary:            `World Pay verified (${payment.transactionStatus})`,
-          paymentVerificationStatus: payment.transactionStatus,
-          status:                    "paid",
-        },
-        null,
-        { sync: false },
-      );
-      // Crypto already left the user's wallet — never fail the flow on a
-      // queue sync hiccup; the boot-time backfill re-syncs the paid order.
-      await syncOrderToAdminQueue(updated).catch(() => null);
+      // Crypto has now left the user's wallet — this is the moment the order
+      // becomes real: stored locally + pushed to admin + admin notified.
+      // commitPaidOrder is tolerant of a sync hiccup (backfill re-syncs).
+      const updated = await commitPaidOrder(currentOrder, {
+        paymentMethod:             "world-pay",
+        paymentReference:          payment.transactionId,
+        paymentSummary:            `World Pay verified (${payment.transactionStatus})`,
+        paymentVerificationStatus: payment.transactionStatus,
+        status:                    "paid",
+      });
       setCurrentOrder(updated);
       setPaymentReference(payment.transactionId);
       setStep(3);
@@ -298,14 +292,13 @@ function SellPage() {
         {/* Order placed banner */}
         {orderJustPlaced && currentOrder && (
           <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true">✓</span>
+            <span className="opb-check" aria-hidden="true">→</span>
             <div className="opb-body">
-              <strong>Order placed!</strong>
+              <strong>One step left</strong>
               <span>
-                {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} sell is saved.
+                Send your {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} below to confirm — the order is saved only once you do.
               </span>
             </div>
-            <Link to="/orders" className="opb-preview">Preview →</Link>
           </div>
         )}
 

@@ -13,7 +13,8 @@ export {
   updateCurrentUserProfile,
 } from "./authService";
 export {
-  createOrder,
+  buildDraftOrder,
+  commitPaidOrder,
   backfillExistingOrdersToAdminQueue,
   fetchSharedAdminOrders,
   getAllOrders,
