@@ -67,13 +67,6 @@ function BuyPage() {
     return (
       <div className="content-grid">
         <section className="panel stack task-panel">
-          <div className="page-section-head">
-            <div>
-              <span className="brand-kicker">Buy crypto</span>
-              <h2>Pay M-Pesa, receive WLD or USDC</h2>
-            </div>
-          </div>
-
           {error && <div className="error">{error}</div>}
 
           <div className="stack">

@@ -6411,7 +6411,7 @@ input[type="number"] {
 .hh-asset-body { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; overflow: hidden; }
 .hh-asset-name { font-size: 0.62rem; color: rgba(148,163,184,0.65); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 .hh-asset-amt  { font-size: 0.86rem; font-weight: 700; color: #eef4ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hh-asset-rate { font-size: 0.62rem; color: rgba(148,163,184,0.55); white-space: nowrap; flex-shrink: 0; }
+.hh-asset-rate { font-size: 0.6rem; color: rgba(148,163,184,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hh-rates-refresh { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
 .hh-live-label { font-size: 0.58rem; color: var(--success); font-weight: 700; }
 

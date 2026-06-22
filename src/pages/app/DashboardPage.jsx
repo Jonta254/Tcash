@@ -171,7 +171,8 @@ export default function DashboardPage() {
   }, [hasBalances, user?.walletAddress, walletError, walletLoading, wltRefreshing]);
 
   const assetAmt = useCallback(entry => {
-    if (entry) return formatCryptoAmount(entry.formattedBalance);
+    // 2 dp on the home chip so the balance never clips beside the live rate.
+    if (entry) return formatCryptoAmount(entry.formattedBalance, 2);
     if (!user?.walletAddress || walletLoading) return "—";
     return "0";
   }, [user?.walletAddress, walletLoading]);
@@ -227,16 +228,16 @@ export default function DashboardPage() {
             <div className="hh-asset-body">
               <span className="hh-asset-name">WLD</span>
               <strong className="hh-asset-amt">{assetAmt(walletBoard.wld)}</strong>
+              {mktRates[0].kes > 1 && <span className="hh-asset-rate">{formatKES(mktRates[0].kes)}</span>}
             </div>
-            {mktRates[0].kes > 1 && <span className="hh-asset-rate">{formatKES(mktRates[0].kes)}</span>}
           </div>
           <div className="hh-asset hh-asset-usdc">
             <span className="hh-asset-sym">$</span>
             <div className="hh-asset-body">
               <span className="hh-asset-name">USDC</span>
               <strong className="hh-asset-amt">{assetAmt(walletBoard.usdc)}</strong>
+              {mktRates[1].kes > 1 && <span className="hh-asset-rate">{formatKES(mktRates[1].kes)}</span>}
             </div>
-            {mktRates[1].kes > 1 && <span className="hh-asset-rate">{formatKES(mktRates[1].kes)}</span>}
           </div>
           <div className="hh-rates-refresh">
             <button type="button" className="hh-refresh-btn" onClick={handleRefreshRates} aria-label="Refresh rates">
@@ -327,35 +328,6 @@ export default function DashboardPage() {
           </div>
         </section>
       )}
-
-      {/* ══ COMING SOON ═════════════════════════════════════════ */}
-      <section className="home-coming-soon">
-        <div className="hcs-head">
-          <span className="hcs-title">Coming soon</span>
-          <span className="hcs-sub">Features in the pipeline</span>
-        </div>
-        <div className="hcs-scroll">
-          {[
-            { icon: "🔔", name: "Price Alerts",   desc: "Get notified when WLD hits your target price",       color: "rgba(243,201,105,0.12)", border: "rgba(243,201,105,0.22)" },
-            { icon: "⚡", name: "Auto-Sell",      desc: "Set a KES target and TMpesa sells automatically",     color: "rgba(71,215,172,0.1)",   border: "rgba(71,215,172,0.22)"  },
-            { icon: "💳", name: "TMpesa Card",    desc: "Spend crypto anywhere, settled in KES instantly",     color: "rgba(79,124,255,0.1)",   border: "rgba(79,124,255,0.22)"  },
-            { icon: "📊", name: "Analytics",      desc: "Full trading history, profit & loss dashboard",       color: "rgba(154,231,255,0.08)", border: "rgba(154,231,255,0.18)" },
-          ].map((f) => (
-            <div
-              key={f.name}
-              className="hcs-card"
-              style={{ background: f.color, borderColor: f.border }}
-            >
-              <span className="hcs-card-icon" aria-hidden="true">{f.icon}</span>
-              <div className="hcs-card-body">
-                <strong className="hcs-card-name">{f.name}</strong>
-                <p className="hcs-card-desc">{f.desc}</p>
-              </div>
-              <span className="hcs-badge">Soon</span>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ══ REFERRAL ════════════════════════════════════════════ */}
       <section className="home-referral">

@@ -133,13 +133,6 @@ function SellPage() {
     return (
       <div className="content-grid">
         <section className="panel stack task-panel">
-          <div className="page-section-head">
-            <div>
-              <span className="brand-kicker">Sell crypto</span>
-              <h2>Sell WLD or USDC, receive M-Pesa</h2>
-            </div>
-          </div>
-
           {error && <div className="error">{error}</div>}
 
           <div className="stack">

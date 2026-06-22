@@ -21,7 +21,7 @@ Legend: ✅ done · ⚠️ partial / verify in World App · ⛔ owner action req
 | # | Guideline | Status | Notes |
 |---|-----------|--------|-------|
 | A1 | Tab navigation; no hamburger / footer / sidebar | ✅ | Bottom tab bar (Home / Wallet / Trade / History); no hamburger or sidebar anywhere. |
-| A2 | Avoid excessive scrolling; compact, task-focused screens | ⚠️ | Home/Trade are compact summary cards. Verify each screen fits without long scroll in World App. |
+| A2 | Avoid excessive scrolling; compact, task-focused screens | ✅ | Removed duplicate stacked headers on the Trade flow so the Buy/Sell form reaches the fold; Home decluttered. Verified in a 375×812 mobile preview. |
 | A3 | Mobile-first, responsive across screen sizes | ✅ | Single-column mobile layouts, safe-area aware padding. |
 | A4 | Mobile-optimized fonts | ✅ | Switched to native system stack (`-apple-system, Roboto, system-ui…`) — resolves to SF Pro / Roboto on device. Was Windows-only `Segoe UI`. |
 | A5 | iOS scroll-bounce prevention (`100dvh`, `overscroll-behavior:none`, `-webkit-overflow-scrolling`) | ✅ | Present in `styles.css`; boot fallback in `index.html` moved 100vh → 100dvh. |
@@ -40,7 +40,7 @@ Legend: ✅ done · ⚠️ partial / verify in World App · ⛔ owner action req
 | # | Guideline | Status | Notes |
 |---|-----------|--------|-------|
 | B1 | Live MiniKit/IDKit integration that works in testing | ✅ | Wallet Auth (SIWE) + World Pay + permissions are live, not stubbed. |
-| B2 | App is complete & final (not demo/beta), all copy/functionality present | ✅ | Full buy/sell/wallet/history/support flows. |
+| B2 | App is complete & final (not demo/beta), all copy/functionality present | ✅ | Full buy/sell/wallet/history/support flows. Removed the "Coming soon" home strip (Price Alerts / Auto-Sell / Card / Analytics) that advertised unbuilt features — a non-final signal reviewers flag. |
 | B3 | No infinite loading; works on poor connections | ✅ | All network calls bounded (12s abort) + tolerant fallbacks; loading states reset in `finally`. |
 | B4 | Name: short; no "World"; no generic terms; **no trademarked words / popular-app mimicry (incl. letter/case substitution)** | ⛔ | **DECISION NEEDED.** "TMpesa" reads as the Safaricom trademark "M-Pesa" via letter substitution — a likely rejection trigger. Owner must decide: rebrand to a distinct name, or accept the risk. |
 | B5 | Description: plain language, ≤25 words, user-benefit focused | ⛔ | Owner: set the dev-portal short description to ≤25 plain words (see suggestion below). |
@@ -58,6 +58,10 @@ Legend: ✅ done · ⚠️ partial / verify in World App · ⛔ owner action req
 - `index.html` — boot fallback `100vh` → `100dvh` (A5).
 - `src/pages/app/WalletPage.jsx` — removed redundant full raw wallet address; show `@username` instead (A9).
 - `src/pages/app/AdminPage.jsx` — removed "official" wording (A14).
+- `src/pages/app/DashboardPage.jsx` — removed the "Coming soon" placeholder-feature strip (B2); fixed home balance chips that clipped the balance (e.g. `21....`) by showing 2 dp and stacking the live rate under the amount (A12 polish). Verified in mobile preview.
+- `src/pages/trade/{BuyPage,SellPage}.jsx` — removed the duplicate step-1 headers (TradePage already provides the heading + toggle), so the form reaches the fold with less scrolling (A2).
+
+All changes verified live in a 375×812 dark mobile preview before commit.
 
 ## D. Owner action items before re-submitting (dev portal / business)
 
