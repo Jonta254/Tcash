@@ -1,6 +1,9 @@
 :root {
   color-scheme: dark;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /* Mobile-native system fonts (World App runs on iOS/Android) for readability
+     per World design guidelines — resolves to SF Pro / Roboto on device. */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui,
+    "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   background:

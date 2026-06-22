@@ -152,9 +152,9 @@ function WalletPage() {
           <code style={{ wordBreak: "break-all", fontSize: "0.82em" }}>
             {user?.walletAddress ? truncateAddress(user.walletAddress) : "Connect your World wallet first."}
           </code>
-          {user?.walletAddress ? (
+          {user?.username ? (
             <small className="muted" style={{ fontSize: "0.75em", marginTop: 2 }}>
-              {user.walletAddress}
+              @{user.username}
             </small>
           ) : null}
         </div>

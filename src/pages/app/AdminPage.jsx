@@ -535,7 +535,7 @@ function AdminPage() {
               placeholder="app_xxxxxxxxxxxxx"
             />
             <span className="muted field-hint">
-              Used to build the Open in World App button with the official mini app deeplink format.
+              Used to build the Open in World App button with the documented mini app deeplink format.
             </span>
           </div>
         </div>
