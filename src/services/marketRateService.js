@@ -197,7 +197,7 @@ async function fetchDirectMarketRates() {
       const selectedRates = binanceRates || worldRates || coinGeckoRates;
 
       if (!selectedRates) {
-        throw new Error("TMpesa could not load direct live market prices.");
+        throw new Error("Tcash could not load direct live market prices.");
       }
 
       return {
@@ -215,7 +215,7 @@ async function fetchDirectMarketRates() {
       };
     },
     MARKET_REQUEST_TIMEOUT_MS,
-    "TMpesa could not refresh direct market prices right now.",
+    "Tcash could not refresh direct market prices right now.",
   );
 }
 
@@ -306,20 +306,20 @@ export async function fetchWorldMarketRates() {
             signal,
           }),
         MARKET_REQUEST_TIMEOUT_MS,
-        "TMpesa could not refresh live market prices right now.",
+        "Tcash could not refresh live market prices right now.",
       );
 
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok || !payload?.success) {
-        throw new Error(payload?.error || "TMpesa could not load live market prices.");
+        throw new Error(payload?.error || "Tcash could not load live market prices.");
       }
 
       const wldRate = Number(payload?.prices?.WLD || 0);
       const usdcRate = Number(payload?.prices?.USDC || 0);
 
       if (wldRate <= 0 || usdcRate <= 0) {
-        throw new Error("TMpesa received an incomplete live market quote.");
+        throw new Error("Tcash received an incomplete live market quote.");
       }
 
       const rates = {
@@ -348,7 +348,7 @@ export async function fetchWorldMarketRates() {
           return cachedResponse;
         }
 
-        throw new Error("TMpesa could not load live market prices.");
+        throw new Error("Tcash could not load live market prices.");
       }
     }
   })();

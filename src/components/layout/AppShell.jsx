@@ -114,13 +114,13 @@ function AppShell() {
     try {
       const perm = await requestWorldNotificationPermission();
       if (!perm.granted) {
-        throw new Error(perm.message || "Approve notifications in World App, then return to TMpesa.");
+        throw new Error(perm.message || "Approve notifications in World App, then return to Tcash.");
       }
       if (typeof window !== "undefined") window.localStorage.setItem(NOTIFICATION_ALLOWED_STORAGE_KEY, "true");
       setShowNotificationPrompt(false);
     } catch (error) {
       setShowNotificationPrompt(true);
-      setNotificationPromptError(error instanceof Error ? error.message : "TMpesa could not enable notifications right now.");
+      setNotificationPromptError(error instanceof Error ? error.message : "Tcash could not enable notifications right now.");
     } finally {
       setNotificationRequestInFlight(false);
       setNotificationPromptLoading(false);
@@ -141,7 +141,7 @@ function AppShell() {
         {!isDashboard && (
           <header className="topbar topbar-shell">
             <div className="shell-brand">
-              <img src="/tmpesa-icon.svg" alt="TMpesa" className="shell-brand-logo" />
+              <img src="/tmpesa-icon.svg" alt="Tcash" className="shell-brand-logo" />
               <div className="shell-brand-copy">
                 <span className="shell-brand-name">{APP_CONFIG.appName}</span>
                 <span className="shell-brand-status">

@@ -51,7 +51,7 @@ async function readContract({ to, data }) {
   })
     .catch((error) => {
       if (error?.name === "AbortError") {
-        throw new Error("TMpesa could not refresh your wallet balance right now.");
+        throw new Error("Tcash could not refresh your wallet balance right now.");
       }
 
       throw new Error("Unable to reach the live World wallet reader right now.");

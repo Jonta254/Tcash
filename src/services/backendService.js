@@ -19,7 +19,7 @@ async function readJsonResponse(response) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload?.error || payload?.message || "TMpesa could not reach the secure server. Please try again.");
+    throw new Error(payload?.error || payload?.message || "Tcash could not reach the secure server. Please try again.");
   }
 
   return payload;
@@ -29,7 +29,7 @@ export async function requestServerNonce() {
   const response = await fetchWithTimeout("/api/nonce", {
     credentials: "include",
   }).catch(() => {
-    throw new Error("TMpesa secure login is temporarily unavailable. Please try again.");
+    throw new Error("Tcash secure login is temporarily unavailable. Please try again.");
   });
 
   return readJsonResponse(response);
@@ -44,7 +44,7 @@ export async function completeSiweVerification(payload, nonce, nonceSignature) {
     },
     body: JSON.stringify({ payload, nonce, nonceSignature }),
   }).catch(() => {
-    throw new Error("TMpesa could not verify your World wallet. Please try again.");
+    throw new Error("Tcash could not verify your World wallet. Please try again.");
   });
 
   return readJsonResponse(response);
@@ -55,7 +55,7 @@ export async function createPaymentReference() {
     method: "POST",
     credentials: "include",
   }).catch(() => {
-    throw new Error("TMpesa could not prepare the World payment. Please try again.");
+    throw new Error("Tcash could not prepare the World payment. Please try again.");
   });
 
   return readJsonResponse(response);
@@ -70,7 +70,7 @@ export async function confirmWorldPayment(payload) {
     },
     body: JSON.stringify(payload),
   }).catch(() => {
-    throw new Error("TMpesa could not confirm the World payment. Please try again.");
+    throw new Error("Tcash could not confirm the World payment. Please try again.");
   });
 
   return readJsonResponse(response);
@@ -81,7 +81,7 @@ export async function fetchAdminOrderQueue() {
     cache: "no-store",
     credentials: "include",
   }).catch(() => {
-    throw new Error("TMpesa could not load the shared admin order queue.");
+    throw new Error("Tcash could not load the shared admin order queue.");
   });
 
   return readJsonResponse(response);
@@ -104,7 +104,7 @@ export async function syncAdminOrders(orders, options = {}) {
       notifyAdmin: false,
     }),
   }).catch(() => {
-    throw new Error("TMpesa could not sync orders to admin.");
+    throw new Error("Tcash could not sync orders to admin.");
   });
 
   return readJsonResponse(response);

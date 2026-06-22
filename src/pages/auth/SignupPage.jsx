@@ -38,7 +38,7 @@ function SignupPage() {
             <h2>Create a local account</h2>
             <p className="muted">
               This page is only for local admin or test setup. Normal users should continue with
-              World App sign-in so their username is attached to each TMpesa order.
+              World App sign-in so their username is attached to each Tcash order.
             </p>
           </div>
 

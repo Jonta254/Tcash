@@ -1,7 +1,7 @@
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 
 const ADMIN_EMAIL = "brianokindo2022@gmail.com";
-const FROM_EMAIL = "TMpesa <onboarding@resend.dev>";
+const FROM_EMAIL = "Tcash <onboarding@resend.dev>";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -28,15 +28,15 @@ function buildReferralEmail(payload) {
 
   const subject =
     payload.eventType === "milestone"
-      ? `TMpesa referral milestone reached - ${payload.eligibleRewardKes ? `KES ${payload.eligibleRewardKes}` : "reward pending"}`
-      : "TMpesa new referral signup";
+      ? `Tcash referral milestone reached - ${payload.eligibleRewardKes ? `KES ${payload.eligibleRewardKes}` : "reward pending"}`
+      : "Tcash new referral signup";
 
   return {
     subject,
     html: `
       <div style="font-family:Arial,sans-serif;background:#0b0f1a;color:#f5f7ff;padding:24px">
         <div style="max-width:620px;margin:0 auto;background:#111827;border:1px solid #273348;border-radius:18px;padding:22px">
-          <p style="color:#9fb1d1;margin:0 0 8px">TMpesa referral notification</p>
+          <p style="color:#9fb1d1;margin:0 0 8px">Tcash referral notification</p>
           <h1 style="font-size:22px;line-height:1.25;margin:0 0 18px">${escapeHtml(subject)}</h1>
           <table style="width:100%;border-collapse:collapse">
             ${rows
@@ -51,7 +51,7 @@ function buildReferralEmail(payload) {
               .join("")}
           </table>
           <p style="color:#9fb1d1;margin:18px 0 0">
-            Review this referral event in TMpesa profile/admin and settle any eligible M-Pesa reward manually.
+            Review this referral event in Tcash profile/admin and settle any eligible M-Pesa reward manually.
           </p>
         </div>
       </div>

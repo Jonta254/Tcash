@@ -11,11 +11,11 @@ export function getReferralCode(user) {
   const username = normalizeCode(user?.username);
 
   if (username) {
-    return `TMP-${username}`;
+    return `TC-${username}`;
   }
 
   const walletSuffix = String(user?.walletAddress || "").slice(-6).toUpperCase();
-  return `TMP-${walletSuffix || "WORLD"}`;
+  return `TC-${walletSuffix || "WORLD"}`;
 }
 
 function getInvitePath(code) {
@@ -191,7 +191,7 @@ export function createReferralClaim(user = getCurrentUser(), milestoneUsers) {
     userId: user.id,
     referralCode: summary.code,
     referrerUsername: user.username || "",
-    referrerLabel: user.fullName || user.phone || "TMpesa referrer",
+    referrerLabel: user.fullName || user.phone || "Tcash referrer",
     referrerMpesaPhoneNumber: user.mpesaPhoneNumber,
     milestoneUsers: milestone.users,
     rewardKes: milestone.rewardKes,

@@ -109,7 +109,7 @@ function ProfilePage() {
       setNotificationsEnabled(true);
     } catch (error) {
       setNotificationError(
-        error instanceof Error ? error.message : "TMpesa could not enable notifications.",
+        error instanceof Error ? error.message : "Tcash could not enable notifications.",
       );
     } finally {
       setNotificationLoading(false);
@@ -153,7 +153,7 @@ function ProfilePage() {
     setPayoutMessage("");
 
     if (!payoutPhone.trim()) {
-      setPayoutError("Enter the M-Pesa number TMpesa should use for payouts and rewards.");
+      setPayoutError("Enter the M-Pesa number Tcash should use for payouts and rewards.");
       return;
     }
 
@@ -165,7 +165,7 @@ function ProfilePage() {
 
     setPayoutPhone(normalized);
     updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
-    setPayoutMessage("Payout number saved. TMpesa will use it for sell settlements and referral rewards.");
+    setPayoutMessage("Payout number saved. Tcash will use it for sell settlements and referral rewards.");
   };
 
   const handleShareInvite = async () => {
@@ -173,14 +173,14 @@ function ProfilePage() {
     setReferralMessage("");
 
     try {
-      const inviteText = `Join me on TMpesa with my invite code ${referralSummary.code}. Buy and sell WLD or USDC with M-Pesa settlement inside World App.`;
+      const inviteText = `Join me on Tcash with my invite code ${referralSummary.code}. Buy and sell WLD or USDC with M-Pesa settlement inside World App.`;
       await shareMiniAppInvite({
-        title: "Join TMpesa",
+        title: "Join Tcash",
         text: inviteText,
         url: referralSummary.appLink,
       });
       setReferralSummary(markReferralShared(user));
-      setReferralMessage("Invite shared. TMpesa recorded the referral action.");
+      setReferralMessage("Invite shared. Tcash recorded the referral action.");
     } catch (error) {
       setReferralError(error instanceof Error ? error.message : "Unable to share invite.");
     }
@@ -192,10 +192,10 @@ function ProfilePage() {
 
     try {
       await openWorldChatInvite({
-        message: `Try TMpesa with my invite code ${referralSummary.code}. Use World App to buy or sell WLD and USDC with M-Pesa settlement.`,
+        message: `Try Tcash with my invite code ${referralSummary.code}. Use World App to buy or sell WLD and USDC with M-Pesa settlement.`,
       });
       setReferralSummary(markReferralShared(user));
-      setReferralMessage("World Chat invite opened. TMpesa recorded the referral action.");
+      setReferralMessage("World Chat invite opened. Tcash recorded the referral action.");
     } catch (error) {
       setReferralError(error instanceof Error ? error.message : "Unable to open World Chat invite.");
     }
@@ -207,7 +207,7 @@ function ProfilePage() {
     try {
       openWorldMiniAppRating();
     } catch (error) {
-      setRatingError(error instanceof Error ? error.message : "Unable to open the TMpesa rating page.");
+      setRatingError(error instanceof Error ? error.message : "Unable to open the Tcash rating page.");
     }
   };
 
@@ -229,7 +229,7 @@ function ProfilePage() {
         createdAt: claim.createdAt,
       });
       setReferralSummary(getReferralSummary(user));
-      setReferralMessage("Claim request sent. TMpesa admin will review and settle the reward to your M-Pesa number.");
+      setReferralMessage("Claim request sent. Tcash admin will review and settle the reward to your M-Pesa number.");
     } catch (error) {
       setReferralError(error instanceof Error ? error.message : "Unable to claim referral reward.");
     }
@@ -252,7 +252,7 @@ function ProfilePage() {
               ) : null}
             </div>
             <h2 style={{ margin: "2px 0 0", overflowWrap: "anywhere", wordBreak: "break-word" }}>
-              {user?.username ? `@${user.username}` : user?.fullName || "TMpesa user"}
+              {user?.username ? `@${user.username}` : user?.fullName || "Tcash user"}
             </h2>
             <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.93rem" }}>
               Payout settings, referral rewards, and account tools.
@@ -278,7 +278,7 @@ function ProfilePage() {
             <Link to="/tmpesa-admin" className="button">
               Open Admin Desk
             </Link>
-            <div className="soft-note">Available only on the TMpesa operator account.</div>
+            <div className="soft-note">Available only on the Tcash operator account.</div>
           </div>
         ) : null}
       </section>
@@ -338,9 +338,9 @@ function ProfilePage() {
         <div className="split">
           <div>
             <span className="brand-kicker">Referral center</span>
-            <h3>Invite new World users to TMpesa</h3>
+            <h3>Invite new World users to Tcash</h3>
             <p className="muted">
-              Share your TMpesa link, track active traders, and claim referral rewards when a
+              Share your Tcash link, track active traders, and claim referral rewards when a
               milestone is unlocked.
             </p>
           </div>
@@ -397,7 +397,7 @@ function ProfilePage() {
           </button>
         </div>
         <div className="soft-note">
-          TMpesa records referred users, activated traders, and claim requests. Once you hit a live
+          Tcash records referred users, activated traders, and claim requests. Once you hit a live
           milestone, claim it here and the admin payout queue is notified for M-Pesa settlement.
         </div>
         {referralSummary.pendingMilestones.length ? (
@@ -445,7 +445,7 @@ function ProfilePage() {
             <span className="brand-kicker">Push notifications</span>
             <h3>Get World App order alerts</h3>
             <p className="muted">
-              Turn on World notifications so TMpesa can alert you when an order is placed, reviewed, or completed. Alerts are delivered inside World App.
+              Turn on World notifications so Tcash can alert you when an order is placed, reviewed, or completed. Alerts are delivered inside World App.
             </p>
           </div>
           <span className={`status-pill ${notificationsEnabled ? "completed" : "pending"}`}>
@@ -466,7 +466,7 @@ function ProfilePage() {
         ) : (
           <div className="notice" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: "1.1rem" }}>🔔</span>
-            <span>World push notifications are active for your TMpesa account.</span>
+            <span>World push notifications are active for your Tcash account.</span>
           </div>
         )}
       </section>
@@ -496,10 +496,10 @@ function ProfilePage() {
       <section className="panel stack">
         <div className="split">
           <div>
-            <span className="brand-kicker">Rate TMpesa</span>
+            <span className="brand-kicker">Rate Tcash</span>
             <h3>Rate the live mini app</h3>
             <p className="muted">
-              Open the TMpesa World mini app entry to leave your rating in the live app
+              Open the Tcash World mini app entry to leave your rating in the live app
               experience.
             </p>
           </div>
@@ -515,8 +515,8 @@ function ProfilePage() {
         </div>
         <div className="notice">
           {ratingSummary.totalRatings
-            ? `TMpesa pulse: ${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} stored ratings.`
-            : "This opens the TMpesa World mini app entry for rating and feedback."}
+            ? `Tcash pulse: ${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} stored ratings.`
+            : "This opens the Tcash World mini app entry for rating and feedback."}
         </div>
       </section>
 
@@ -562,20 +562,20 @@ function ProfilePage() {
             className="profile-link-card"
             onClick={() =>
               openSupportEmail({
-                subject: "TMpesa privacy request",
-                body: "Hello TMpesa support,\n\nI have a privacy or account data question.",
+                subject: "Tcash privacy request",
+                body: "Hello Tcash support,\n\nI have a privacy or account data question.",
               })
             }
           >
             <strong>Privacy and account help</strong>
-            <span>Reach TMpesa support for account, data, and security questions.</span>
+            <span>Reach Tcash support for account, data, and security questions.</span>
           </button>
           <button
             type="button"
             className="profile-link-card"
             onClick={() =>
               openWhatsAppSupport({
-                message: "Hello TMpesa support,\n\nI need urgent help with my account or order.",
+                message: "Hello Tcash support,\n\nI need urgent help with my account or order.",
               })
             }
           >

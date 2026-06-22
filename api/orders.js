@@ -8,7 +8,7 @@ const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 const REDIS_ORDERS_KEY = "tmpesa:orders";
 const ADMIN_EMAIL = "brianokindo2022@gmail.com";
-const FROM_EMAIL = "TMpesa <onboarding@resend.dev>";
+const FROM_EMAIL = "Tcash <onboarding@resend.dev>";
 const ADMIN_WORLD_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
 const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
 const WORLD_NOTIFICATIONS_URL = "https://developer.worldcoin.org/api/v2/minikit/send-notification";
@@ -30,7 +30,7 @@ async function redisCommand(command) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || payload.error) {
-    throw new Error(payload.error || `TMpesa order store command ${command[0]} failed.`);
+    throw new Error(payload.error || `Tcash order store command ${command[0]} failed.`);
   }
 
   return payload.result;
@@ -129,7 +129,7 @@ function buildMiniAppPath(appId, miniAppPath = "/tmpesa-admin") {
 function getOrderUserLabel(order) {
   return order?.destinationUsername
     ? `@${order.destinationUsername}`
-    : order?.userLabel || "TMpesa user";
+    : order?.userLabel || "Tcash user";
 }
 
 async function fetchWithTimeout(url, options, timeoutMs = ADMIN_NOTIFY_TIMEOUT_MS) {
@@ -166,11 +166,11 @@ function buildOrderEmail(order) {
   ].filter(([, value]) => value);
 
   return {
-    subject: `TMpesa ${order.type?.toUpperCase()} order - ${order.cryptoAmount} ${order.asset}`,
+    subject: `Tcash ${order.type?.toUpperCase()} order - ${order.cryptoAmount} ${order.asset}`,
     html: `
       <div style="font-family:Arial,sans-serif;background:#0b0f1a;color:#f5f7ff;padding:24px">
         <div style="max-width:620px;margin:0 auto;background:#111827;border:1px solid #273348;border-radius:18px;padding:22px">
-          <p style="color:#9fb1d1;margin:0 0 8px">TMpesa admin notification</p>
+          <p style="color:#9fb1d1;margin:0 0 8px">Tcash admin notification</p>
           <h1 style="font-size:22px;line-height:1.25;margin:0 0 18px">
             ${escapeHtml(isSell ? "New sell order needs M-Pesa payout" : "New buy order needs confirmation")}
           </h1>
@@ -186,7 +186,7 @@ function buildOrderEmail(order) {
               )
               .join("")}
           </table>
-          <p style="color:#9fb1d1;margin:18px 0 0">Open TMpesa admin to pay and mark this order completed.</p>
+          <p style="color:#9fb1d1;margin:18px 0 0">Open Tcash admin to pay and mark this order completed.</p>
         </div>
       </div>
     `,
@@ -246,7 +246,7 @@ async function notifyAdminWorld(order) {
       localisations: [
         {
           language: "en",
-          title: "New TMpesa order",
+          title: "New Tcash order",
           message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
         },
       ],
@@ -337,7 +337,7 @@ export default async function handler(req, res) {
       pendingSetup: true,
       orders: [],
       message:
-        "Connect Upstash Redis (or set BLOB_READ_WRITE_TOKEN) so TMpesa can share orders with admin.",
+        "Connect Upstash Redis (or set BLOB_READ_WRITE_TOKEN) so Tcash can share orders with admin.",
     });
     return;
   }
@@ -409,7 +409,7 @@ export default async function handler(req, res) {
     if (!orders.length) {
       sendJson(res, 400, {
         ok: false,
-        error: "Send at least one valid TMpesa order.",
+        error: "Send at least one valid Tcash order.",
       });
       return;
     }

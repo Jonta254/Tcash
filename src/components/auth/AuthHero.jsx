@@ -6,7 +6,7 @@ function AuthHero() {
   return (
     <section className="hero-card hero-card-featured stack">
       <div className="hero-topline">
-        <span className="brand-kicker">TMpesa</span>
+        <span className="brand-kicker">Tcash</span>
         <span className="live-badge">Live rates</span>
       </div>
       <div>

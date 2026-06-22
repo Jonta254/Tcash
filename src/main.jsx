@@ -20,7 +20,7 @@ try {
   initializeTheme();
   void backfillExistingOrdersToAdminQueue().catch(() => null);
 } catch (error) {
-  console.warn("TMpesa boot setup skipped", error);
+  console.warn("Tcash boot setup skipped", error);
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(

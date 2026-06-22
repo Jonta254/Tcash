@@ -183,7 +183,7 @@ function OrdersPage() {
             onClick={() =>
               openWhatsAppSupport({
                 message: [
-                  "Hello TMpesa support,",
+                  "Hello Tcash support,",
                   "",
                   "My payment or settlement is delayed.",
                   "",

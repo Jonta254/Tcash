@@ -82,7 +82,7 @@ function SellPage() {
       const payment = await requestWorldPayment({
         amount:      currentOrder.cryptoAmount,
         asset:       currentOrder.asset,
-        description: `TMpesa sell order ${currentOrder.id}`,
+        description: `Tcash sell order ${currentOrder.id}`,
         to:          settings.sellWalletAddress,
       });
       // Only block if the payment definitively failed (not just pending/unindexed)
@@ -205,7 +205,7 @@ function SellPage() {
                 <span>You receive</span>
                 <strong>{formatKES(kesAmount)}</strong>
               </div>
-              <p className="tsb-note">TMpesa fee included · Manual review required</p>
+              <p className="tsb-note">Tcash fee included · Manual review required</p>
             </div>
 
             {walletError  && <div className="error">{walletError}</div>}
@@ -341,7 +341,7 @@ function SellPage() {
               >
                 {sendLoading
                   ? "Opening World payment…"
-                  : `Send ${currentOrder.cryptoAmount} ${currentOrder.asset} to TMpesa`}
+                  : `Send ${currentOrder.cryptoAmount} ${currentOrder.asset} to Tcash`}
               </button>
             </>
           ) : (
@@ -349,7 +349,7 @@ function SellPage() {
               <div className="highlight-box">
                 <strong>Send manually then confirm</strong>
                 <p className="muted">
-                  Transfer crypto to the TMpesa wallet and paste the blockchain transaction hash.
+                  Transfer crypto to the Tcash wallet and paste the blockchain transaction hash.
                 </p>
               </div>
               <div className="field">

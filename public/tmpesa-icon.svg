@@ -38,6 +38,6 @@
   <path d="M237 212L221 202L234 188" stroke="url(#gold)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="196" cy="120" r="14" fill="#C6FFF2" fill-opacity="0.14" stroke="#73F6C9"/>
   <circle cx="319" cy="243" r="12" fill="#FFE4A5" fill-opacity="0.14" stroke="#E7BA58"/>
-  <text x="256" y="398" fill="#F6F8FF" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="700" text-anchor="middle">TMpesa</text>
-  <text x="256" y="432" fill="#97ADD3" font-family="Segoe UI, Arial, sans-serif" font-size="18" text-anchor="middle">World cash desk</text>
+  <text x="256" y="398" fill="#F6F8FF" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="700" text-anchor="middle">Tcash</text>
+  <text x="256" y="432" fill="#97ADD3" font-family="Segoe UI, Arial, sans-serif" font-size="18" text-anchor="middle">Crypto cash desk</text>
 </svg>

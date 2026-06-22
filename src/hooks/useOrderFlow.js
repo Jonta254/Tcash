@@ -175,7 +175,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       setError(
         nextError instanceof Error
           ? nextError.message
-          : "TMpesa could not start this order. Please try again.",
+          : "Tcash could not start this order. Please try again.",
       );
       return null;
     }

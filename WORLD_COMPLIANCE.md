@@ -42,8 +42,8 @@ Legend: ✅ done · ⚠️ partial / verify in World App · ⛔ owner action req
 | B1 | Live MiniKit/IDKit integration that works in testing | ✅ | Wallet Auth (SIWE) + World Pay + permissions are live, not stubbed. |
 | B2 | App is complete & final (not demo/beta), all copy/functionality present | ✅ | Full buy/sell/wallet/history/support flows. Removed the "Coming soon" home strip (Price Alerts / Auto-Sell / Card / Analytics) that advertised unbuilt features — a non-final signal reviewers flag. |
 | B3 | No infinite loading; works on poor connections | ✅ | All network calls bounded (12s abort) + tolerant fallbacks; loading states reset in `finally`. |
-| B4 | Name: short; no "World"; no generic terms; **no trademarked words / popular-app mimicry (incl. letter/case substitution)** | ⛔ | **DECISION NEEDED.** "TMpesa" reads as the Safaricom trademark "M-Pesa" via letter substitution — a likely rejection trigger. Owner must decide: rebrand to a distinct name, or accept the risk. |
-| B5 | Description: plain language, ≤25 words, user-benefit focused | ⛔ | Owner: set the dev-portal short description to ≤25 plain words (see suggestion below). |
+| B4 | Name: short; no "World"; no generic terms; **no trademarked words / popular-app mimicry (incl. letter/case substitution)** | ✅ | Renamed **TMpesa → Tcash** across the whole app (drops the "pesa" string that mirrored the M-Pesa trademark). Owner still to verify "Tcash" trademark + World handle availability (an unrelated "TCash" mobile-money brand exists in some markets). |
+| B5 | Description: plain language, ≤25 words, user-benefit focused | ⚠️ | App `index.html`/manifest now use the 22-word description below. Owner: paste the same into the dev-portal short-description field. |
 | B6 | Data collection requires user consent; only collect relevant data | ⚠️ | App collects phone + M-Pesa number for settlement (relevant). Notification permission uses the documented request flow. Owner: ensure a privacy policy + in-portal data disclosure. |
 | B7 | Valid support email / reachable channel | ✅ | Support email + WhatsApp link reachable in-app (Support page). |
 | B8 | Regulatory compliance in all target jurisdictions (financial services) | ⛔ | Owner responsibility: crypto↔M-Pesa exchange is regulated in Kenya. Ensure licensing/compliance; World places this on the developer. |
@@ -61,11 +61,13 @@ Legend: ✅ done · ⚠️ partial / verify in World App · ⛔ owner action req
 - `src/pages/app/DashboardPage.jsx` — removed the "Coming soon" placeholder-feature strip (B2); fixed home balance chips that clipped the balance (e.g. `21....`) by showing 2 dp and stacking the live rate under the amount (A12 polish). Verified in mobile preview.
 - `src/pages/trade/{BuyPage,SellPage}.jsx` — removed the duplicate step-1 headers (TradePage already provides the heading + toggle), so the form reaches the fold with less scrolling (A2).
 
+- **Rebrand TMpesa → Tcash** — case-sensitive rename of the display name across all `src/`, `api/`, `index.html`, `site.webmanifest`, and the icon SVG; home monogram `M` → `T`; referral code prefix `TMP-` → `TC-`; manifest/meta description updated. Internal identifiers deliberately preserved (localStorage `worldtmpesa_*` keys, Redis/Blob `tmpesa:` keys, `/tmpesa-admin` route, repo name) so existing user data and the admin queue are not orphaned.
+
 All changes verified live in a 375×812 dark mobile preview before commit.
 
 ## D. Owner action items before re-submitting (dev portal / business)
 
-1. **App name (B4)** — strongly recommended: rebrand away from "TMpesa"/M-Pesa to a distinct, non-trademark name. This is the most probable cause of the design/quality rejection.
+1. **App name (B4)** — DONE in code: renamed to **Tcash**. Before submitting, verify "Tcash" is free of trademark conflicts and the World handle is available (an unrelated Telkomsel "TCash" mobile-money brand exists abroad). Update the dev-portal app name to **Tcash** and re-upload assets.
 2. **Short description (B5)** — set to ≤25 plain words. Suggested: *"Buy and sell WLD or USDC and settle to mobile money, with every order reviewed by a human operator."* (21 words; drop "M-Pesa" if rebranding.)
 3. **Icon (A10)** — confirm square, non-white background.
 4. **Content card image (A11)** — 345×240, no text, bottom 94px clear, PNG @3x, no metadata.

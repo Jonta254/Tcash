@@ -147,7 +147,7 @@ export default function DashboardPage() {
     haptic("medium");
     try {
       await shareMiniAppInvite({
-        title: "Join TMpesa",
+        title: "Join Tcash",
         text:  `Use code ${referralSummary.code} to trade WLD & USDC with M-Pesa in World App.`,
         url:   referralSummary.appLink,
       });
@@ -193,8 +193,8 @@ export default function DashboardPage() {
         {/* brand row */}
         <div className="hh-toprow">
           <div className="hh-brand">
-            <span className="hh-brand-mark" aria-hidden="true">M</span>
-            <span className="hh-brand-name">TMpesa</span>
+            <span className="hh-brand-mark" aria-hidden="true">T</span>
+            <span className="hh-brand-name">Tcash</span>
             {hasWorld && (
               <span className="hh-verified-chip">
                 <span className="hh-verified-dot" aria-hidden="true" />

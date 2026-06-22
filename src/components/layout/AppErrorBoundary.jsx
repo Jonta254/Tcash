@@ -14,23 +14,23 @@ class AppErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("TMpesa startup error", error, info);
+    console.error("Tcash startup error", error, info);
   }
 
   render() {
     if (this.state.hasError) {
       const encodedError = encodeURIComponent(
-        `TMpesa failed to load in World App.\n\nError: ${this.state.errorMessage}`,
+        `Tcash failed to load in World App.\n\nError: ${this.state.errorMessage}`,
       );
 
       return (
         <div className="page-bg">
           <section className="auth-layout">
             <div className="auth-card stack">
-              <span className="brand-kicker">TMpesa</span>
-              <h1 className="brand-title">Reload TMpesa</h1>
+              <span className="brand-kicker">Tcash</span>
+              <h1 className="brand-title">Reload Tcash</h1>
               <p className="muted">
-                World App had trouble loading this session. Close and reopen TMpesa, or tap reload.
+                World App had trouble loading this session. Close and reopen Tcash, or tap reload.
               </p>
               {this.state.errorMessage ? (
                 <div className="error">
@@ -42,7 +42,7 @@ class AppErrorBoundary extends Component {
               </button>
               <a
                 className="button-secondary"
-                href={`mailto:brianokindo2022@gmail.com?subject=TMpesa%20World%20App%20startup%20error&body=${encodedError}`}
+                href={`mailto:brianokindo2022@gmail.com?subject=Tcash%20World%20App%20startup%20error&body=${encodedError}`}
               >
                 Email Support
               </a>

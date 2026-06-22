@@ -1,7 +1,7 @@
 {
-  "name": "TMpesa",
-  "short_name": "TMpesa",
-  "description": "Manual WLD and USDC exchange with M-Pesa settlement.",
+  "name": "Tcash",
+  "short_name": "Tcash",
+  "description": "Buy and sell WLD or USDC and cash out to mobile money fast, with every order reviewed by a real person.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0f1a",

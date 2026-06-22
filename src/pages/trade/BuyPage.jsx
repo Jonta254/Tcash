@@ -124,7 +124,7 @@ function BuyPage() {
                 <span>You receive</span>
                 <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
               </div>
-              <p className="tsb-note">TMpesa fee included · Manual review required</p>
+              <p className="tsb-note">Tcash fee included · Manual review required</p>
             </div>
 
             {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput && (

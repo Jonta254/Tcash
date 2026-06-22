@@ -3,7 +3,7 @@ import { readStorage, removeStorage, writeStorage } from "./localStorage";
 
 const seedAdminUser = {
   id: "admin-001",
-  fullName: "WorldTMpesa Admin",
+  fullName: "Tcash Admin",
   phone: APP_CONFIG.admin.localPhone,
   mpesaPhoneNumber: APP_CONFIG.admin.localPhone,
   password: "Jonta@2003",

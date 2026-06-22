@@ -18,7 +18,7 @@
   <path d="M160 121L178 132L163 147" stroke="#FFD26D" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M157 160C151 167 144 170 137 170C124 170 113 162 110 150" stroke="#F7FAFF" stroke-width="7.5" stroke-linecap="round"/>
   <path d="M127 161L109 150L124 135" stroke="#FFD26D" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="258" y="148" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700">TMpesa</text>
+  <text x="258" y="148" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700">Tcash</text>
   <text x="258" y="198" fill="#A8BAD8" font-family="Segoe UI, Arial, sans-serif" font-size="28">World cash desk</text>
   <text x="84" y="316" fill="#F5F7FF" font-family="Segoe UI, Arial, sans-serif" font-size="70" font-weight="700">Crypto to cash</text>
   <text x="84" y="376" fill="#A6B9D8" font-family="Segoe UI, Arial, sans-serif" font-size="34">WLD and USDC with M-Pesa settlement</text>

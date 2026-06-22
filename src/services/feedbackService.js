@@ -21,7 +21,7 @@ export function saveUserRating(user, rating) {
   const numericRating = Number(rating);
 
   if (!user?.id) {
-    throw new Error("Sign in before rating TMpesa.");
+    throw new Error("Sign in before rating Tcash.");
   }
 
   if (!numericRating || numericRating < 1 || numericRating > 5) {

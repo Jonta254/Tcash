@@ -13,7 +13,7 @@ const NOTIFICATION_PERMISSION = "notifications";
 // After that, requestPermission returns already_requested and the user must
 // flip it on manually inside World App settings.
 const MANUAL_ENABLE_MESSAGE =
-  "World App shows the notifications prompt only once. Turn it on manually: World App → Settings → Apps → TMpesa → Notifications.";
+  "World App shows the notifications prompt only once. Turn it on manually: World App → Settings → Apps → Tcash → Notifications.";
 const PERMISSION_DISABLED_MESSAGE =
   "Notifications are switched off for World App on this phone. Enable them in your phone settings for World App, then try again.";
 const notificationPermissionCache = {
@@ -206,7 +206,7 @@ export async function connectWithWorldAppWallet() {
   const { data } = await runMiniKitCommand("walletAuth", {
     nonce,
     requestId: "tmpesa-wallet-auth",
-    statement: "Sign in to TMpesa inside World App",
+    statement: "Sign in to Tcash inside World App",
     expirationTime: new Date(Date.now() + 1000 * 60 * 10),
     notBefore: new Date(Date.now() - 1000 * 60),
   });
@@ -255,11 +255,11 @@ export function buildWorldAppDeeplink(path = "/") {
 
 export async function requestWorldPayment({ amount, asset = "WLD", description, to }) {
   if (!MiniKit.isInstalled()) {
-    throw new Error("Open TMpesa inside World App to send WLD without leaving the mini app.");
+    throw new Error("Open Tcash inside World App to send WLD without leaving the mini app.");
   }
 
   if (!canUseWorldPay(asset)) {
-    throw new Error(`${asset} payments inside TMpesa are not enabled yet.`);
+    throw new Error(`${asset} payments inside Tcash are not enabled yet.`);
   }
 
   if (!to?.trim()) {
@@ -281,7 +281,7 @@ export async function requestWorldPayment({ amount, asset = "WLD", description, 
     description,
     fallback: () => ({
       status: "error",
-      message: "Open TMpesa inside World App to complete this payment.",
+      message: "Open Tcash inside World App to complete this payment.",
     }),
   });
 
@@ -356,7 +356,7 @@ export async function getWorldNotificationPermissionState({ command = false } = 
 
 export async function requestWorldNotificationPermission() {
   if (!MiniKit.isInstalled()) {
-    throw new Error("Open TMpesa inside World App to enable order notifications.");
+    throw new Error("Open Tcash inside World App to enable order notifications.");
   }
 
   if (notificationPermissionRequest) {
@@ -451,7 +451,7 @@ export async function shareMiniAppInvite({ title, text, url }) {
       return { shared: true, via: "browser" };
     }
 
-    throw new Error("Open TMpesa inside World App to share your invite.");
+    throw new Error("Open Tcash inside World App to share your invite.");
   }
 
   await runMiniKitCommand("share", { title, text, url });
@@ -460,7 +460,7 @@ export async function shareMiniAppInvite({ title, text, url }) {
 
 export async function openWorldChatInvite({ message }) {
   if (!MiniKit.isInstalled()) {
-    throw new Error("Open TMpesa inside World App to send an invite through World Chat.");
+    throw new Error("Open Tcash inside World App to send an invite through World Chat.");
   }
 
   await runMiniKitCommand("chat", { message });

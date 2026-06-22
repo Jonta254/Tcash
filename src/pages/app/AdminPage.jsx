@@ -139,7 +139,7 @@ function AdminPage() {
           <div className="page-section-head">
             <div>
               <span className="brand-kicker">Operator access</span>
-              <h2>Open the TMpesa admin desk</h2>
+              <h2>Open the Tcash admin desk</h2>
               <p className="muted">
                 Sign in here to review orders, manage payouts, and update live trading settings.
               </p>
@@ -247,7 +247,7 @@ function AdminPage() {
       setOrderQueueError(
         error instanceof Error
           ? error.message
-          : "TMpesa could not save this status to the shared admin queue.",
+          : "Tcash could not save this status to the shared admin queue.",
       );
     }
 
@@ -267,7 +267,7 @@ function AdminPage() {
         WLD: String(nextFees.WLD),
         USDC: String(nextFees.USDC),
       });
-      setRateMessage("TMpesa fee settings updated successfully.");
+      setRateMessage("Tcash fee settings updated successfully.");
     } catch (error) {
       setRateError(error.message);
     }
@@ -309,7 +309,7 @@ function AdminPage() {
             <span className="brand-kicker">Admin panel</span>
             <h2>Manual confirmation and live settings</h2>
             <p className="muted">
-              Review orders, confirm referral payouts, and manage TMpesa's live operational setup.
+              Review orders, confirm referral payouts, and manage Tcash's live operational setup.
             </p>
           </div>
           <div className="mini-metrics">
@@ -340,7 +340,7 @@ function AdminPage() {
               <span className="brand-kicker">Admin alerts</span>
               <h3>Order and referral notifications</h3>
               <p className="muted">
-                TMpesa records admin alerts here and also attempts Gmail and World push delivery when configured.
+                Tcash records admin alerts here and also attempts Gmail and World push delivery when configured.
               </p>
             </div>
             <span className={`status-pill ${unreadAlerts.length ? "pending" : "completed"}`}>
@@ -377,7 +377,7 @@ function AdminPage() {
           <div>
             <h3>Live Price and Fee Control</h3>
             <p className="muted">
-              TMpesa now reads live WLD and USDC market prices from World's public price endpoint.
+              Tcash now reads live WLD and USDC market prices from World's public price endpoint.
               Set the KES fee deducted from each sell coin and added to each buy coin.
             </p>
           </div>
@@ -454,7 +454,7 @@ function AdminPage() {
               placeholder="0xRecipientWallet"
             />
             <span className="muted field-hint">
-              WLD sell orders use this wallet for the in-app send flow inside TMpesa.
+              WLD sell orders use this wallet for the in-app send flow inside Tcash.
             </span>
           </div>
 

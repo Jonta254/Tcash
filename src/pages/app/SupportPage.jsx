@@ -5,9 +5,9 @@ const GUIDE_SECTIONS = [
   {
     id: "getting-started",
     title: "Getting started",
-    summary: "How to begin using TMpesa",
+    summary: "How to begin using Tcash",
     points: [
-      "Connect your World wallet first so TMpesa can read your username and wallet session.",
+      "Connect your World wallet first so Tcash can read your username and wallet session.",
       "Save your M-Pesa payout number in Profile before placing sell orders or claiming referral rewards.",
       "Use Home to view your KES balance, live WLD and USDC rates, and quick actions.",
     ],
@@ -18,7 +18,7 @@ const GUIDE_SECTIONS = [
     summary: "Pay M-Pesa and receive WLD or USDC",
     points: [
       "Open Trade, choose Buy, and enter the KES amount you want to pay.",
-      "TMpesa shows the live quote with fee included before you submit the order.",
+      "Tcash shows the live quote with fee included before you submit the order.",
       "After M-Pesa payment is confirmed, the crypto is sent to your connected World wallet.",
     ],
   },
@@ -28,8 +28,8 @@ const GUIDE_SECTIONS = [
     summary: "Send WLD or USDC and receive KES",
     points: [
       "Open Trade, choose Sell, then enter the crypto amount you want to send.",
-      "TMpesa shows the live KES payout quote with fee included before submission.",
-      "After manual review, KES is sent to the M-Pesa number saved on your TMpesa profile.",
+      "Tcash shows the live KES payout quote with fee included before submission.",
+      "After manual review, KES is sent to the M-Pesa number saved on your Tcash profile.",
     ],
   },
   {
@@ -63,7 +63,7 @@ function SupportPage() {
   const supportEmailBody = useMemo(
     () =>
       [
-        "Hello TMpesa support,",
+        "Hello Tcash support,",
         "",
         "I need help with my account or order.",
         "",
@@ -75,7 +75,7 @@ function SupportPage() {
   const whatsappBody = useMemo(
     () =>
       [
-        "Hello TMpesa support,",
+        "Hello Tcash support,",
         "",
         "My payment or settlement is delayed and I need assistance.",
         "",
@@ -99,7 +99,7 @@ function SupportPage() {
       <section id="guide" className="panel stack">
         <div className="split">
           <div>
-            <span className="brand-kicker">TMpesa guide</span>
+            <span className="brand-kicker">Tcash guide</span>
             <h3>Simple answers for every user</h3>
             <p className="muted">Open a topic to get the answer quickly.</p>
           </div>
@@ -150,7 +150,7 @@ function SupportPage() {
             className="profile-link-card"
             onClick={() =>
               openSupportEmail({
-                subject: "TMpesa support request",
+                subject: "Tcash support request",
                 body: supportEmailBody,
               })
             }

@@ -64,7 +64,7 @@ async function postJson(url, body) {
 function getOrderUserLabel(order) {
   return order?.destinationUsername
     ? `@${order.destinationUsername}`
-    : order?.userLabel || "TMpesa user";
+    : order?.userLabel || "Tcash user";
 }
 
 async function notifyAdminWorldOrderCreated(order) {
@@ -76,7 +76,7 @@ async function notifyAdminWorldOrderCreated(order) {
 
   return postJson("/api/send-world-notification", {
     walletAddress,
-    title: "New TMpesa order",
+    title: "New Tcash order",
     message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
     miniAppPath: "/tmpesa-admin",
   });
@@ -149,11 +149,11 @@ export async function notifyWorldUserOrderCreated(order) {
   try {
     return await postJson("/api/send-world-notification", {
       walletAddress: order.userWalletAddress,
-      title: "TMpesa order received",
+      title: "Tcash order received",
       message:
         order.type === "sell"
-          ? `Hello ${username}, your ${order.asset} sell order is pending review. Open TMpesa to track payout progress.`
-          : `Hello ${username}, your ${order.asset} buy order is pending review. Open TMpesa to track payment progress.`,
+          ? `Hello ${username}, your ${order.asset} sell order is pending review. Open Tcash to track payout progress.`
+          : `Hello ${username}, your ${order.asset} buy order is pending review. Open Tcash to track payment progress.`,
       miniAppPath: "/orders",
     });
   } catch {
@@ -169,22 +169,22 @@ export async function notifyWorldUserOrderStatus(order, status) {
   const username = getOrderUserLabel(order);
   const copyByStatus = {
     paid: {
-      title: "TMpesa order under review",
+      title: "Tcash order under review",
       message:
         order.type === "sell"
-          ? `Hello ${username}, your sell order is now under manual review. TMpesa will notify you when payout is completed.`
-          : `Hello ${username}, your buy payment is now under manual review. TMpesa will notify you when crypto is sent.`,
+          ? `Hello ${username}, your sell order is now under manual review. Tcash will notify you when payout is completed.`
+          : `Hello ${username}, your buy payment is now under manual review. Tcash will notify you when crypto is sent.`,
     },
     completed: {
-      title: "TMpesa order completed",
+      title: "Tcash order completed",
       message:
         order.type === "sell"
           ? `Hello ${username}, your sell order is completed and KES payout has been processed.`
           : `Hello ${username}, your buy order is completed and crypto has been released to your wallet.`,
     },
     rejected: {
-      title: "TMpesa order update",
-      message: `Hello ${username}, your order was marked as rejected. Open TMpesa support for the next step.`,
+      title: "Tcash order update",
+      message: `Hello ${username}, your order was marked as rejected. Open Tcash support for the next step.`,
     },
   };
 

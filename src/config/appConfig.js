@@ -3,7 +3,7 @@ const RESOLVED_WORLD_APP_ID =
   (import.meta.env.VITE_WORLD_APP_ID || "").trim() || FALLBACK_WORLD_APP_ID;
 
 export const APP_CONFIG = {
-  appName: "TMpesa",
+  appName: "Tcash",
   repoName: "WorldTMpesa",
   worldAppId: RESOLVED_WORLD_APP_ID,
   admin: {

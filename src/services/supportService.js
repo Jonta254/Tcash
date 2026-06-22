@@ -54,11 +54,11 @@ export function openWhatsAppSupport({ message }) {
 export function openOrderSupportEmail(order, mode = "support") {
   const subject =
     mode === "delay"
-      ? `TMpesa payment delay help - Order ${order.id}`
-      : `TMpesa support request - Order ${order.id}`;
+      ? `Tcash payment delay help - Order ${order.id}`
+      : `Tcash support request - Order ${order.id}`;
 
   const body = [
-    `Hello TMpesa team,`,
+    `Hello Tcash team,`,
     "",
     mode === "delay"
       ? "My payment or settlement appears delayed and I need assistance."
@@ -80,7 +80,7 @@ export function openOrderSupportEmail(order, mode = "support") {
   if (mode === "delay") {
     openWhatsAppSupport({
       message: [
-        "Hello TMpesa team,",
+        "Hello Tcash team,",
         "",
         "My payment or settlement seems delayed. Please review my order and assist me.",
         "",

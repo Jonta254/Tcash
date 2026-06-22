@@ -260,7 +260,7 @@ export function updateOrder(orderId, changes, fallbackOrder = null, options = {}
           eventType: "milestone",
           referralCode: nextOrder.referredByCode,
           referrerUsername: resolvedReferrer.username || "",
-          referrerLabel: resolvedReferrer.fullName || resolvedReferrer.phone || "TMpesa referrer",
+          referrerLabel: resolvedReferrer.fullName || resolvedReferrer.phone || "Tcash referrer",
           referrerMpesaPhoneNumber: resolvedReferrer.mpesaPhoneNumber || "",
           referredUsername: nextOrder.destinationUsername || "",
           referredLabel: nextOrder.userLabel || "Activated user",

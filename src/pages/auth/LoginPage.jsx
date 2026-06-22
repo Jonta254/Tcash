@@ -43,7 +43,7 @@ function LoginPage() {
     const currentUser = getCurrentUser();
 
     if (!currentUser) {
-      throw new Error("TMpesa could not save your login session. Please try again.");
+      throw new Error("Tcash could not save your login session. Please try again.");
     }
 
     const nextPath = getPostLoginPath(currentUser);
@@ -79,7 +79,7 @@ function LoginPage() {
         findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
 
       setAuthStage("unlock");
-      setAuthStatus("Opening your TMpesa session...");
+      setAuthStatus("Opening your Tcash session...");
 
       loginWithWorldApp(profile, {
         firstAccessVerified: existingUser?.firstAccessVerified || false,
@@ -97,7 +97,7 @@ function LoginPage() {
           eventType: "signup",
           referralCode,
           referrerUsername: referrer?.username || "",
-          referrerLabel: referrer?.fullName || referrer?.phone || "TMpesa referrer",
+          referrerLabel: referrer?.fullName || referrer?.phone || "Tcash referrer",
           referrerMpesaPhoneNumber: referrer?.mpesaPhoneNumber || "",
           referredUsername: profile.username || "",
           referredLabel: profile.fullName || profile.username || "New user",
@@ -125,14 +125,14 @@ function LoginPage() {
         <section className="auth-card stack auth-entry-card auth-splash-card">
           <div className="auth-splash-top">
             <div className="auth-logo-frame">
-              <img src="/tmpesa-icon.svg" alt="TMpesa" className="auth-logo-mark" />
+              <img src="/tmpesa-icon.svg" alt="Tcash" className="auth-logo-mark" />
             </div>
             <div className="auth-splash-copy">
               <div className="auth-title-row">
                 <span className="brand-kicker">World mini app</span>
                 <span className="live-badge">Wallet Auth</span>
               </div>
-              <h2>TMpesa</h2>
+              <h2>Tcash</h2>
               <p className="muted">Buy and sell WLD or USDC with M-Pesa inside World App.</p>
             </div>
           </div>
@@ -149,7 +149,7 @@ function LoginPage() {
             <div className="auth-gate-copy">
               <div>
                 <span className="tag">Wallet Auth</span>
-                <h3>Enter TMpesa through World App</h3>
+                <h3>Enter Tcash through World App</h3>
               </div>
               <p className="muted">Approve once, open your wallet session, and start trading.</p>
             </div>
@@ -181,8 +181,8 @@ function LoginPage() {
             </button>
             <div className="notice auth-inline-note">
               {worldApp.isInstalled
-                ? "World App detected. TMpesa will open your wallet session and continue inside the app."
-                : "Open TMpesa inside World App to continue with wallet authentication."}
+                ? "World App detected. Tcash will open your wallet session and continue inside the app."
+                : "Open Tcash inside World App to continue with wallet authentication."}
             </div>
             {!worldApp.isInstalled && settings.worldAppId ? (
               <div className="soft-note">
