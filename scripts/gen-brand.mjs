@@ -78,6 +78,24 @@ const metaSvg = `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="ht
   <text x="662" y="372" fill="#9FB1D1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500">Crypto to mobile-money cash.</text>
 </svg>`;
 
+// 1080x1920 portrait showcase panels (text allowed). Clean, on-brand.
+const showcase = (l1, l2, sub) => `<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>${DEFS}
+    <linearGradient id="scbg" x1="0" y1="0" x2="1080" y2="1920" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A1730"/><stop offset="1" stop-color="#0B0F1A"/>
+    </linearGradient>
+    <linearGradient id="scword" x1="120" y1="900" x2="900" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF2FF"/><stop offset="1" stop-color="#9AE7FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#scbg)"/>
+  <g transform="translate(284,326) scale(1.0)">${MARK}</g>
+  <text x="540" y="800" fill="#7DE0C0" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="800" letter-spacing="8" text-anchor="middle">TCASH</text>
+  <text x="540" y="1080" fill="url(#scword)" font-family="Arial, Helvetica, sans-serif" font-size="104" font-weight="800" text-anchor="middle">${l1}</text>
+  <text x="540" y="1200" fill="url(#scword)" font-family="Arial, Helvetica, sans-serif" font-size="104" font-weight="800" text-anchor="middle">${l2}</text>
+  <text x="540" y="1310" fill="#9FB1D1" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="500" text-anchor="middle">${sub}</text>
+</svg>`;
+
 const out = (name, svg, w) => {
   const png = new Resvg(svg, { fitTo: { mode: "width", value: w } }).render().asPng();
   writeFileSync(new URL(`../public/${name}`, import.meta.url), png);
@@ -87,3 +105,6 @@ const out = (name, svg, w) => {
 out("tcash-logo.png", logoSvg, 512);
 out("tcash-card.png", cardSvg, 1035);
 out("tcash-meta.png", metaSvg, 1200);
+out("tcash-showcase-1.png", showcase("Buy &amp; sell", "WLD and USDC", "Trade crypto right inside World App."), 1080);
+out("tcash-showcase-2.png", showcase("Cash out to", "mobile money", "Receive KES fast after a quick review."), 1080);
+out("tcash-showcase-3.png", showcase("Reviewed by", "a real person", "Every order checked before it settles."), 1080);
