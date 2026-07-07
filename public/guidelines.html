@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Tcash — User Guidelines</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; background: #0b0f1a; color: #e7edf7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 8px; color: #9ae7ff; }
+  h3 { font-size: 0.97rem; margin: 18px 0 6px; color: #c9d7ff; }
+  p, li { color: #c2cde0; }
+  a { color: #7de0c0; }
+  .muted { color: #8b99b4; font-size: 0.9rem; }
+  .rule-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.14);
+    border-radius: 12px; padding: 16px 20px; margin: 10px 0;
+  }
+  .rule-card strong { color: #e7edf7; }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; margin-left: 8px; vertical-align: middle;
+  }
+  .badge-ok  { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .badge-no  { background: rgba(248,113,113,0.15); color: #f87171; }
+  .nav-links { display: flex; gap: 16px; flex-wrap: wrap; margin: 20px 0; }
+  .nav-links a { color: #7de0c0; font-size: 0.9rem; }
+  .section-divider { border: none; border-top: 1px solid rgba(148,163,184,0.12); margin: 28px 0; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Tcash User Guidelines</h1>
+    <p class="muted">Last updated: July 2026</p>
+
+    <p>Tcash is a World mini app that lets verified World App users buy and sell WLD and USDC
+    with Kenyan Shilling (KES) settlement over mobile money. These guidelines explain how Tcash
+    works, what we expect from users, and what you can expect from us.</p>
+
+    <div class="nav-links">
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms &amp; Conditions</a>
+    </div>
+
+    <hr class="section-divider" />
+
+    <h2>1. Who can use Tcash</h2>
+    <div class="rule-card">
+      <strong>Age requirement</strong> <span class="badge badge-ok">Required</span>
+      <p>You must be at least 18 years old. Tcash is not available to minors.</p>
+    </div>
+    <div class="rule-card">
+      <strong>World App account</strong> <span class="badge badge-ok">Required</span>
+      <p>You must have a genuine, active World App account and sign in using World Wallet Auth. Shared, borrowed, or fictitious accounts are not permitted.</p>
+    </div>
+    <div class="rule-card">
+      <strong>Kenya mobile-money access</strong>
+      <p>Tcash settles in KES via M-Pesa (Safaricom) or Airtel Money. You need a registered Kenyan mobile-money number to receive sell payouts or referral rewards.</p>
+    </div>
+    <div class="rule-card">
+      <strong>Lawful use</strong> <span class="badge badge-ok">Required</span>
+      <p>You are responsible for ensuring your use of Tcash complies with the laws and regulations that apply to you in your jurisdiction.</p>
+    </div>
+
+    <hr class="section-divider" />
+
+    <h2>2. How orders work</h2>
+
+    <h3>Buy orders (M-Pesa → WLD or USDC)</h3>
+    <ol>
+      <li>Enter the KES amount you want to pay. Tcash shows you a live quote with the applicable fee before you submit.</li>
+      <li>Pay the exact amount to the Tcash M-Pesa PayBill shown on screen — include your unique order reference as the account number.</li>
+      <li>Submit your M-Pesa transaction code after payment. The admin operator will verify the payment and release the equivalent WLD or USDC to your World wallet.</li>
+    </ol>
+
+    <h3>Sell orders (WLD or USDC → KES)</h3>
+    <ol>
+      <li>Enter the crypto amount you want to sell. Tcash shows a live KES payout quote with fee before you submit.</li>
+      <li>Approve the World Pay transaction inside World App. Tcash confirms the on-chain payment with the World Developer Portal.</li>
+      <li>After the admin operator reviews and confirms receipt, KES is sent to your saved M-Pesa payout number.</li>
+    </ol>
+
+    <h3>Settlement times</h3>
+    <p>All orders are manually reviewed. Typical settlement is within a few hours during business hours.
+    If an order is not settled within 24 hours, contact support via WhatsApp or email.</p>
+
+    <h3>Rates and fees</h3>
+    <p>Exchange rates are updated from live market data. A per-coin fee applies to every order and
+    is shown in the quote before you confirm. Rates can move between quote and settlement, especially
+    in volatile markets. The settled rate is the one active when the admin processes the order.</p>
+
+    <hr class="section-divider" />
+
+    <h2>3. Your responsibilities</h2>
+    <div class="rule-card">
+      <strong>Accurate details</strong>
+      <p>Provide a correct M-Pesa payout number, accurate transaction codes, and truthful order information. Errors in your payout number can result in funds being sent to the wrong account.</p>
+    </div>
+    <div class="rule-card">
+      <strong>Only your funds</strong>
+      <p>Only use funds and wallets that you legally own and are entitled to transact with. Do not transact on behalf of a third party without their explicit consent.</p>
+    </div>
+    <div class="rule-card">
+      <strong>Single account</strong>
+      <p>Use one World account per user. Operating multiple accounts to exploit the referral program or any Tcash feature is prohibited.</p>
+    </div>
+    <div class="rule-card">
+      <strong>No fraudulent activity</strong> <span class="badge badge-no">Prohibited</span>
+      <p>Do not submit false payment codes, reverse payments after crypto is released, or engage in any form of fraud, deception, or manipulation of the order process.</p>
+    </div>
+    <div class="rule-card">
+      <strong>No illegal activity</strong> <span class="badge badge-no">Prohibited</span>
+      <p>Tcash must not be used for money laundering, financing illegal activity, circumventing sanctions, or any other unlawful purpose.</p>
+    </div>
+
+    <hr class="section-divider" />
+
+    <h2>4. Referral program rules</h2>
+    <div class="rule-card">
+      <strong>Genuine referrals only</strong>
+      <p>Referral rewards are for inviting real, new World App users who trade on Tcash. Self-referrals, fake accounts, and reward manipulation are prohibited and will result in account suspension.</p>
+    </div>
+    <div class="rule-card">
+      <strong>Reward eligibility</strong>
+      <p>Base reward (KES 30) is credited when a referred user completes their first trade. Milestone bonuses (KES 100 at 6 activated referrals, KES 150 at 10) require reaching the milestone threshold with genuine trades.</p>
+    </div>
+    <div class="rule-card">
+      <strong>Reward claims</strong>
+      <p>Claims are reviewed manually and settled to your saved M-Pesa payout number. Tcash reserves the right to withhold rewards that appear fraudulent or manipulated.</p>
+    </div>
+
+    <hr class="section-divider" />
+
+    <h2>5. Order disputes and refunds</h2>
+    <p>Contact Tcash support as soon as possible if:</p>
+    <ul>
+      <li>A buy order is not settled after you have paid M-Pesa.</li>
+      <li>A sell order KES payout has not arrived within 24 hours.</li>
+      <li>You believe there is an error in the amount settled.</li>
+    </ul>
+    <p>Tcash will investigate and, where possible, refund or reverse the order. Once an order is
+    marked completed and funds have been sent, reversals may not be possible. Contact support before
+    placing a duplicate order.</p>
+
+    <hr class="section-divider" />
+
+    <h2>6. Notifications</h2>
+    <p>Tcash uses World App push notifications to alert you when an order is placed, reviewed, or
+    completed. Notifications require your explicit permission inside World App. You can enable or
+    disable notifications at any time in Profile.</p>
+
+    <hr class="section-divider" />
+
+    <h2>7. Account suspension and termination</h2>
+    <p>Tcash may suspend or terminate access to your account if you:</p>
+    <ul>
+      <li>Violate these guidelines, the Terms &amp; Conditions, or applicable laws.</li>
+      <li>Submit fraudulent payment information or attempt to defraud the service.</li>
+      <li>Abuse the referral program with fake accounts or self-referrals.</li>
+      <li>Engage in or facilitate money laundering or illegal transactions.</li>
+    </ul>
+    <p>In cases of suspension, any pending orders will be reviewed individually and settled or
+    reversed at Tcash's discretion.</p>
+
+    <hr class="section-divider" />
+
+    <h2>8. Limitations of service</h2>
+    <ul>
+      <li><strong>Manual settlement</strong> — All orders are processed by a human operator. Settlement is not instant or automated.</li>
+      <li><strong>Trade limits</strong> — Buy orders: KES 600–20,000. Sell orders: minimum USD equivalent of $1. Limits may change without prior notice.</li>
+      <li><strong>Kenya only</strong> — Mobile-money settlement is available via M-Pesa Kenya and Airtel Kenya. International settlement is not currently supported.</li>
+      <li><strong>Single admin desk</strong> — One operator manages all orders. High volume periods may cause delays.</li>
+    </ul>
+
+    <hr class="section-divider" />
+
+    <h2>9. Risk disclosure</h2>
+    <p>Cryptocurrency values can change significantly in a short time. The KES amount you receive
+    for a sell order depends on the rate active when your order is processed, which may differ from
+    the quote shown at submission. Tcash does not guarantee any particular exchange rate or payout
+    amount. Trading crypto carries financial risk, including the possibility of receiving less than
+    you expected. Only trade amounts you can afford to lose.</p>
+
+    <hr class="section-divider" />
+
+    <h2>10. Contact and support</h2>
+    <p>For order issues, account questions, privacy requests, or abuse reports:</p>
+    <ul>
+      <li><strong>Email:</strong> <a href="mailto:brianokindo2022@gmail.com">brianokindo2022@gmail.com</a></li>
+      <li><strong>WhatsApp:</strong> Available for urgent payment delay support via the Support page inside Tcash.</li>
+    </ul>
+    <p>For privacy-specific requests (access, correction, or deletion of your data), email us with the subject "Privacy request" and include your World username.</p>
+
+    <hr class="section-divider" />
+
+    <div class="nav-links">
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms &amp; Conditions</a>
+    </div>
+    <p class="muted">These guidelines are part of the Tcash Terms &amp; Conditions. Continued use of Tcash means you accept these guidelines.</p>
+  </div>
+</body>
+</html>

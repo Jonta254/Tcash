@@ -4,7 +4,7 @@ const RESOLVED_WORLD_APP_ID =
 
 export const APP_CONFIG = {
   appName: "Tcash",
-  repoName: "WorldTMpesa",
+  repoName: "Tcash",
   worldAppId: RESOLVED_WORLD_APP_ID,
   admin: {
     worldWalletAddress: "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc",

@@ -47,7 +47,7 @@ function AppShell() {
   const [notificationPromptError,     setNotificationPromptError]     = useState("");
   const [notificationRequestInFlight, setNotificationRequestInFlight] = useState(false);
   const [entryPromptKey] = useState(
-    () => `${user?.id || user?.username || "tmpesa"}:${Date.now()}`,
+    () => `${user?.id || user?.username || "tcash"}:${Date.now()}`,
   );
 
   /* scroll to top on route change */
@@ -141,7 +141,7 @@ function AppShell() {
         {!isDashboard && (
           <header className="topbar topbar-shell">
             <div className="shell-brand">
-              <img src="/tmpesa-icon.svg" alt="Tcash" className="shell-brand-logo" />
+              <img src="/tcash-logo.png" alt="Tcash" className="shell-brand-logo" />
               <div className="shell-brand-copy">
                 <span className="shell-brand-name">{APP_CONFIG.appName}</span>
                 <span className="shell-brand-status">

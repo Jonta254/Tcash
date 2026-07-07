@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+
 import { useThemeMode } from "../../hooks/useThemeMode";
 import {
   createReferralClaim,
@@ -543,6 +544,32 @@ function ProfilePage() {
             <span>Joined</span>
             <strong>{formatJoinedDate(user?.createdAt)}</strong>
           </div>
+        </div>
+        <div className="profile-links-grid" style={{ marginTop: 8 }}>
+          <Link to="/guidelines" className="profile-link-card" style={{ textDecoration: "none" }}>
+            <strong>User Guidelines</strong>
+            <span>Rules, trade limits, referral terms, and risk disclosure.</span>
+          </Link>
+          <a
+            href="/terms.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-card"
+            style={{ textDecoration: "none" }}
+          >
+            <strong>Terms &amp; Conditions</strong>
+            <span>Full legal terms for using Tcash.</span>
+          </a>
+          <a
+            href="/privacy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-card"
+            style={{ textDecoration: "none" }}
+          >
+            <strong>Privacy Policy</strong>
+            <span>How Tcash handles your data and your rights.</span>
+          </a>
         </div>
       </section>
 

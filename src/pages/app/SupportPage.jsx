@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { getCurrentUser, openSupportEmail, openWhatsAppSupport } from "../../services";
 
 const GUIDE_SECTIONS = [
@@ -170,6 +171,36 @@ function SupportPage() {
             <strong>Payment delay support</strong>
             <span>Open WhatsApp when a payment, payout, or crypto delivery needs quick follow-up.</span>
           </button>
+        </div>
+      </section>
+
+      <section className="panel stack">
+        <span className="brand-kicker">Legal and policies</span>
+        <div className="profile-links-grid">
+          <Link to="/guidelines" className="profile-link-card" style={{ textDecoration: "none" }}>
+            <strong>User Guidelines</strong>
+            <span>Rules, responsibilities, trade limits, referral rules, and risk disclosure.</span>
+          </Link>
+          <a
+            href="/terms.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-card"
+            style={{ textDecoration: "none" }}
+          >
+            <strong>Terms &amp; Conditions</strong>
+            <span>The full terms governing your use of Tcash.</span>
+          </a>
+          <a
+            href="/privacy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-link-card"
+            style={{ textDecoration: "none" }}
+          >
+            <strong>Privacy Policy</strong>
+            <span>What data Tcash collects, how it is used, and your data rights.</span>
+          </a>
         </div>
       </section>
     </div>

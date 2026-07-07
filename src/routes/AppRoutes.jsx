@@ -5,6 +5,7 @@ import ProtectedRoute from "../components/layout/ProtectedRoute";
 
 const AdminPage = lazy(() => import("../pages/app/AdminPage"));
 const DashboardPage = lazy(() => import("../pages/app/DashboardPage"));
+const GuidelinesPage = lazy(() => import("../pages/app/GuidelinesPage"));
 const OrdersPage = lazy(() => import("../pages/app/OrdersPage"));
 const ProfilePage = lazy(() => import("../pages/app/ProfilePage"));
 const SupportPage = lazy(() => import("../pages/app/SupportPage"));
@@ -48,8 +49,10 @@ function AppRoutes() {
         <Route path="orders" element={withSuspense(<OrdersPage />)} />
         <Route path="profile" element={withSuspense(<ProfilePage />)} />
         <Route path="support" element={withSuspense(<SupportPage />)} />
+        <Route path="guidelines" element={withSuspense(<GuidelinesPage />)} />
         <Route path="admin" element={withSuspense(<AdminPage />)} />
         <Route path="tmpesa-admin" element={withSuspense(<AdminPage />)} />
+        <Route path="tcash-admin" element={withSuspense(<AdminPage />)} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

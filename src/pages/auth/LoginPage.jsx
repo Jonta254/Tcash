@@ -125,7 +125,7 @@ function LoginPage() {
         <section className="auth-card stack auth-entry-card auth-splash-card">
           <div className="auth-splash-top">
             <div className="auth-logo-frame">
-              <img src="/tmpesa-icon.svg" alt="Tcash" className="auth-logo-mark" />
+              <img src="/tcash-logo.png" alt="Tcash" className="auth-logo-mark" />
             </div>
             <div className="auth-splash-copy">
               <div className="auth-title-row">
