@@ -193,7 +193,20 @@ export default function DashboardPage() {
         {/* brand row */}
         <div className="hh-toprow">
           <div className="hh-brand">
-            <span className="hh-brand-mark" aria-hidden="true">T</span>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+              <rect width="28" height="28" rx="7" fill="#001A0F"/>
+              <rect width="28" height="28" rx="7" fill="url(#tcash-bg)" opacity="0.9"/>
+              <circle cx="14" cy="14" r="8" fill="none" stroke="#00C97A" strokeWidth="1.2" opacity="0.5"/>
+              <line x1="8" y1="14" x2="20" y2="14" stroke="#00C97A" strokeWidth="1.5" strokeLinecap="round"/>
+              <polyline points="16,10 20,14 16,18" fill="none" stroke="#00C97A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="9" cy="14" r="2" fill="#00C97A" opacity="0.8"/>
+              <defs>
+                <linearGradient id="tcash-bg" x1="0" y1="0" x2="28" y2="28">
+                  <stop offset="0%" stopColor="#00C97A" stopOpacity="0.18"/>
+                  <stop offset="100%" stopColor="#00C97A" stopOpacity="0.04"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <span className="hh-brand-name">Tcash</span>
             {hasWorld && (
               <span className="hh-verified-chip">
