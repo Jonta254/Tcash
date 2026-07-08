@@ -66,26 +66,20 @@ function BuyPage() {
   if (step === 1) {
     return (
       <div className="content-grid">
-        <section className="panel stack task-panel">
+        <section className="panel stack task-panel trade-panel-compact">
           {error && <div className="error">{error}</div>}
 
-          <div className="stack">
-            {(currentUser?.walletAddress || currentUser?.username) && (
-              <div className="info-box receipt-card">
-                <strong>Delivery destination</strong>
-                <span>Crypto is sent here after admin review.</span>
-                {currentUser?.username    && <code>@{currentUser.username}</code>}
-                {currentUser?.walletAddress && <code>Wallet connected</code>}
+          {(currentUser?.walletAddress || currentUser?.username) && (
+            <div className="trade-dest-strip">
+              <span className="tds-icon" aria-hidden="true">↓</span>
+              <div className="tds-text">
+                <strong>{currentUser?.username ? `@${currentUser.username}` : "Wallet connected"}</strong>
+                <span>Crypto delivered here after admin review</span>
               </div>
-            )}
-
-            <div className="field">
-              <label htmlFor="buyAsset">Asset</label>
-              <select id="buyAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
-                {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
             </div>
+          )}
 
+          <div className="trade-amount-row">
             <div className="field">
               <label htmlFor="buyAmountKes">Amount to pay (KES)</label>
               <input
@@ -98,50 +92,56 @@ function BuyPage() {
                 onChange={(e) => setBuyKesInput(e.target.value)}
                 placeholder="600"
               />
-              <span className="muted field-hint">
-                Limits: {formatKES(buyKesMin)} – {formatKES(buyKesMax)}
-              </span>
             </div>
-
-            {!currentUser?.walletAddress && !currentUser?.username && (
-              <div className="field">
-                <label htmlFor="walletAddress">Destination wallet address</label>
-                <input
-                  id="walletAddress"
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  placeholder="0xYourWalletAddress"
-                />
-              </div>
-            )}
-
-            <div className="trade-summary-box">
-              <div className="tsb-row">
-                <span>You pay</span>
-                <strong>{formatKES(kesAmount)}</strong>
-              </div>
-              <div className="tsb-row tsb-row-receive">
-                <span>You receive</span>
-                <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
-              </div>
-              <p className="tsb-note">Tcash fee included · Manual review required</p>
+            <div className="field">
+              <label htmlFor="buyAsset">Asset</label>
+              <select id="buyAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
+                {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
             </div>
-
-            {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput && (
-              <div className="notice">
-                Adjust so the total stays between {formatKES(buyKesMin)} and {formatKES(buyKesMax)}.
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="button"
-              onClick={handleCreateBuyOrder}
-              disabled={orderCreating}
-            >
-              {orderCreating ? "Placing order…" : "Confirm buy order"}
-            </button>
           </div>
+          <span className="muted field-hint trade-limits-hint">
+            Limits: {formatKES(buyKesMin)} – {formatKES(buyKesMax)}
+          </span>
+
+          {!currentUser?.walletAddress && !currentUser?.username && (
+            <div className="field">
+              <label htmlFor="walletAddress">Destination wallet address</label>
+              <input
+                id="walletAddress"
+                value={walletAddress}
+                onChange={(e) => setWalletAddress(e.target.value)}
+                placeholder="0xYourWalletAddress"
+              />
+            </div>
+          )}
+
+          <div className="trade-summary-box trade-summary-compact">
+            <div className="tsb-row">
+              <span>You pay</span>
+              <strong>{formatKES(kesAmount)}</strong>
+            </div>
+            <div className="tsb-row tsb-row-receive">
+              <span>You receive</span>
+              <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
+            </div>
+            <p className="tsb-note">Tcash fee included · Manual review required</p>
+          </div>
+
+          {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput && (
+            <div className="notice">
+              Adjust so the total stays between {formatKES(buyKesMin)} and {formatKES(buyKesMax)}.
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="button"
+            onClick={handleCreateBuyOrder}
+            disabled={orderCreating}
+          >
+            {orderCreating ? "Placing order…" : "Confirm buy order"}
+          </button>
         </section>
       </div>
     );
@@ -151,7 +151,7 @@ function BuyPage() {
   if (step === 3 && currentOrder) {
     return (
       <div className="content-grid">
-        <section className="panel stack task-panel">
+        <section className="panel stack task-panel trade-panel-compact">
           <div className="order-success-screen">
             <div className="oss-ring" aria-hidden="true">
               <span className="oss-check">✓</span>
@@ -195,7 +195,7 @@ function BuyPage() {
   /* ── STEP 2: Payment instructions ────────────────────────────── */
   return (
     <div className="content-grid">
-      <section className="panel stack task-panel">
+      <section className="panel stack task-panel trade-panel-compact">
 
         {/* Order placed banner */}
         {orderJustPlaced && currentOrder && (
@@ -246,10 +246,14 @@ function BuyPage() {
             <p className="pic-note">Pay on M-Pesa, then paste the confirmation code below.</p>
           </div>
 
-          <div className="info-box receipt-card">
-            <strong>Crypto delivery destination</strong>
-            {currentOrder.destinationUsername && <code>@{currentOrder.destinationUsername}</code>}
-            {currentOrder.walletAddress        && <code>Wallet connected</code>}
+          <div className="trade-dest-strip">
+            <span className="tds-icon" aria-hidden="true">↓</span>
+            <div className="tds-text">
+              <strong>
+                {currentOrder.destinationUsername ? `@${currentOrder.destinationUsername}` : "Wallet connected"}
+              </strong>
+              <span>Crypto delivery destination</span>
+            </div>
           </div>
 
           <div className="field">

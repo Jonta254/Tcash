@@ -132,26 +132,24 @@ function SellPage() {
   if (step === 1) {
     return (
       <div className="content-grid">
-        <section className="panel stack task-panel">
+        <section className="panel stack task-panel trade-panel-compact">
           {error && <div className="error">{error}</div>}
 
-          <div className="stack">
-            {(currentUser?.walletAddress || currentUser?.username) && (
-              <div className="info-box receipt-card">
-                <strong>M-Pesa payout number</strong>
-                <span>KES is sent here after admin review.</span>
-                <code>{payoutPhoneNumber || currentUser?.mpesaPhoneNumber || "Add your payout number"}</code>
-                {currentUser?.walletAddress && <code>Wallet connected</code>}
-              </div>
-            )}
-
-            <div className="field">
-              <label htmlFor="sellAsset">Asset</label>
-              <select id="sellAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
-                {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
+          <div className="trade-dest-strip trade-dest-strip-input">
+            <span className="tds-icon" aria-hidden="true">↑</span>
+            <div className="tds-text tds-text-input">
+              <label htmlFor="payoutPhoneNumber">M-Pesa payout number</label>
+              <input
+                id="payoutPhoneNumber"
+                className="tds-inline-input"
+                value={payoutPhoneNumber}
+                onChange={(e) => setPayoutPhoneNumber(e.target.value)}
+                placeholder="0712345678"
+              />
             </div>
+          </div>
 
+          <div className="trade-amount-row">
             <div className="field">
               <label htmlFor="cryptoAmount">Amount of {asset} to sell</label>
               <input
@@ -164,69 +162,62 @@ function SellPage() {
                 onChange={(e) => setCryptoAmount(e.target.value)}
                 placeholder="10"
               />
-              <span className="muted field-hint">
-                Minimum:{" "}
-                {sellMinAssetAmount
-                  ? `${formatCryptoAmount(sellMinAssetAmount)} ${asset}`
-                  : `live ${asset} equivalent`}
-              </span>
-              {selectedAssetBalance && (
-                <div className="inline-payment-form">
-                  <span className="muted field-hint">
-                    Available: {selectedAssetBalance.formattedBalance} {asset}
-                  </span>
-                  <button
-                    type="button"
-                    className="button-ghost"
-                    onClick={() => setCryptoAmount(selectedAssetBalance.formattedBalance)}
-                  >
-                    Use max
-                  </button>
-                </div>
-              )}
             </div>
-
             <div className="field">
-              <label htmlFor="payoutPhoneNumber">M-Pesa payout number</label>
-              <input
-                id="payoutPhoneNumber"
-                value={payoutPhoneNumber}
-                onChange={(e) => setPayoutPhoneNumber(e.target.value)}
-                placeholder="0712345678"
-              />
+              <label htmlFor="sellAsset">Asset</label>
+              <select id="sellAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
+                {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
             </div>
-
-            <div className="trade-summary-box">
-              <div className="tsb-row">
-                <span>You send</span>
-                <strong>{cryptoAmount || "0"} {asset}</strong>
-              </div>
-              <div className="tsb-row tsb-row-receive">
-                <span>You receive</span>
-                <strong>{formatKES(kesAmount)}</strong>
-              </div>
-              <p className="tsb-note">Tcash fee included · Manual review required</p>
-            </div>
-
-            {walletError  && <div className="error">{walletError}</div>}
-            {walletLoading && <div className="notice">Loading wallet balance…</div>}
-
-            {grossKesAmount < sellMinKesEquivalent && cryptoAmount && (
-              <div className="notice">
-                Increase the amount to at least the live value of{" "}
-                {APP_CONFIG.tradeLimits.sellMinUsdcEquivalent} USDC.
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="button"
-              onClick={handleCreateSellOrder}
-              disabled={orderCreating}
-            >
-              {orderCreating ? "Placing order…" : "Confirm sell order"}
-            </button>
           </div>
+          <div className="trade-hint-row">
+            <span className="muted field-hint trade-limits-hint">
+              Minimum:{" "}
+              {sellMinAssetAmount
+                ? `${formatCryptoAmount(sellMinAssetAmount)} ${asset}`
+                : `live ${asset} equivalent`}
+            </span>
+            {selectedAssetBalance && (
+              <button
+                type="button"
+                className="button-ghost trade-usemax-btn"
+                onClick={() => setCryptoAmount(selectedAssetBalance.formattedBalance)}
+              >
+                Use max · {selectedAssetBalance.formattedBalance} {asset}
+              </button>
+            )}
+          </div>
+
+          <div className="trade-summary-box trade-summary-compact">
+            <div className="tsb-row">
+              <span>You send</span>
+              <strong>{cryptoAmount || "0"} {asset}</strong>
+            </div>
+            <div className="tsb-row tsb-row-receive">
+              <span>You receive</span>
+              <strong>{formatKES(kesAmount)}</strong>
+            </div>
+            <p className="tsb-note">Tcash fee included · Manual review required</p>
+          </div>
+
+          {walletError  && <div className="error">{walletError}</div>}
+          {walletLoading && <div className="notice">Loading wallet balance…</div>}
+
+          {grossKesAmount < sellMinKesEquivalent && cryptoAmount && (
+            <div className="notice">
+              Increase the amount to at least the live value of{" "}
+              {APP_CONFIG.tradeLimits.sellMinUsdcEquivalent} USDC.
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="button"
+            onClick={handleCreateSellOrder}
+            disabled={orderCreating}
+          >
+            {orderCreating ? "Placing order…" : "Confirm sell order"}
+          </button>
         </section>
       </div>
     );
@@ -236,7 +227,7 @@ function SellPage() {
   if (step === 3 && currentOrder) {
     return (
       <div className="content-grid">
-        <section className="panel stack task-panel">
+        <section className="panel stack task-panel trade-panel-compact">
           <div className="order-success-screen">
             <div className="oss-ring" aria-hidden="true">
               <span className="oss-check">✓</span>
@@ -280,7 +271,7 @@ function SellPage() {
   /* ── STEP 2: Send crypto instructions ────────────────────────── */
   return (
     <div className="content-grid">
-      <section className="panel stack task-panel">
+      <section className="panel stack task-panel trade-panel-compact">
 
         {/* Order placed banner */}
         {orderJustPlaced && currentOrder && (
@@ -309,7 +300,7 @@ function SellPage() {
         </div>
 
         <div className="stack">
-          <div className="trade-summary-box">
+          <div className="trade-summary-box trade-summary-compact">
             <div className="tsb-row">
               <span>You send</span>
               <strong>{currentOrder.cryptoAmount} {currentOrder.asset}</strong>
@@ -320,9 +311,12 @@ function SellPage() {
             </div>
           </div>
 
-          <div className="info-box receipt-card">
-            <strong>M-Pesa payout number</strong>
-            <code>{currentOrder.payoutPhoneNumber}</code>
+          <div className="trade-dest-strip">
+            <span className="tds-icon" aria-hidden="true">↓</span>
+            <div className="tds-text">
+              <strong>{currentOrder.payoutPhoneNumber}</strong>
+              <span>M-Pesa payout number</span>
+            </div>
           </div>
 
           {canSendInsideMiniApp ? (

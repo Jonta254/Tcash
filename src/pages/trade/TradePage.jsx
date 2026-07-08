@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import BuyPage from "./BuyPage";
 import SellPage from "./SellPage";
 
@@ -17,19 +17,11 @@ function TradePage() {
   };
 
   return (
-    <div className="stack page-enter">
-      <section className="panel stack trade-desk-shell">
-        <div className="trade-desk-head">
-          <div className="trade-desk-copy">
-            <span className="brand-kicker">Trade desk</span>
-            <h2>Buy or sell WLD and USDC</h2>
-          </div>
-          <Link to="/orders" className="button-secondary">
-            Orders
-          </Link>
-        </div>
+    <div className="stack page-enter trade-page-compact">
+      <h1 className="sr-only">Trade — buy or sell WLD and USDC</h1>
 
-        <div className="trade-toggle trade-toggle-premium">
+      <section className="panel trade-desk-shell trade-desk-shell-compact">
+        <div className="trade-toggle trade-toggle-premium trade-toggle-compact">
           <button
             type="button"
             className={`trade-toggle-button trade-toggle-button-buy${activeTab === "buy" ? " active" : ""}`}
