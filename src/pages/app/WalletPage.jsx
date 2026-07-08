@@ -89,103 +89,66 @@ function WalletPage() {
     }
   };
 
+  const assetIconLabel = { WLD: "W", USDC: "$" };
+
   return (
-    <div className="stack page-enter">
-      <section className="panel profile-hero">
-        <div className="profile-hero-head">
+    <div className="stack page-enter wallet-page-compact">
+      <h1 className="sr-only">Wallet — balances and receive address</h1>
+
+      <section className="panel wallet-hero-compact">
+        <div className="wallet-hero-top">
           <div>
-            <span className="brand-kicker">Wallet</span>
-            <h2>Wallet</h2>
-            <p className="muted">Live balances and receive address.</p>
+            <span className="wallet-hero-label">Portfolio in KES</span>
+            <strong className="wallet-hero-total">{totalKes > 0 ? formatKES(totalKes) : "KES 0.00"}</strong>
           </div>
           <span className="live-badge">{user?.walletAddress ? "Connected" : "Not connected"}</span>
         </div>
-        <div className="profile-summary-grid">
-          <div className="profile-summary-card">
-            <span>World username</span>
-            <strong>{user?.username ? `@${user.username}` : "Unavailable"}</strong>
-          </div>
-          <div className="profile-summary-card">
-            <span>Wallet auth</span>
-            <strong>{user?.authMethod === "world-app" ? "Connected" : "Not connected"}</strong>
-          </div>
-          <div className="profile-summary-card">
-            <span>KES equivalent</span>
-            <strong>{totalKes > 0 ? formatKES(totalKes) : "KES 0.00"}</strong>
-          </div>
-        </div>
-      </section>
 
-      <section className="panel stack">
-        <div className="split">
-          <div>
-            <span className="brand-kicker">Balances</span>
-            <h3>Asset balances</h3>
-          </div>
-          <span className="market-panel-note">Live World wallet read</span>
-        </div>
         {walletError ? <div className="error">{walletError}</div> : null}
-        {walletLoading ? <div className="notice">Loading wallet balances...</div> : null}
+        {walletLoading ? <div className="notice">Loading wallet balances…</div> : null}
         {!user?.walletAddress ? (
           <div className="notice">Connect your World wallet to view live balances.</div>
         ) : (
-          <div className="wallet-asset-grid">
+          <div className="wallet-asset-row">
             {walletPortfolio.assets.map((asset) => (
-              <div key={asset.symbol} className="wallet-asset-card">
-                <span>{asset.name}</span>
-                <strong>{asset.formattedBalance}</strong>
-                <small>{asset.symbol}</small>
+              <div key={asset.symbol} className="wallet-asset-chip">
+                <span className={`wac-icon wac-icon-${asset.symbol.toLowerCase()}`} aria-hidden="true">
+                  {assetIconLabel[asset.symbol] || asset.symbol[0]}
+                </span>
+                <div className="wac-body">
+                  <span>{asset.symbol}</span>
+                  <strong>{asset.formattedBalance}</strong>
+                </div>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      <section id="receive" className="panel stack">
-        <div>
-          <span className="brand-kicker">Receive and deposit</span>
-          <h3>Receive address</h3>
-          <p className="muted">Receive WLD or USDC using your connected World wallet address.</p>
+      <section id="receive" className="panel wallet-receive-compact">
+        <span className="brand-kicker">Receive</span>
+        <div className="trade-dest-strip">
+          <span className="tds-icon" aria-hidden="true">⬡</span>
+          <div className="tds-text">
+            <strong>
+              {user?.walletAddress ? truncateAddress(user.walletAddress) : "Connect your World wallet first"}
+            </strong>
+            <span>{user?.username ? `@${user.username} · ` : ""}World Chain only — WLD or USDC</span>
+          </div>
         </div>
-        <div className="info-box">
-          <strong>Wallet address</strong>
-          <code style={{ wordBreak: "break-all", fontSize: "0.82em" }}>
-            {user?.walletAddress ? truncateAddress(user.walletAddress) : "Connect your World wallet first."}
-          </code>
-          {user?.username ? (
-            <small className="muted" style={{ fontSize: "0.75em", marginTop: 2 }}>
-              @{user.username}
-            </small>
-          ) : null}
-        </div>
-        <div className="soft-note">Only send WLD or USDC on World Chain to this address.</div>
         {copyMessage ? <div className="notice">{copyMessage}</div> : null}
-        <div className="button-row compact-actions">
-          <button type="button" className="button" onClick={handleCopyAddress} disabled={!user?.walletAddress}>
-            Copy full address
-          </button>
-        </div>
+        <button type="button" className="button" onClick={handleCopyAddress} disabled={!user?.walletAddress}>
+          Copy full address
+        </button>
       </section>
 
-      <section className="panel stack">
+      <section className="panel wallet-status-compact">
         <span className="brand-kicker">Wallet status</span>
-        <div className="profile-stats-list">
-          <div className="profile-stat-row">
-            <span>World identity</span>
-            <strong>{user?.username ? "Available" : "Unavailable"}</strong>
-          </div>
-          <div className="profile-stat-row">
-            <span>Mini app access</span>
-            <strong>{user?.authMethod === "world-app" ? "Ready" : "Local session"}</strong>
-          </div>
-          <div className="profile-stat-row">
-            <span>Launch source</span>
-            <strong>{formatWorldLaunchSource(worldApp.location)}</strong>
-          </div>
-          <div className="profile-stat-row">
-            <span>Live wallet read</span>
-            <strong>{user?.walletAddress ? "Enabled" : "Unavailable"}</strong>
-          </div>
+        <div className="wallet-status-line">
+          <span><strong>World ID</strong>{user?.username ? "Available" : "Unavailable"}</span>
+          <span><strong>Mini app</strong>{user?.authMethod === "world-app" ? "Ready" : "Local session"}</span>
+          <span><strong>Source</strong>{formatWorldLaunchSource(worldApp.location)}</span>
+          <span><strong>Wallet read</strong>{user?.walletAddress ? "Enabled" : "Unavailable"}</span>
         </div>
       </section>
     </div>
