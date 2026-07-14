@@ -37,6 +37,7 @@ function AppShell() {
   const insets          = worldApp.deviceProperties?.safeAreaInsets;
   const hasWorldSession = user?.authMethod === "world-app" || Boolean(user?.username);
   const isDashboard     = location.pathname === "/";
+  const hasOwnHeader    = isDashboard || location.pathname === "/profile";
   const avatarLetter    = user?.username
     ? user.username[0].toUpperCase()
     : user?.fullName
@@ -138,8 +139,8 @@ function AppShell() {
     >
       <div className="app-layout app-shell">
 
-        {/* ── SHELL TOPBAR  (hidden on dashboard — dash has its own header) ── */}
-        {!isDashboard && (
+        {/* ── SHELL TOPBAR  (hidden on dashboard/profile — they have their own header) ── */}
+        {!hasOwnHeader && (
           <header className="topbar topbar-shell">
             <div className="shell-brand">
               <img src="/tcash-logo.png" alt="Tcash" className="shell-brand-logo" />

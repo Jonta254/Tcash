@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Icon from "../../components/icons/Icon";
+import { useThemeMode } from "../../hooks/useThemeMode";
 import {
+  closeMiniApp,
   createReferralClaim,
   formatWorldLaunchSource,
   getCurrentUser,
@@ -11,6 +13,8 @@ import {
   getReferralSummary,
   getWorldAppContext,
   getWorldNotificationPermissionState,
+  haptic,
+  logoutUser,
   markReferralShared,
   notifyAdminReferralEvent,
   openSupportEmail,
@@ -46,6 +50,7 @@ function ProfilePage() {
   const navigate = useNavigate();
   const orders = getOrdersForCurrentUser();
   const worldApp = getWorldAppContext();
+  const { isLightTheme, toggleTheme } = useThemeMode();
   const [activeTab, setActiveTab] = useState("overview");
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
@@ -220,6 +225,13 @@ function ProfilePage() {
     }
   };
 
+  const handleExit = async () => {
+    haptic("light");
+    logoutUser();
+    await closeMiniApp().catch(() => null);
+    navigate("/login");
+  };
+
   const handleClaimReferralReward = async (milestoneUsers) => {
     setReferralError("");
     setReferralMessage("");
@@ -247,6 +259,19 @@ function ProfilePage() {
   return (
     <div className="stack page-enter">
       <section className="panel profile-hero">
+        <div className="profile-hero-toolbar">
+          <button
+            type="button"
+            className="hero-tool-btn"
+            onClick={toggleTheme}
+            aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
+          >
+            <Icon name={isLightTheme ? "moon" : "sun"} size={16} />
+          </button>
+          <button type="button" className="hero-tool-btn hero-tool-exit" onClick={handleExit}>
+            Exit
+          </button>
+        </div>
         <div className="profile-hero-head">
           <div className="profile-avatar" aria-hidden="true">
             {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
