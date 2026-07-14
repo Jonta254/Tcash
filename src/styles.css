@@ -1643,6 +1643,18 @@ button:disabled {
   color: rgba(225, 234, 246, 0.88);
 }
 
+/* .info-box/.highlight-box stay dark in both themes; the global light-theme
+   "strong/code => dark navy" rule otherwise wins over their strong/code text. */
+:root[data-theme="light"] .info-box strong,
+:root[data-theme="light"] .highlight-box strong {
+  color: #f6f9ff;
+}
+
+:root[data-theme="light"] .info-box code,
+:root[data-theme="light"] .highlight-box code {
+  color: #c9d7ff;
+}
+
 .payment-card {
   display: grid;
   gap: 6px;
@@ -1652,6 +1664,17 @@ button:disabled {
     linear-gradient(135deg, rgba(79, 124, 255, 0.22), rgba(54, 211, 153, 0.1)),
     rgba(15, 23, 42, 0.82);
   border: 1px solid rgba(79, 124, 255, 0.3);
+}
+
+/* .payment-card stays dark in both themes; the global light-theme
+   "strong/code => dark navy" rule otherwise wins over .pic-amount/code here. */
+:root[data-theme="light"] .payment-card strong,
+:root[data-theme="light"] .pic-amount {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .copy-detail-list code {
+  color: #ffffff;
 }
 
 .payment-card span {
@@ -2042,8 +2065,9 @@ button:disabled {
   border: 1px solid rgba(207, 214, 230, 0.16);
   background: rgba(255, 255, 255, 0.04);
   color: #e8eefc;
-  font-size: 1.4rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notification-prompt-card .button,
@@ -3308,6 +3332,12 @@ button:disabled {
   border-color: rgba(96, 112, 139, 0.2);
 }
 
+/* The global light-theme "strong/code => dark navy" rule otherwise wins here
+   (higher specificity), which would put dark text on this always-dark chip. */
+:root[data-theme="light"] .tds-text strong {
+  color: #f4f6fb;
+}
+
 .tds-icon {
   flex: 0 0 auto;
   display: grid;
@@ -3317,6 +3347,7 @@ button:disabled {
   border-radius: 12px;
   font-size: 1rem;
   background: rgba(79, 124, 255, 0.14);
+  color: rgba(219, 228, 255, 0.92);
 }
 
 .tds-text {
@@ -3325,19 +3356,21 @@ button:disabled {
   gap: 2px;
 }
 
+/* .trade-dest-strip keeps a dark chip background in both themes, so its
+   text/icon colors stay fixed light values instead of the theme's --text/--muted. */
 .tds-text strong {
-  color: var(--text);
+  color: #f4f6fb;
   font-size: 0.92rem;
   overflow-wrap: anywhere;
 }
 
 .tds-text span {
-  color: var(--muted);
+  color: rgba(226, 232, 245, 0.68);
   font-size: 0.76rem;
 }
 
 .tds-text-input label {
-  color: var(--muted);
+  color: rgba(226, 232, 245, 0.68);
   font-size: 0.72rem;
 }
 
@@ -3345,7 +3378,7 @@ button:disabled {
   width: 100%;
   border: none;
   background: transparent;
-  color: var(--text);
+  color: #f4f6fb;
   font-size: 0.94rem;
   font-weight: 700;
   padding: 2px 0 0;
@@ -3353,7 +3386,7 @@ button:disabled {
 }
 
 .tds-inline-input::placeholder {
-  color: var(--muted);
+  color: rgba(226, 232, 245, 0.45);
   font-weight: 400;
 }
 
@@ -3977,16 +4010,39 @@ button:disabled {
   border-color: rgba(79, 124, 255, 0.14);
 }
 
+/* .profile-hero stays dark in both themes; the global light-theme
+   "strong/h2 => dark navy" rule otherwise swallows the username/stat text. */
+:root[data-theme="light"] .profile-hero .profile-hero-head h2 {
+  color: #f8fafc;
+}
+
+:root[data-theme="light"] .profile-hero .profile-summary-card strong {
+  color: #f8fafc;
+}
+
+:root[data-theme="light"] .profile-hero .profile-summary-card span {
+  color: rgba(226, 232, 245, 0.68);
+}
+
+/* Keep the hero's own buttons matching its dark card instead of the
+   light-theme's white .button-secondary pill, which reads as a mismatched
+   patch against the dark background. */
+:root[data-theme="light"] .profile-hero .button-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f6fb;
+  border: 1px solid rgba(207, 214, 230, 0.2);
+  box-shadow: none;
+}
+
 .profile-avatar {
   width: 68px;
   height: 68px;
-  background: linear-gradient(135deg, #4f7cff 0%, #47d7ac 50%, #f3c969 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #6a3fff 100%);
   font-size: 1.5rem;
   flex: 0 0 auto;
   border-radius: 22px;
   box-shadow:
-    0 0 0 3px rgba(79, 124, 255, 0.18),
-    0 0 0 6px rgba(71, 215, 172, 0.08),
+    0 0 0 3px rgba(79, 124, 255, 0.16),
     0 14px 28px rgba(0, 0, 0, 0.24);
 }
 
@@ -4440,6 +4496,17 @@ button:disabled {
   /* Profile summary grid: 2 col on small (not 1 col stacked) */
   .profile-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* A lone odd-numbered last card would otherwise strand itself alone in
+     the final row with empty space beside it — span it full width and lay
+     it out as a label/value row instead. */
+  .profile-summary-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
   /* Quick action icon slightly smaller */
@@ -6241,10 +6308,10 @@ input[type="number"] {
   to   { transform: scale(1);   opacity: 1; }
 }
 .oss-check {
-  font-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--success);
-  line-height: 1;
-  font-weight: 900;
 }
 .oss-title {
   font-size: 1.5rem;
@@ -6315,10 +6382,12 @@ input[type="number"] {
   border-top: 1px solid var(--border);
 }
 
-/* ── Payment instructions card polish ──────────────────────────── */
-.pic-label  { font-size: 0.78rem; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
-.pic-amount { font-size: 1.6rem; font-weight: 900; color: var(--text); letter-spacing: -0.02em; display: block; margin: 4px 0 10px; }
-.pic-note   { font-size: 0.82rem; color: var(--muted); margin: 10px 0 0; }
+/* ── Payment instructions card polish ─────────────────────────────
+   .payment-card keeps a fixed dark-navy background in both themes,
+   so these stay fixed light colors instead of var(--text)/var(--muted). */
+.pic-label  { font-size: 0.78rem; color: #c9d7ff; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.pic-amount { font-size: 1.6rem; font-weight: 900; color: #ffffff; letter-spacing: -0.02em; display: block; margin: 4px 0 10px; }
+.pic-note   { font-size: 0.82rem; color: #dbe5ff; margin: 10px 0 0; }
 
 /* ── Orders page: header panel ─────────────────────────────────── */
 .orders-header-panel { gap: 14px; }
@@ -6433,6 +6502,7 @@ input[type="number"] {
 .oc-type-badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 0.72rem;
@@ -6520,7 +6590,7 @@ input[type="number"] {
   background: var(--primary-soft);
   box-shadow: 0 0 0 3px rgba(79,124,255,0.15);
 }
-.oc-step-tick { font-size: 0.7rem; color: var(--success); font-weight: 900; }
+.oc-step-tick { display: inline-flex; align-items: center; justify-content: center; color: var(--success); }
 .oc-step small { font-size: 0.65rem; color: var(--muted); text-align: center; font-weight: 600; }
 .oc-step.done  small { color: var(--success); }
 .oc-step.active small { color: var(--primary); }
@@ -6722,7 +6792,7 @@ input[type="number"] {
 .hh-action-sell    .hh-action-icon, .hh-action-sell    .hh-action-label { color: var(--gold); }
 .hh-action-receive .hh-action-icon, .hh-action-receive .hh-action-label { color: var(--primary); }
 .hh-action-history .hh-action-icon, .hh-action-history .hh-action-label { color: var(--diamond); }
-.hh-action-icon  { font-size: 1.15rem; font-weight: 900; line-height: 1; }
+.hh-action-icon  { display: inline-flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 900; line-height: 1; }
 .hh-action-label { font-size: 0.67rem; font-weight: 700; }
 
 /* ── SETUP NUDGE ───────────────────────────────────────────────── */
@@ -6732,7 +6802,7 @@ input[type="number"] {
   display: flex; flex-direction: column; gap: 8px;
 }
 .nudge-head { display: flex; align-items: center; gap: 10px; }
-.nudge-icon { font-size: 1.3rem; }
+.nudge-icon { display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
 .nudge-row  { display: flex; gap: 8px; align-items: center; }
 .nudge-row input {
   flex: 1; height: 38px; border-radius: 10px;
@@ -6771,6 +6841,17 @@ input[type="number"] {
 .ha-right { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; }
 .ha-kes   { font-size: 0.84rem; font-weight: 700; color: var(--text); }
 .ha-status { font-size: 0.67rem; font-weight: 600; }
+.ha-empty {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 14px;
+}
+.ha-empty-icon {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--silver-soft); color: var(--muted);
+}
+.ha-empty strong { font-size: 0.84rem; color: var(--text); }
+.ha-empty p { margin: 2px 0 0; font-size: 0.76rem; }
 
 /* ── REFERRAL STRIP ────────────────────────────────────────────── */
 .home-referral {
@@ -6779,7 +6860,7 @@ input[type="number"] {
   background: var(--panel); border: 1px solid var(--border);
 }
 .hr-left { display: flex; align-items: center; gap: 10px; }
-.hr-icon { font-size: 1.2rem; }
+.hr-icon { display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
 .hr-code {
   font-family: monospace; font-size: 0.78rem; font-weight: 700;
   color: var(--primary); background: var(--primary-soft);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Icon from "../../components/icons/Icon";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import { formatCryptoAmount, formatKES, getCurrentUser, haptic } from "../../services";
@@ -71,7 +72,7 @@ function BuyPage() {
 
           {(currentUser?.walletAddress || currentUser?.username) && (
             <div className="trade-dest-strip">
-              <span className="tds-icon" aria-hidden="true">↓</span>
+              <span className="tds-icon" aria-hidden="true"><Icon name="arrowDown" size={16} strokeWidth={2.1} /></span>
               <div className="tds-text">
                 <strong>{currentUser?.username ? `@${currentUser.username}` : "Wallet connected"}</strong>
                 <span>Crypto delivered here after admin review</span>
@@ -154,7 +155,7 @@ function BuyPage() {
         <section className="panel stack task-panel trade-panel-compact">
           <div className="order-success-screen">
             <div className="oss-ring" aria-hidden="true">
-              <span className="oss-check">✓</span>
+              <span className="oss-check"><Icon name="check" size={30} strokeWidth={2.4} /></span>
             </div>
             <h2 className="oss-title">Payment submitted!</h2>
             <p className="oss-body">
@@ -200,7 +201,7 @@ function BuyPage() {
         {/* Order placed banner */}
         {orderJustPlaced && currentOrder && (
           <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true">→</span>
+            <span className="opb-check" aria-hidden="true"><Icon name="arrowRight" size={15} strokeWidth={2.4} /></span>
             <div className="opb-body">
               <strong>One step left</strong>
               <span>
@@ -238,7 +239,7 @@ function BuyPage() {
                     className="copy-button"
                     onClick={() => copyValue(label, value)}
                   >
-                    {copiedValue === label ? "Copied ✓" : "Copy"}
+                    {copiedValue === label ? "Copied" : "Copy"}
                   </button>
                 </div>
               ))}
@@ -247,7 +248,7 @@ function BuyPage() {
           </div>
 
           <div className="trade-dest-strip">
-            <span className="tds-icon" aria-hidden="true">↓</span>
+            <span className="tds-icon" aria-hidden="true"><Icon name="arrowDown" size={16} strokeWidth={2.1} /></span>
             <div className="tds-text">
               <strong>
                 {currentOrder.destinationUsername ? `@${currentOrder.destinationUsername}` : "Wallet connected"}

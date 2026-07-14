@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import {
+  buildWorldAppDeeplink,
   connectWithWorldAppWallet,
   evaluateReferralRewards,
   findReferrerByCode,
@@ -182,12 +183,17 @@ function LoginPage() {
             <div className="notice auth-inline-note">
               {worldApp.isInstalled
                 ? "World App detected. Tcash will open your wallet session and continue inside the app."
-                : "Open Tcash inside World App to continue with wallet authentication."}
+                : "Wallet Auth only works inside World App — open Tcash there to sign in."}
             </div>
             {!worldApp.isInstalled && settings.worldAppId ? (
-              <div className="soft-note">
-                Use the World App mini app link to continue with Wallet Auth.
-              </div>
+              <a
+                className="button-secondary auth-connect-button"
+                href={buildWorldAppDeeplink("/login")}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open in World App
+              </a>
             ) : null}
           </div>
 

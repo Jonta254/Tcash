@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import Icon from "../icons/Icon";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import {
@@ -19,10 +20,10 @@ const NOTIFICATION_ENTRY_PROMPT_KEY     = "worldtmpesa_notification_prompt_entry
 const NOTIFICATION_DISMISSED_KEY        = "worldtmpesa_notification_prompt_dismissed";
 
 const navItems = [
-  { to: "/",       label: "Home",    icon: "⌂",  tone: "home"   },
-  { to: "/wallet", label: "Wallet",  icon: "◎",  tone: "wallet" },
-  { to: "/trade",  label: "Trade",   icon: "⇄",  tone: "trade"  },
-  { to: "/orders", label: "History", icon: "◷",  tone: "orders" },
+  { to: "/",       label: "Home",    icon: "home",    tone: "home"   },
+  { to: "/wallet", label: "Wallet",  icon: "wallet",  tone: "wallet" },
+  { to: "/trade",  label: "Trade",   icon: "swap",    tone: "trade"  },
+  { to: "/orders", label: "History", icon: "history", tone: "orders" },
 ];
 
 function AppShell() {
@@ -160,7 +161,7 @@ function AppShell() {
                 onClick={toggleTheme}
                 aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
               >
-                {isLightTheme ? "☽" : "☀"}
+                <Icon name={isLightTheme ? "moon" : "sun"} size={17} />
               </button>
               <button type="button" className="shell-exit-btn" onClick={handleLogout}>
                 Exit
@@ -181,7 +182,9 @@ function AppShell() {
               }
             >
               <span className="tab-link-shell">
-                <span className="tab-icon" aria-hidden="true">{item.icon}</span>
+                <span className="tab-icon" aria-hidden="true">
+                  <Icon name={item.icon} size={18} strokeWidth={2} />
+                </span>
                 <span className="tab-label">{item.label}</span>
               </span>
             </NavLink>
@@ -200,10 +203,12 @@ function AppShell() {
                 onClick={closeNotificationPrompt}
                 aria-label="Close"
               >
-                ×
+                <Icon name="close" size={16} strokeWidth={2.2} />
               </button>
               <div className="notif-prompt-head">
-                <div className="notif-prompt-bell" aria-hidden="true">🔔</div>
+                <div className="notif-prompt-bell" aria-hidden="true">
+                  <Icon name="bell" size={20} />
+                </div>
                 <div>
                   <span className="brand-kicker">World notifications</span>
                   <h3>Stay updated on your orders</h3>

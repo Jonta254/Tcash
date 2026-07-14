@@ -1,3 +1,4 @@
+import Icon from "../icons/Icon";
 import { getCurrentUser } from "../../services";
 import StatusPill from "./StatusPill";
 
@@ -27,7 +28,8 @@ function OrderCard({ order, children }) {
       <div className="oc-header">
         <div className="oc-type-block">
           <span className={`oc-type-badge oc-type-${order.type}`}>
-            {order.type === "buy" ? "↑ Buy" : "↓ Sell"}
+            <Icon name={order.type === "buy" ? "arrowUp" : "arrowDown"} size={12} strokeWidth={2.6} />
+            {order.type === "buy" ? "Buy" : "Sell"}
           </span>
           <h3 className="oc-title">
             {order.cryptoAmount} {order.asset}
@@ -87,7 +89,7 @@ function OrderCard({ order, children }) {
           {["Placed", "Under review", "Completed"].map((label, i) => (
             <div key={label} className={`oc-step${stage > i ? " done" : stage === i + 1 ? " active" : ""}`}>
               <div className="oc-step-dot">
-                {stage > i ? <span className="oc-step-tick">✓</span> : null}
+                {stage > i ? <span className="oc-step-tick"><Icon name="check" size={13} strokeWidth={2.6} /></span> : null}
               </div>
               <small>{label}</small>
             </div>

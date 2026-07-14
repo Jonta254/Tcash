@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import Icon from "../../components/icons/Icon";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   getCachedWorldWalletPortfolio,
@@ -224,7 +225,7 @@ export default function DashboardPage() {
           <div className="hh-balance-row">
             <strong className="hh-balance-num">{balanceLabel}</strong>
             <button type="button" className="hh-refresh-btn" onClick={handleRefreshWallet} aria-label="Refresh">
-              <span className={wltRefreshing ? "spin" : ""}>↻</span>
+              <span className={wltRefreshing ? "spin" : ""}><Icon name="refresh" size={15} strokeWidth={2.1} /></span>
             </button>
           </div>
           <div className="hh-balance-meta">
@@ -254,7 +255,7 @@ export default function DashboardPage() {
           </div>
           <div className="hh-rates-refresh">
             <button type="button" className="hh-refresh-btn" onClick={handleRefreshRates} aria-label="Refresh rates">
-              <span className={mktRefreshing ? "spin" : ""}>↻</span>
+              <span className={mktRefreshing ? "spin" : ""}><Icon name="refresh" size={15} strokeWidth={2.1} /></span>
             </button>
             {hasLiveRates && <span className="hh-live-label">Live</span>}
           </div>
@@ -266,19 +267,19 @@ export default function DashboardPage() {
         {/* actions */}
         <nav className="hh-actions" aria-label="Quick actions">
           <Link to="/trade?tab=buy"  className="hh-action hh-action-buy">
-            <span className="hh-action-icon">↑</span>
+            <span className="hh-action-icon"><Icon name="arrowUp" size={17} strokeWidth={2.1} /></span>
             <span className="hh-action-label">Buy</span>
           </Link>
           <Link to="/trade?tab=sell" className="hh-action hh-action-sell">
-            <span className="hh-action-icon">↓</span>
+            <span className="hh-action-icon"><Icon name="arrowDown" size={17} strokeWidth={2.1} /></span>
             <span className="hh-action-label">Sell</span>
           </Link>
           <Link to="/wallet#receive" className="hh-action hh-action-receive">
-            <span className="hh-action-icon">⬡</span>
+            <span className="hh-action-icon"><Icon name="hexagon" size={17} strokeWidth={2.1} /></span>
             <span className="hh-action-label">Receive</span>
           </Link>
           <Link to="/orders"         className="hh-action hh-action-history">
-            <span className="hh-action-icon">◷</span>
+            <span className="hh-action-icon"><Icon name="history" size={17} strokeWidth={2.1} /></span>
             <span className="hh-action-label">History</span>
           </Link>
         </nav>
@@ -288,7 +289,7 @@ export default function DashboardPage() {
       {!user?.isAdmin && !user?.mpesaPhoneNumber && (
         <section className="home-nudge">
           <div className="nudge-head">
-            <span className="nudge-icon" aria-hidden="true">📲</span>
+            <span className="nudge-icon" aria-hidden="true"><Icon name="phone" size={18} strokeWidth={1.9} /></span>
             <div>
               <strong>Add M-Pesa number</strong>
               <p className="muted" style={{ margin: "1px 0 0", fontSize: "0.82rem" }}>
@@ -312,17 +313,17 @@ export default function DashboardPage() {
       )}
 
       {/* ══ RECENT ORDERS (max 2) ════════════════════════════════ */}
-      {recentOrders.length > 0 && (
-        <section className="home-activity">
-          <div className="ha-head">
-            <span className="ha-title">Recent orders</span>
-            <Link to="/orders" className="ha-see-all">All →</Link>
-          </div>
+      <section className="home-activity">
+        <div className="ha-head">
+          <span className="ha-title">Recent orders</span>
+          {recentOrders.length > 0 && <Link to="/orders" className="ha-see-all">All →</Link>}
+        </div>
+        {recentOrders.length > 0 ? (
           <div className="ha-list">
             {recentOrders.map(o => (
               <Link key={o.id} to="/orders" className="ha-item">
                 <span className={`ha-type ha-type-${o.type}`}>
-                  {o.type === "buy" ? "↑" : "↓"}
+                  <Icon name={o.type === "buy" ? "arrowUp" : "arrowDown"} size={14} strokeWidth={2.3} />
                 </span>
                 <div className="ha-mid">
                   <strong className="ha-asset">
@@ -339,13 +340,21 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="ha-empty">
+            <span className="ha-empty-icon" aria-hidden="true"><Icon name="history" size={20} strokeWidth={1.8} /></span>
+            <div>
+              <strong>No orders yet</strong>
+              <p className="muted">Buy or sell WLD and USDC to see your trade history here.</p>
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* ══ REFERRAL ════════════════════════════════════════════ */}
       <section className="home-referral">
         <div className="hr-left">
-          <span className="hr-icon" aria-hidden="true">🎁</span>
+          <span className="hr-icon" aria-hidden="true"><Icon name="gift" size={18} strokeWidth={1.8} /></span>
           <div>
             <strong style={{ fontSize: "0.88rem" }}>Invite &amp; earn</strong>
             <p className="muted" style={{ margin: "1px 0 0", fontSize: "0.76rem" }}>

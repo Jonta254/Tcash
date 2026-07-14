@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Icon from "../../components/icons/Icon";
 import {
   getCachedWorldWalletPortfolio,
   formatKES,
@@ -128,7 +129,7 @@ function WalletPage() {
       <section id="receive" className="panel wallet-receive-compact">
         <span className="brand-kicker">Receive</span>
         <div className="trade-dest-strip">
-          <span className="tds-icon" aria-hidden="true">⬡</span>
+          <span className="tds-icon" aria-hidden="true"><Icon name="hexagon" size={16} strokeWidth={2} /></span>
           <div className="tds-text">
             <strong>
               {user?.walletAddress ? truncateAddress(user.walletAddress) : "Connect your World wallet first"}

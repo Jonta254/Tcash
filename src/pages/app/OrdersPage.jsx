@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import Icon from "../../components/icons/Icon";
 import OrderCard from "../../components/orders/OrderCard";
 import {
   getCurrentUser,
@@ -148,7 +149,11 @@ function OrdersPage() {
       ) : (
         <section className="panel orders-empty-state">
           <div className="oes-icon" aria-hidden="true">
-            {activeTab === "completed" ? "✓" : activeTab === "failed" ? "✕" : activeTab === "pending" ? "⏳" : "◷"}
+            <Icon
+              name={activeTab === "completed" ? "check" : activeTab === "failed" ? "close" : "clock"}
+              size={26}
+              strokeWidth={1.9}
+            />
           </div>
           <h3>
             {activeTab === "all"       && "No orders yet"}

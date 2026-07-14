@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Icon from "../../components/icons/Icon";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
@@ -136,7 +137,7 @@ function SellPage() {
           {error && <div className="error">{error}</div>}
 
           <div className="trade-dest-strip trade-dest-strip-input">
-            <span className="tds-icon" aria-hidden="true">↑</span>
+            <span className="tds-icon" aria-hidden="true"><Icon name="phone" size={16} strokeWidth={2} /></span>
             <div className="tds-text tds-text-input">
               <label htmlFor="payoutPhoneNumber">M-Pesa payout number</label>
               <input
@@ -230,7 +231,7 @@ function SellPage() {
         <section className="panel stack task-panel trade-panel-compact">
           <div className="order-success-screen">
             <div className="oss-ring" aria-hidden="true">
-              <span className="oss-check">✓</span>
+              <span className="oss-check"><Icon name="check" size={30} strokeWidth={2.4} /></span>
             </div>
             <h2 className="oss-title">
               {canSendInsideMiniApp ? "Payment sent!" : "Order submitted!"}
@@ -276,7 +277,7 @@ function SellPage() {
         {/* Order placed banner */}
         {orderJustPlaced && currentOrder && (
           <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true">→</span>
+            <span className="opb-check" aria-hidden="true"><Icon name="arrowRight" size={15} strokeWidth={2.4} /></span>
             <div className="opb-body">
               <strong>One step left</strong>
               <span>
@@ -312,7 +313,7 @@ function SellPage() {
           </div>
 
           <div className="trade-dest-strip">
-            <span className="tds-icon" aria-hidden="true">↓</span>
+            <span className="tds-icon" aria-hidden="true"><Icon name="phone" size={16} strokeWidth={2} /></span>
             <div className="tds-text">
               <strong>{currentOrder.payoutPhoneNumber}</strong>
               <span>M-Pesa payout number</span>
