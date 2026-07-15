@@ -275,11 +275,11 @@ function ProfilePage() {
             <h2 style={{ margin: "2px 0 0", overflowWrap: "anywhere", wordBreak: "break-word" }}>
               {user?.username ? `@${user.username}` : user?.fullName || "Tcash user"}
             </h2>
-            <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.93rem" }}>
-              Payout settings, referral rewards, and account tools.
-            </p>
           </div>
         </div>
+      </section>
+
+      <section className="panel stack">
         <div className="profile-summary-grid">
           <div className="profile-summary-card">
             <span>Preferred currency</span>
