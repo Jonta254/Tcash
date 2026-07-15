@@ -45,13 +45,13 @@
   --primary-soft: rgba(49, 94, 251, 0.1);
   --silver: #6f7e9a;
   --silver-soft: rgba(111, 126, 154, 0.08);
-  --gold: #bf8a21;
+  --gold: #8f6819;
   --gold-soft: rgba(191, 138, 33, 0.12);
   --text: #11203a;
   --muted: #55657f;
-  --success: #16a56f;
-  --warning: #c88a12;
-  --error: #dc4a62;
+  --success: #0a7a4f;
+  --warning: #9c6b0e;
+  --error: #c7364f;
   --emerald: #11b682;
   --diamond: #2ca1df;
 }
@@ -1323,6 +1323,23 @@ button:disabled {
   font-weight: 700;
 }
 
+/* .live-badge was only ever styled for a dark background (pale mint text),
+   so on a normal light-theme panel it was nearly invisible. .profile-hero
+   and the Login splash card stay dark in both themes, so they keep the
+   original colors; everywhere else gets a light-theme-appropriate variant. */
+:root[data-theme="light"] .live-badge {
+  color: #0a7a4f;
+  background: rgba(10, 122, 79, 0.1);
+  border-color: rgba(10, 122, 79, 0.28);
+}
+
+:root[data-theme="light"] .profile-hero .live-badge,
+:root[data-theme="light"] .auth-splash-card .live-badge {
+  color: #a7f3d0;
+  background: rgba(54, 211, 153, 0.1);
+  border-color: rgba(54, 211, 153, 0.28);
+}
+
 .live-badge::before {
   content: "";
   width: 7px;
@@ -1607,6 +1624,14 @@ button:disabled {
   background: rgba(248, 113, 113, 0.14);
   color: #fca5a5;
 }
+
+/* .status-pill text colors were only ever tuned for a dark background —
+   near-invisible on the light theme's white/near-white panels. */
+:root[data-theme="light"] .status-pill.pending { color: var(--warning); }
+:root[data-theme="light"] .status-pill.paid { color: var(--primary); }
+:root[data-theme="light"] .status-pill.completed { color: var(--success); }
+:root[data-theme="light"] .status-pill.rejected,
+:root[data-theme="light"] .status-pill.cancelled { color: var(--error); }
 
 .highlight-box,
 .info-box {
