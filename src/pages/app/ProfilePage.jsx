@@ -259,19 +259,6 @@ function ProfilePage() {
   return (
     <div className="stack page-enter">
       <section className="panel profile-hero">
-        <div className="profile-hero-toolbar">
-          <button
-            type="button"
-            className="hero-tool-btn"
-            onClick={toggleTheme}
-            aria-label={isLightTheme ? "Switch to night mode" : "Switch to day mode"}
-          >
-            <Icon name={isLightTheme ? "moon" : "sun"} size={16} />
-          </button>
-          <button type="button" className="hero-tool-btn hero-tool-exit" onClick={handleExit}>
-            Exit
-          </button>
-        </div>
         <div className="profile-hero-head">
           <div className="profile-avatar" aria-hidden="true">
             {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
@@ -536,6 +523,31 @@ function ProfilePage() {
       {activeTab === "more" && (
         <>
           <section className="panel stack">
+            <span className="brand-kicker">Settings</span>
+            <div className="settings-list">
+              <div className="settings-row">
+                <div className="settings-row-icon">
+                  <Icon name={isLightTheme ? "sun" : "moon"} size={18} />
+                </div>
+                <div className="settings-row-text">
+                  <strong>Appearance</strong>
+                  <span className="muted">{isLightTheme ? "Light mode" : "Dark mode"}</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={!isLightTheme}
+                  aria-label="Toggle dark mode"
+                  className={`theme-switch${!isLightTheme ? " on" : ""}`}
+                  onClick={toggleTheme}
+                >
+                  <span className="theme-switch-thumb" />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel stack">
             <div className="split">
               <div>
                 <span className="brand-kicker">Rate Tcash</span>
@@ -654,6 +666,11 @@ function ProfilePage() {
           </section>
         </>
       )}
+
+      <button type="button" className="profile-logout-btn" onClick={handleExit}>
+        <Icon name="logout" size={18} />
+        Log out
+      </button>
     </div>
   );
 }

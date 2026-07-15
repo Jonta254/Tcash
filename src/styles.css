@@ -6239,36 +6239,85 @@ input[type="number"] {
 }
 .shell-exit-btn:hover { background: rgba(248,113,113,0.08); }
 
-/* ── Profile hero toolbar (theme + exit, folded into the hero card) ── */
-.profile-hero-toolbar {
+/* ── Profile: Settings list (Appearance row + toggle switch) ───────── */
+.settings-list {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-bottom: 12px;
+  flex-direction: column;
 }
-.hero-tool-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(207, 214, 230, 0.16);
-  border-radius: 10px;
-  color: #dbe4ff;
-  width: 32px;
-  height: 32px;
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.settings-row + .settings-row { border-top: 1px solid var(--border); }
+.settings-row-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--silver-soft);
+  color: var(--text);
   display: grid;
   place-items: center;
+  flex-shrink: 0;
+}
+.settings-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.settings-row-text strong { font-size: 0.9rem; color: var(--text); }
+.settings-row-text span { font-size: 0.78rem; }
+
+.theme-switch {
+  flex-shrink: 0;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--silver-soft);
+  border: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.theme-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+.theme-switch.on {
+  background: var(--primary);
+  border-color: transparent;
+}
+.theme-switch.on .theme-switch-thumb { transform: translateX(20px); }
+
+/* ── Profile: Log out (always last, bottom of the page) ────────────── */
+.profile-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 0;
+  border-radius: 16px;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.24);
+  color: #f87171;
+  font-size: 0.92rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
 }
-.hero-tool-btn:hover { background: rgba(255, 255, 255, 0.12); }
-.hero-tool-exit {
-  width: auto;
-  padding: 0 12px;
-  background: rgba(248, 113, 113, 0.1);
-  border-color: rgba(248, 113, 113, 0.3);
-  color: #f87171;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-.hero-tool-exit:hover { background: rgba(248, 113, 113, 0.18); }
+.profile-logout-btn:hover { background: rgba(248, 113, 113, 0.14); }
 
 /* ── Order placed banner (step 2 top) ──────────────────────────── */
 .order-placed-banner {
