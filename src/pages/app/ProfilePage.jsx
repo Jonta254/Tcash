@@ -280,16 +280,16 @@ function ProfilePage() {
       </section>
 
       <section className="panel stack">
-        <div className="profile-summary-grid">
-          <div className="profile-summary-card">
+        <div className="profile-stats-list">
+          <div className="profile-stat-row">
             <span>Preferred currency</span>
             <strong>{user?.preferredCurrency || "KES"}</strong>
           </div>
-          <div className="profile-summary-card">
+          <div className="profile-stat-row">
             <span>Payout number</span>
             <strong>{user?.mpesaPhoneNumber || "Not added"}</strong>
           </div>
-          <div className="profile-summary-card">
+          <div className="profile-stat-row">
             <span>Launch source</span>
             <strong>{formatWorldLaunchSource(worldApp.location)}</strong>
           </div>
@@ -434,30 +434,28 @@ function ProfilePage() {
           </div>
           {referralMessage ? <div className="notice">{referralMessage}</div> : null}
           {referralError ? <div className="error">{referralError}</div> : null}
-          <div className="profile-summary-grid">
-            <div className="profile-summary-card">
+          <div className="profile-stats-list">
+            <div className="profile-stat-row">
               <span>Invite actions</span>
               <strong>{referralSummary.shareCount}</strong>
             </div>
-            <div className="profile-summary-card">
+            <div className="profile-stat-row">
               <span>New users</span>
               <strong>{referralSummary.referredUsers}</strong>
             </div>
-            <div className="profile-summary-card">
+            <div className="profile-stat-row">
               <span>Activated traders</span>
               <strong>{referralSummary.activatedUsers}</strong>
             </div>
-          </div>
-          <div className="profile-summary-grid">
-            <div className="profile-summary-card">
+            <div className="profile-stat-row">
               <span>Last shared</span>
               <strong>{formatJoinedDate(referralSummary.lastSharedAt)}</strong>
             </div>
-            <div className="profile-summary-card">
+            <div className="profile-stat-row">
               <span>Paid rewards</span>
               <strong>KES {referralSummary.lifetimeRewardsKes}</strong>
             </div>
-            <div className="profile-summary-card">
+            <div className="profile-stat-row">
               <span>Pending milestones</span>
               <strong>
                 {referralSummary.pendingMilestones.length
@@ -465,7 +463,7 @@ function ProfilePage() {
                   : "None"}
               </strong>
             </div>
-            <div className="profile-summary-card">
+            <div className="profile-stat-row">
               <span>Next reward</span>
               <strong>
                 {nextReferralMilestone

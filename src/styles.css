@@ -2451,7 +2451,6 @@ button:disabled {
 .quick-action-grid,
 .market-board-grid,
 .feature-story-grid,
-.profile-summary-grid,
 .profile-links-grid {
   display: grid;
   gap: 16px;
@@ -3271,7 +3270,7 @@ button:disabled {
    and gap with equal (single-class) specificity but later source order,
    which would otherwise win over these on narrow phones. */
 .stack.trade-page-compact {
-  gap: 6px;
+  gap: 10px;
 }
 
 .panel.trade-desk-shell-compact {
@@ -3295,8 +3294,8 @@ button:disabled {
 }
 
 .panel.trade-panel-compact {
-  gap: 5px;
-  padding: 10px;
+  gap: 6px;
+  padding: 12px;
 }
 
 .trade-panel-compact .field {
@@ -3438,13 +3437,13 @@ button:disabled {
 
 /* ── Compact wallet page ─────────────────────────────────────────── */
 .stack.wallet-page-compact {
-  gap: 5px;
+  gap: 10px;
 }
 
 .panel.wallet-hero-compact {
   display: grid;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 14px;
 }
 
 .wallet-hero-top {
@@ -3525,8 +3524,8 @@ button:disabled {
 .panel.wallet-receive-compact,
 .panel.wallet-status-compact {
   display: grid;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 14px;
 }
 
 .wallet-status-line {
@@ -3843,7 +3842,6 @@ button:disabled {
 }
 
 .market-token-card span,
-.profile-summary-card span,
 .profile-link-card span {
   color: var(--muted);
 }
@@ -4041,24 +4039,6 @@ button:disabled {
   color: #f8fafc;
 }
 
-:root[data-theme="light"] .profile-hero .profile-summary-card strong {
-  color: #f8fafc;
-}
-
-:root[data-theme="light"] .profile-hero .profile-summary-card span {
-  color: rgba(226, 232, 245, 0.68);
-}
-
-/* Keep the hero's own buttons matching its dark card instead of the
-   light-theme's white .button-secondary pill, which reads as a mismatched
-   patch against the dark background. */
-:root[data-theme="light"] .profile-hero .button-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f4f6fb;
-  border: 1px solid rgba(207, 214, 230, 0.2);
-  box-shadow: none;
-}
-
 .profile-avatar {
   width: 68px;
   height: 68px;
@@ -4069,27 +4049,6 @@ button:disabled {
   box-shadow:
     0 0 0 3px rgba(79, 124, 255, 0.16),
     0 14px 28px rgba(0, 0, 0, 0.24);
-}
-
-.profile-summary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.profile-summary-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(207, 214, 230, 0.1);
-  min-width: 0;
-}
-
-.profile-summary-card strong {
-  font-size: clamp(0.98rem, 4.4vw, 1.18rem);
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .profile-stat-row {
@@ -4220,8 +4179,7 @@ button:disabled {
 
   .mini-metrics,
   .stats-grid,
-  .trust-grid,
-  .profile-summary-grid {
+  .trust-grid {
     grid-template-columns: 1fr;
   }
 
@@ -4516,22 +4474,6 @@ button:disabled {
   /* Referral milestone grid: 2 col always */
   .referral-milestone-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  /* Profile summary grid: 2 col on small (not 1 col stacked) */
-  .profile-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  /* A lone odd-numbered last card would otherwise strand itself alone in
-     the final row with empty space beside it — span it full width and lay
-     it out as a label/value row instead. */
-  .profile-summary-card:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
   }
 
   /* Quick action icon slightly smaller */
