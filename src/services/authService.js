@@ -1,12 +1,16 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
+import { requestAdminSession } from "./backendService";
 import { readStorage, removeStorage, writeStorage } from "./localStorage";
 
+// No password lives here. Admin sign-in is verified server-side
+// (api/admin-login.js, checked against ADMIN_PHONE/ADMIN_PASSWORD env
+// vars) — this object only carries the identity fields that were never
+// secret to begin with (the operator's World wallet is public on-chain).
 const seedAdminUser = {
   id: "admin-001",
   fullName: "Tcash Admin",
   phone: APP_CONFIG.admin.localPhone,
   mpesaPhoneNumber: APP_CONFIG.admin.localPhone,
-  password: "Jonta@2003",
   walletAddress: APP_CONFIG.admin.worldWalletAddress,
   username: APP_CONFIG.admin.worldUsername || "tmpesa-admin",
   authMethod: "local",
@@ -69,21 +73,11 @@ function upsertSeedAdmin(users) {
     ...nextUsers[seededAdminIndex],
     phone: seedAdminUser.phone,
     mpesaPhoneNumber: seedAdminUser.mpesaPhoneNumber,
-    password: seedAdminUser.password,
     username: seedAdminUser.username,
     isAdmin: true,
   };
 
   return nextUsers;
-}
-
-function getAdminPhoneAliases() {
-  return new Set([
-    seedAdminUser.phone,
-    normalizePhone(seedAdminUser.phone),
-    normalizePhone(`+254${seedAdminUser.phone.slice(1)}`),
-    normalizePhone(seedAdminUser.phone.slice(1)),
-  ]);
 }
 
 export function initializeUsers() {
@@ -98,7 +92,6 @@ export function initializeUsers() {
       ...currentUser,
       phone: seedAdminUser.phone,
       mpesaPhoneNumber: seedAdminUser.mpesaPhoneNumber,
-      password: seedAdminUser.password,
       username: seedAdminUser.username,
       isAdmin: true,
     });
@@ -184,28 +177,21 @@ export function signupUser(payload) {
   return user;
 }
 
+// Local phone/password login remains for non-admin accounts created via
+// signupUser (unchanged). The admin bypass that used to live here — "if
+// the phone matches the operator's and the password matches a string in
+// this file, sign in as admin" — is gone; admin sign-in only happens
+// through loginAdmin(), which asks the server.
 export function loginUser({ phone, password }) {
   const normalizedPhone = normalizePhone(phone);
   const normalizedPassword = normalizePassword(password);
-  const users = upsertSeedAdmin(getUsers());
-  const adminPhoneAliases = getAdminPhoneAliases();
-
-  writeStorage(STORAGE_KEYS.users, users);
+  const users = getUsers();
 
   const user = users.find(
     (entry) =>
       normalizePhone(entry.phone) === normalizedPhone &&
       normalizePassword(entry.password) === normalizedPassword,
   );
-
-  if (
-    !user &&
-    adminPhoneAliases.has(normalizedPhone) &&
-    normalizedPassword === seedAdminUser.password
-  ) {
-    writeStorage(STORAGE_KEYS.currentUser, seedAdminUser);
-    return seedAdminUser;
-  }
 
   if (!user) {
     throw new Error("Invalid phone number or password.");
@@ -215,17 +201,17 @@ export function loginUser({ phone, password }) {
   return user;
 }
 
-export function loginAdmin({ phone, password }) {
-  const normalizedPhone = normalizePhone(phone);
-  const normalizedPassword = normalizePassword(password);
-  const adminPhoneAliases = getAdminPhoneAliases();
+// Admin credentials are verified by api/admin-login.js against
+// ADMIN_PHONE / ADMIN_PASSWORD (Vercel env vars) — never compared here.
+// A successful call sets a signed, httpOnly admin session cookie that
+// api/orders.js requires before it will accept a "completed"/"rejected"
+// status write; this local user object only reflects that the server
+// already said yes.
+export async function loginAdmin({ phone, password }) {
+  const result = await requestAdminSession(phone, password);
 
-  const isValidAdmin =
-    adminPhoneAliases.has(normalizedPhone) &&
-    normalizedPassword === normalizePassword(seedAdminUser.password);
-
-  if (!isValidAdmin) {
-    throw new Error("Invalid admin phone number or password.");
+  if (!result?.ok) {
+    throw new Error(result?.error || "Invalid admin phone number or password.");
   }
 
   const nextUsers = upsertSeedAdmin(getUsers());

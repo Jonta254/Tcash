@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
+import HoldToConfirm from "../../components/interaction/HoldToConfirm";
+import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
-import { formatCryptoAmount, formatKES, getCurrentUser, haptic } from "../../services";
+import { formatCryptoAmount, formatKES, getCurrentUser, haptic, tenderHaptics } from "../../services";
 
 function BuyPage() {
   const settings     = useAppSettings();
@@ -35,7 +37,7 @@ function BuyPage() {
     setOrderCreating(true);
     const order = await placeOrder();
     if (order) {
-      haptic("success");
+      tenderHaptics.commit();
       setOrderJustPlaced(true);
     }
     setOrderCreating(false);
@@ -148,47 +150,26 @@ function BuyPage() {
     );
   }
 
-  /* ── STEP 3: Payment submitted — full success screen ──────────── */
+  /* ── STEP 3: Payment submitted — settlement receipt ────────────── */
   if (step === 3 && currentOrder) {
     return (
       <div className="content-grid">
-        <section className="panel stack task-panel trade-panel-compact">
-          <div className="order-success-screen">
-            <div className="oss-ring" aria-hidden="true">
-              <span className="oss-check"><Icon name="check" size={30} strokeWidth={2.4} /></span>
-            </div>
-            <h2 className="oss-title">Payment submitted!</h2>
-            <p className="oss-body">
-              Admin will verify your M-Pesa payment and release{" "}
-              <strong>{formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset}</strong>{" "}
-              to your wallet.
-            </p>
-            <div className="oss-summary">
-              <div className="oss-sum-row">
-                <span>Order type</span>
-                <strong>Buy {currentOrder.asset}</strong>
-              </div>
-              <div className="oss-sum-row">
-                <span>You paid</span>
-                <strong>{formatKES(currentOrder.kesAmount)}</strong>
-              </div>
-              <div className="oss-sum-row">
-                <span>You receive</span>
-                <strong>{formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset}</strong>
-              </div>
-              {currentOrder.paymentReference && (
-                <div className="oss-sum-row">
-                  <span>M-Pesa code</span>
-                  <strong>{currentOrder.paymentReference}</strong>
-                </div>
-              )}
-            </div>
-            <div className="oss-actions">
-              <Link to="/orders" className="button">View in History</Link>
-              <button type="button" className="button-ghost" onClick={resetFlow}>New trade</button>
-            </div>
-          </div>
-        </section>
+        <Receipt
+          title="Payment submitted"
+          leadCopy={`Admin will verify your M-Pesa payment and release ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} to your wallet.`}
+          amountLabel="You paid"
+          amountValue={formatKES(currentOrder.kesAmount)}
+          reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
+          shareText={`Tcash receipt — bought ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
+          onNewTrade={resetFlow}
+          lines={[
+            { label: "Order type", value: `Buy ${currentOrder.asset}` },
+            { label: "You receive", value: `${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset}` },
+            ...(currentOrder.paymentReference
+              ? [{ label: "M-Pesa code", value: currentOrder.paymentReference }]
+              : []),
+          ]}
+        />
       </div>
     );
   }
@@ -267,13 +248,12 @@ function BuyPage() {
             />
           </div>
 
-          <button
-            type="button"
-            className="button"
-            onClick={() => markAsPaid(paymentReference)}
-          >
-            I have paid — submit code
-          </button>
+          <HoldToConfirm
+            label="Hold to submit payment"
+            holdingLabel="Keep holding…"
+            disabled={!paymentReference.trim()}
+            onConfirm={() => { tenderHaptics.send(); markAsPaid(paymentReference); }}
+          />
         </div>
       </section>
     </div>

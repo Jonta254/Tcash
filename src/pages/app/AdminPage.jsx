@@ -15,6 +15,7 @@ import {
   getCurrentUser,
   openOrderSupportEmail,
   syncOrderToAdminQueue,
+  tenderHaptics,
   updateFeeKesPerCoin,
   updateOperationalSettings,
   updateOrder,
@@ -24,10 +25,11 @@ import {
 function AdminPage() {
   const [user, setUser] = useState(() => getCurrentUser());
   const [operatorForm, setOperatorForm] = useState({
-    phone: "0795621901",
+    phone: "",
     password: "",
   });
   const [operatorError, setOperatorError] = useState("");
+  const [operatorSigningIn, setOperatorSigningIn] = useState(false);
   const liveRates = useExchangeRates();
   const liveSettings = useAppSettings();
   const [orders, setOrders] = useState(() =>
@@ -176,16 +178,19 @@ function AdminPage() {
 
             <form
               className="stack"
-              onSubmit={(event) => {
+              onSubmit={async (event) => {
                 event.preventDefault();
                 setOperatorError("");
+                setOperatorSigningIn(true);
 
                 try {
-                  const nextUser = loginAdmin(operatorForm);
+                  const nextUser = await loginAdmin(operatorForm);
                   setUser(nextUser);
                   setOperatorForm((current) => ({ ...current, password: "" }));
                 } catch (error) {
                   setOperatorError(error.message);
+                } finally {
+                  setOperatorSigningIn(false);
                 }
               }}
             >
@@ -216,8 +221,8 @@ function AdminPage() {
                 />
               </div>
 
-              <button type="submit" className="button">
-                Open Admin
+              <button type="submit" className="button" disabled={operatorSigningIn}>
+                {operatorSigningIn ? "Signing in…" : "Open Admin"}
               </button>
             </form>
           </div>
@@ -236,6 +241,15 @@ function AdminPage() {
     if (!window.confirm(confirmMsg)) {
       return;
     }
+
+    if (status === "completed") {
+      tenderHaptics.settle();
+    } else if (status === "rejected") {
+      tenderHaptics.cancellation();
+    } else {
+      tenderHaptics.commit();
+    }
+
     setOrderQueueError("");
     const updated = updateOrder(order.id, { status }, order, { sync: false });
 

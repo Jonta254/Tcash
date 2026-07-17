@@ -1,59 +1,71 @@
+/*
+  ═══ TENDER — design language ═══
+  Base metaphor: a bureau-de-change passbook, not a trading dashboard.
+  Warm paper/ink material instead of navy glassmorphism. One accent
+  (copper — legal tender + "handled with care") instead of a gold/
+  cyan/emerald gradient soup. Serif numerals for money, grotesk for UI.
+*/
 :root {
   color-scheme: dark;
-  /* Mobile-native system fonts (World App runs on iOS/Android) for readability
-     per World design guidelines — resolves to SF Pro / Roboto on device. */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui,
     "Helvetica Neue", Arial, sans-serif;
+  --font-ledger: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --ease-tender: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 160ms;
+  --t-base: 280ms;
+  --t-slow: 460ms;
   line-height: 1.5;
   font-weight: 400;
   background:
-    radial-gradient(circle at top, rgba(79, 124, 255, 0.2), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.1), transparent 32%),
-    linear-gradient(180deg, #101728 0%, #0b0f1a 100%);
-  color: #f5f7ff;
-  --bg: #0b0f1a;
-  --panel: rgba(17, 24, 39, 0.92);
-  --panel-strong: rgba(11, 15, 26, 0.96);
-  --border: rgba(148, 163, 184, 0.18);
-  --primary: #4f7cff;
-  --primary-soft: rgba(79, 124, 255, 0.16);
-  --silver: #cfd6e6;
-  --silver-soft: rgba(207, 214, 230, 0.12);
-  --gold: #f3c969;
-  --gold-soft: rgba(243, 201, 105, 0.14);
-  --text: #f5f7ff;
-  --muted: #97a3bf;
-  --success: #36d399;
-  --warning: #fbbf24;
-  --error: #f87171;
-  --emerald: #47d7ac;
-  --diamond: #9ae7ff;
+    radial-gradient(circle at 50% -8%, rgba(201, 122, 58, 0.12), transparent 46%),
+    var(--bg);
+  color: #f6f1e7;
+  --bg: #15130f;
+  --panel: rgba(30, 27, 21, 0.94);
+  --panel-strong: rgba(21, 19, 15, 0.97);
+  --border: rgba(246, 241, 231, 0.12);
+  --primary: #c97a3a;
+  --primary-soft: rgba(201, 122, 58, 0.16);
+  --silver: #cbbfa8;
+  --silver-soft: rgba(203, 191, 168, 0.12);
+  --gold: #c9a05c;
+  --gold-soft: rgba(201, 160, 92, 0.14);
+  --text: #f6f1e7;
+  --muted: #a79c87;
+  --success: #7fa37a;
+  --warning: #c9a05c;
+  --error: #b5654f;
+  --emerald: #7fa37a;
+  --diamond: #cbbfa8;
+  --ink: #f6f1e7;
+  --paper: #15130f;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
   background:
-    radial-gradient(circle at top, rgba(79, 124, 255, 0.1), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(243, 201, 105, 0.18), transparent 32%),
-    linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
-  color: #11203a;
-  --bg: #eef3fa;
-  --panel: rgba(255, 255, 255, 0.92);
-  --panel-strong: rgba(255, 255, 255, 0.98);
-  --border: rgba(136, 150, 182, 0.24);
-  --primary: #315efb;
-  --primary-soft: rgba(49, 94, 251, 0.1);
-  --silver: #6f7e9a;
-  --silver-soft: rgba(111, 126, 154, 0.08);
+    radial-gradient(circle at 50% -8%, rgba(168, 90, 42, 0.08), transparent 46%),
+    var(--bg);
+  color: #1c1712;
+  --bg: #f7f3ea;
+  --panel: rgba(255, 255, 255, 0.86);
+  --panel-strong: rgba(255, 255, 255, 0.97);
+  --border: rgba(28, 23, 18, 0.1);
+  --primary: #a85a2a;
+  --primary-soft: rgba(168, 90, 42, 0.1);
+  --silver: #8a7c66;
+  --silver-soft: rgba(138, 124, 102, 0.1);
   --gold: #8f6819;
-  --gold-soft: rgba(191, 138, 33, 0.12);
-  --text: #11203a;
-  --muted: #55657f;
-  --success: #0a7a4f;
-  --warning: #9c6b0e;
-  --error: #c7364f;
-  --emerald: #11b682;
-  --diamond: #2ca1df;
+  --gold-soft: rgba(191, 138, 33, 0.1);
+  --text: #1c1712;
+  --muted: #7a6f5e;
+  --success: #4c7a4a;
+  --warning: #8f6819;
+  --error: #8e4033;
+  --emerald: #4c7a4a;
+  --diamond: #8a7c66;
+  --ink: #1c1712;
+  --paper: #f7f3ea;
 }
 
 * {
@@ -82,16 +94,14 @@ body {
   overflow-x: hidden;
   color: var(--text);
   background:
-    radial-gradient(circle at top, rgba(79, 124, 255, 0.2), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.1), transparent 32%),
-    linear-gradient(180deg, #101728 0%, #0b0f1a 100%);
+    radial-gradient(circle at 50% -8%, rgba(201, 122, 58, 0.12), transparent 46%),
+    var(--bg);
 }
 
 :root[data-theme="light"] body {
   background:
-    radial-gradient(circle at top, rgba(79, 124, 255, 0.12), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(243, 201, 105, 0.12), transparent 32%),
-    linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+    radial-gradient(circle at 50% -8%, rgba(168, 90, 42, 0.08), transparent 46%),
+    var(--bg);
 }
 
 a {
@@ -154,7 +164,7 @@ button {
 
 .page-bg {
   min-height: 100dvh;
-  padding: 16px 14px calc(112px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 14px calc(84px + env(safe-area-inset-bottom, 0px));
   width: 100%;
   overflow-x: clip;
 }
@@ -182,13 +192,11 @@ button {
 .action-card,
 .order-card,
 .summary-card {
-  background:
-    linear-gradient(180deg, rgba(19, 27, 42, 0.96), rgba(12, 17, 29, 0.94)),
-    var(--panel);
-  border: 1px solid rgba(207, 214, 230, 0.12);
-  border-radius: 24px;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(12px);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: none;
+  backdrop-filter: none;
   width: 100%;
 }
 
@@ -198,11 +206,9 @@ button {
 :root[data-theme="light"] .action-card,
 :root[data-theme="light"] .order-card,
 :root[data-theme="light"] .summary-card {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 253, 0.96)),
-    var(--panel);
-  border: 1px solid rgba(136, 150, 182, 0.2);
-  box-shadow: 0 18px 48px rgba(80, 98, 135, 0.12);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .auth-card {
@@ -579,6 +585,139 @@ button {
   animation: fade-in-up 0.26s ease both;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   TENDER — Login
+   No 3-step grid, no benefit chips. One focal mark (the Bridge — the
+   graphic vocabulary that recurs on Home/Wallet/Trade), one wordmark,
+   one sentence, one action. Content sits on the page directly — no
+   card, no border, no shadow.
+   ═══════════════════════════════════════════════════════════════════ */
+.tdr-login {
+  min-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 26px;
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 20px 8px;
+}
+
+.tdr-login-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tdr-login-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tdr-bridge-word {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+.tdr-bridge-line {
+  position: relative;
+  width: 64px;
+  height: 1px;
+  background: var(--border);
+}
+
+.tdr-bridge-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  transform: translate(-50%, -50%);
+  animation: tdr-bridge-pulse 2.6s var(--ease-tender) infinite;
+}
+
+@keyframes tdr-bridge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 122, 58, 0.35); }
+  50%      { box-shadow: 0 0 0 6px rgba(201, 122, 58, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tdr-bridge-dot { animation: none; }
+}
+
+.tdr-login-word {
+  margin: 0;
+  font-family: var(--font-ledger);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(3rem, 15vw, 4rem);
+  line-height: 0.95;
+  color: var(--text);
+}
+
+.tdr-login-copy {
+  margin: 0;
+  max-width: 30ch;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.tdr-login-actions {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.tdr-login-cta {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #1c1712;
+  font-size: 1.02rem;
+  font-weight: 700;
+  transition: transform var(--t-fast) var(--ease-tender), opacity var(--t-fast) var(--ease-tender);
+}
+
+.tdr-login-cta:active { transform: scale(0.98); }
+.tdr-login-cta:disabled { opacity: 0.5; }
+
+.tdr-login-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.tdr-login-fallback {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+}
+
+.tdr-login-status {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.tdr-login-error {
+  font-size: 0.86rem;
+  color: var(--error);
+}
+
 .admin-access-panel {
   display: grid;
   gap: 14px;
@@ -750,48 +889,53 @@ button {
 .button-secondary,
 .button-ghost {
   border: 0;
-  border-radius: 16px;
+  border-radius: 11px;
   padding: 14px 16px;
   font-weight: 600;
-  transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+  transition: transform var(--t-fast) var(--ease-tender), opacity var(--t-fast) var(--ease-tender),
+    background var(--t-fast) var(--ease-tender);
 }
 
 .button {
-  background: linear-gradient(135deg, #5f85ff, #caa34d);
-  color: white;
-  box-shadow: 0 10px 26px rgba(202, 163, 77, 0.16);
+  background: var(--primary);
+  color: #1c1712;
+  box-shadow: none;
 }
 
 .button-secondary {
-  background: linear-gradient(145deg, rgba(207, 214, 230, 0.12), rgba(91, 103, 127, 0.12));
-  color: #eef2ff;
-  border: 1px solid rgba(207, 214, 230, 0.16);
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .button-ghost {
   background: transparent;
-  color: #c7d0e4;
-  border: 1px solid rgba(207, 214, 230, 0.14);
+  color: var(--muted);
+  border: 1px solid transparent;
 }
 
 :root[data-theme="light"] .button-secondary {
-  background: linear-gradient(145deg, rgba(228, 233, 242, 0.92), rgba(255, 255, 255, 0.98));
-  color: #11203a;
-  border: 1px solid rgba(136, 150, 182, 0.22);
-  box-shadow: 0 10px 22px rgba(111, 126, 154, 0.1);
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
 :root[data-theme="light"] .button-ghost {
-  color: #43506a;
-  border: 1px solid rgba(136, 150, 182, 0.2);
-  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.button:active,
+.button-secondary:active,
+.button-ghost:active {
+  transform: scale(0.98);
 }
 
 .button:hover,
-.button-secondary:hover,
-.button-ghost:hover {
-  transform: translateY(-1px);
-  opacity: 0.96;
+.button-secondary:hover {
+  opacity: 0.92;
 }
 
 button:disabled {
@@ -818,27 +962,18 @@ button:disabled {
 }
 
 .topbar-shell {
-  padding: 12px 16px;
-  border-radius: 24px;
-  background:
-    linear-gradient(145deg, rgba(15, 22, 36, 0.96), rgba(10, 16, 28, 0.94)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%),
-    radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.1), transparent 36%);
-  border: 1px solid rgba(207, 214, 230, 0.12);
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 10px 4px 16px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
 }
 
 :root[data-theme="light"] .topbar-shell {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(239, 244, 251, 0.94)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%),
-    radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.12), transparent 36%);
-  border-color: rgba(136, 150, 182, 0.18);
-  box-shadow:
-    0 18px 40px rgba(94, 111, 145, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .brand-block {
@@ -950,12 +1085,11 @@ button:disabled {
 
 .brand-block h1 {
   margin: 0;
+  font-family: var(--font-ledger);
   font-size: 1.42rem;
+  font-style: italic;
   overflow-wrap: anywhere;
-  background: linear-gradient(135deg, #ffffff 0%, var(--silver) 32%, #b4ffde 62%, #c9f7ff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
 }
 
 .topbar-actions {
@@ -1098,134 +1232,118 @@ button:disabled {
   border-color: rgba(136, 150, 182, 0.2);
 }
 
+/* ═══ TENDER — bottom bar ═══
+   Not four identical pills. Three quiet, flat wayfinding tabs plus one
+   raised, deliberate action (Trade) that physically breaks the bar's
+   edge — the one thing on this screen you're actually meant to *do*. */
 .tab-bar {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  padding: 10px;
-  border-radius: 24px;
-  background: linear-gradient(180deg, rgba(13, 18, 31, 0.97), rgba(9, 13, 24, 0.95));
-  border: 1px solid rgba(207, 214, 230, 0.14);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  overflow: hidden;
-}
-
-:root[data-theme="light"] .tab-bar {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(239, 244, 251, 0.98)),
-    radial-gradient(circle at top left, rgba(243, 201, 105, 0.1), transparent 36%);
-  border-color: rgba(136, 150, 182, 0.22);
-  box-shadow:
-    0 18px 42px rgba(94, 111, 145, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  grid-template-columns: 1fr 1fr 84px 1fr;
+  align-items: stretch;
+  padding: 0 10px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: 64px;
+  background: var(--panel-strong);
+  border-top: 1px solid var(--border);
+  overflow: visible;
 }
 
 .tab-bar.admin {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr 84px 1fr 1fr;
 }
 
 .tab-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
-  border-radius: 18px;
-  color: #b8c3de;
-  font-size: 0.78rem;
+  color: var(--muted);
+  font-size: 0.66rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   min-width: 0;
   position: relative;
 }
 
 .tab-link.active {
-  color: #f4f7ff;
-}
-
-:root[data-theme="light"] .tab-link {
-  color: #52647f;
-}
-
-:root[data-theme="light"] .tab-link.active {
-  color: #132846;
+  color: var(--text);
 }
 
 .tab-link-shell {
   display: grid;
   justify-items: center;
-  gap: 7px;
-  min-height: 70px;
-  padding: 10px 6px;
-  border-radius: 18px;
+  gap: 4px;
+  padding: 8px 4px 0;
   position: relative;
-  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-}
-
-.tab-link.active .tab-link-shell {
-  background:
-    linear-gradient(145deg, rgba(79, 124, 255, 0.16), rgba(243, 201, 105, 0.14)),
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 52%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 12px 24px rgba(0, 0, 0, 0.2);
-}
-
-:root[data-theme="light"] .tab-link.active .tab-link-shell {
-  background:
-    linear-gradient(145deg, rgba(49, 94, 251, 0.14), rgba(191, 138, 33, 0.16), rgba(255, 255, 255, 0.92)),
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.78), transparent 52%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 12px 24px rgba(94, 111, 145, 0.12);
 }
 
 .tab-icon {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: rgba(207, 214, 230, 0.1);
-  font-size: 0.92rem;
-  font-weight: 800;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-}
-
-:root[data-theme="light"] .tab-icon {
-  background: rgba(136, 150, 182, 0.14);
-  color: #445672;
+  width: 22px;
+  height: 22px;
+  color: var(--muted);
+  transition: color var(--t-fast) var(--ease-tender), transform var(--t-fast) var(--ease-tender);
 }
 
 .tab-link.active .tab-icon {
-  background: linear-gradient(145deg, rgba(79, 124, 255, 0.24), rgba(243, 201, 105, 0.18));
-  transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 10px 22px rgba(79, 124, 255, 0.18);
+  color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .tab-label {
   line-height: 1;
 }
 
-.tab-link-home.active .tab-icon {
-  background: linear-gradient(145deg, rgba(79, 124, 255, 0.28), rgba(154, 231, 255, 0.18));
+/* the little presence dot under the active tab — replaces the old
+   "fill the whole tab in a gradient pill" active state */
+.tab-link.active .tab-link-shell::after {
+  content: "";
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--primary);
 }
 
-.tab-link-wallet.active .tab-icon {
-  background: linear-gradient(145deg, rgba(207, 214, 230, 0.28), rgba(154, 231, 255, 0.16));
+/* the raised action — sits in the reserved center grid column,
+   physically escapes the bar upward like a shutter button */
+.tab-fab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tab-link-trade.active .tab-icon {
-  background: linear-gradient(145deg, rgba(71, 215, 172, 0.28), rgba(79, 124, 255, 0.18));
+.tab-fab-button {
+  position: absolute;
+  bottom: 20px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: #1c1712;
+  border: 4px solid var(--bg);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+  transition: transform var(--t-fast) var(--ease-tender);
 }
 
-.tab-link-orders.active .tab-icon {
-  background: linear-gradient(145deg, rgba(243, 201, 105, 0.24), rgba(207, 214, 230, 0.16));
+:root[data-theme="light"] .tab-fab-button {
+  box-shadow: 0 10px 22px rgba(28, 23, 18, 0.16);
+}
+
+.tab-fab-button:active {
+  transform: scale(0.94);
+}
+
+.tab-fab.active .tab-fab-button {
+  transform: scale(1.04);
 }
 
 .hero-card {
@@ -1478,6 +1596,58 @@ button:disabled {
 .status-pill.cancelled {
   background: rgba(248, 113, 113, 0.14);
   color: #fca5a5;
+}
+
+/* the stamp landing — plays once whenever a completed pill mounts */
+.status-pill.completed svg {
+  animation: tdr-stamp-land var(--t-slow) var(--ease-tender) both;
+}
+
+@keyframes tdr-stamp-land {
+  0%   { transform: scale(1.15); opacity: 0; }
+  60%  { transform: scale(0.97); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-pill.completed svg { animation: none; }
+}
+
+/* trust motion dot — "still in review", not final */
+.status-pill-motion {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: tdr-status-motion 1.4s ease-in-out infinite;
+}
+
+@keyframes tdr-status-motion {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%      { opacity: 1;    transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-pill-motion { animation: none; opacity: 0.8; }
+}
+
+/* trust verified mark — used wherever a World-ID-backed identity needs
+   to read as verified without a sentence of text next to it */
+.tdr-trust-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.tdr-trust-verified::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
 }
 
 /* .status-pill text colors were only ever tuned for a dark background —
@@ -4172,10 +4342,6 @@ button:disabled {
     align-items: start;
   }
 
-  .order-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .profile-links-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -5974,18 +6140,20 @@ input[type="number"] {
   gap: 8px;
 }
 .shell-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, #6a3fff 100%);
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 800;
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-ledger);
+  font-style: italic;
+  font-size: 0.86rem;
+  font-weight: 600;
   display: grid;
   place-items: center;
   text-decoration: none;
-  border: 2px solid rgba(255,255,255,0.12);
-  box-shadow: 0 2px 8px rgba(79,124,255,0.35);
+  border: 1px solid var(--border);
+  box-shadow: none;
   flex-shrink: 0;
 }
 .shell-icon-btn {
@@ -6809,4 +6977,681 @@ input[type="number"] {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TENDER — Home
+   No hero card, no glow blobs, no asset-chip row, no 4-icon action
+   grid. One continuous canvas: an oversized balance, the Bridge
+   (this app's actual job, drawn as an infographic instead of a swap
+   icon), a real Buy/Sell split action, and ledger-line activity.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.tdr-home {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── identity row ─────────────────────────────────────────────── */
+.tdr-home-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tdr-home-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tdr-home-brand-word {
+  font-family: var(--font-ledger);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.tdr-home-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.tdr-home-verified::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* ── balance ───────────────────────────────────────────────────── */
+.tdr-home-greeting {
+  margin: 0 0 2px;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.tdr-home-balance-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.tdr-home-balance-num {
+  font-family: var(--font-ledger);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 12vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.tdr-home-refresh {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  background: transparent;
+  transition: transform var(--t-base) var(--ease-tender), color var(--t-fast);
+  flex-shrink: 0;
+}
+
+.tdr-home-refresh:active { transform: scale(0.9); }
+.tdr-home-refresh .spin { display: inline-flex; animation: tdr-spin 0.9s linear infinite; }
+
+@keyframes tdr-spin { to { transform: rotate(360deg); } }
+
+.tdr-home-balance-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.tdr-home-balance-meta a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+
+/* ── the Bridge strip (signature graphic, echoes Login) ──────────── */
+.tdr-bridge {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.tdr-bridge-col {
+  display: grid;
+  gap: 6px;
+}
+
+.tdr-bridge-col-right { justify-items: end; text-align: right; }
+
+.tdr-bridge-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tdr-bridge-asset-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tdr-bridge-col-right .tdr-bridge-asset-row { flex-direction: row-reverse; }
+
+.tdr-bridge-asset-amt {
+  font-family: var(--font-ledger);
+  font-size: 1.06rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.tdr-bridge-asset-sym {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.tdr-bridge-asset-rate {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.tdr-bridge-core {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.tdr-bridge-core .tdr-bridge-line { width: 34px; }
+
+.tdr-bridge-core-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.tdr-bridge-kes-figure {
+  font-family: var(--font-ledger);
+  font-size: 1.06rem;
+  color: var(--text);
+}
+
+/* ── Buy / Sell split action ───────────────────────────────────── */
+.tdr-trade-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tdr-trade-half {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 16px 10px;
+  color: var(--text);
+  transition: background var(--t-fast) var(--ease-tender);
+}
+
+.tdr-trade-half:first-child { border-right: 1px solid var(--border); }
+.tdr-trade-half:active { background: var(--primary-soft); }
+
+/* persistent selected state — used where the split is a toggle
+   (TradePage) rather than a one-shot navigation choice (Home) */
+.tdr-trade-half.active {
+  background: var(--primary-soft);
+  box-shadow: inset 0 -2px 0 var(--primary);
+}
+
+.tdr-trade-half.active .tdr-trade-half-label { color: var(--primary); }
+
+.tdr-trade-half-label {
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.tdr-trade-half-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.tdr-home-util-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.tdr-home-util-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ── sections (Recent activity / Invite) ─────────────────────────── */
+.tdr-home-section {
+  display: grid;
+  gap: 12px;
+}
+
+.tdr-home-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.tdr-home-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tdr-home-section-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.tdr-ledger-list {
+  display: grid;
+}
+
+.tdr-ledger-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+  color: inherit;
+}
+
+.tdr-ledger-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.tdr-ledger-mid {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tdr-ledger-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tdr-ledger-date {
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.tdr-ledger-right {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.tdr-ledger-amt {
+  font-family: var(--font-ledger);
+  font-size: 0.94rem;
+  color: var(--text);
+}
+
+.tdr-ledger-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.tdr-home-empty {
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.tdr-home-invite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.tdr-home-invite-copy {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.tdr-home-invite-code {
+  font-family: var(--font-ledger);
+  color: var(--text);
+}
+
+.tdr-home-invite-action {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.tdr-home-nudge {
+  display: grid;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.tdr-home-nudge-row {
+  display: flex;
+  gap: 8px;
+}
+
+.tdr-home-nudge-row input {
+  flex: 1;
+}
+
+/* ═══ TENDER — hold-to-confirm ═══
+   Reserved exclusively for the final, irreversible step of a money
+   movement. The fill is a low-key wash so the label stays legible
+   throughout — this is a meter, not a button color change. */
+.hold-confirm {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 56px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1.02rem;
+  font-weight: 700;
+  isolation: isolate;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.hold-confirm:disabled {
+  opacity: 0.45;
+}
+
+.hold-confirm-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: var(--primary);
+  opacity: 0.3;
+  z-index: 0;
+  transition: width 140ms ease-out;
+}
+
+.hold-confirm.holding .hold-confirm-fill {
+  width: 100%;
+  transition: width var(--hold-ms) linear;
+}
+
+.hold-confirm-label {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hold-confirm.holding .hold-confirm-fill { transition-duration: 120ms; }
+}
+
+/* ═══ TENDER — the settlement receipt ═══
+   Replaces the generic ring-checkmark success card. A ticket, not a
+   modal: stamp lands, a hero figure at the "recorded" size tier, a
+   perforation, then a reference slip — the same object a user will
+   see again as a ledger row in History (DESIGN_SYSTEM §6/§7). */
+.tdr-receipt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 28px 22px 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.tdr-receipt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tdr-receipt-mark {
+  font-family: var(--font-ledger);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.98rem;
+  color: var(--text);
+}
+
+.tdr-receipt-kicker {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tdr-receipt-stamp {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--primary);
+  margin-bottom: 14px;
+  animation: tdr-stamp-land var(--t-slow) var(--ease-tender) both;
+}
+
+.tdr-receipt-title {
+  margin: 0;
+  font-size: 1.18rem;
+}
+
+.tdr-receipt-lead {
+  margin: 6px 0 0;
+  max-width: 32ch;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.tdr-receipt-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 20px 0 22px;
+}
+
+.tdr-receipt-amount-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tdr-receipt-amount-fig {
+  font-family: var(--font-ledger);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 9vw, 2.4rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.tdr-receipt-perforation {
+  position: relative;
+  width: calc(100% + 44px);
+  margin: 0 -22px 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.tdr-receipt-perforation span {
+  position: absolute;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.tdr-receipt-perforation span:first-child { left: -8px; }
+.tdr-receipt-perforation span:last-child { right: -8px; }
+
+.tdr-receipt-lines {
+  width: 100%;
+  display: grid;
+}
+
+.tdr-receipt-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.tdr-receipt-line:first-child { border-top: 0; }
+
+.tdr-receipt-line span { color: var(--muted); }
+
+.tdr-receipt-line strong {
+  font-family: var(--font-ledger);
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.tdr-receipt-ref {
+  margin-top: 16px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.tdr-receipt-actions {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* ═══ TENDER — ledger reveal (OrderCard) ═══
+   A journal entry, not a card: collapsed to a single ledger row by
+   default, expands in place — no modal, no navigation. Reuses
+   .tdr-receipt-line for the revealed detail so a receipt and its
+   later History entry are visibly the same object. */
+.order-grid {
+  gap: 0;
+}
+
+.tdr-ledger-entry {
+  border-top: 1px solid var(--border);
+}
+
+.order-grid .tdr-ledger-entry:first-child {
+  border-top: 0;
+}
+
+.tdr-ledger-entry-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.tdr-ledger-entry-failed .tdr-ledger-entry-row {
+  opacity: 0.72;
+}
+
+.tdr-ledger-icon-sell { color: var(--muted); }
+
+/* the auto-height reveal — grid-rows 0fr→1fr avoids animating to/from
+   an unknown "auto" height while still growing in place */
+.tdr-ledger-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t-base) var(--ease-tender);
+}
+
+.tdr-ledger-reveal.open {
+  grid-template-rows: 1fr;
+}
+
+.tdr-ledger-reveal-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.tdr-ledger-reveal.open .tdr-ledger-reveal-inner {
+  padding-bottom: 16px;
+}
+
+.tdr-ledger-closed-note {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tdr-ledger-reveal { transition: none; }
+}
+
+/* ═══ TENDER — Wallet's one deliberate block ═══ */
+.tdr-wallet-vault {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.tdr-wallet-vault-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tdr-wallet-vault-row strong {
+  display: block;
+  font-family: var(--font-ledger);
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.tdr-wallet-vault-row span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.tdr-wallet-vault-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--primary);
+  flex-shrink: 0;
 }

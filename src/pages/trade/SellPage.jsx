@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
+import HoldToConfirm from "../../components/interaction/HoldToConfirm";
+import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import {
@@ -15,6 +17,7 @@ import {
   getWorldWalletPortfolio,
   haptic,
   requestWorldPayment,
+  tenderHaptics,
 } from "../../services";
 
 function SellPage() {
@@ -101,10 +104,12 @@ function SellPage() {
         paymentVerificationStatus: payment.transactionStatus,
         status:                    "paid",
       });
+      tenderHaptics.send();
       setCurrentOrder(updated);
       setPaymentReference(payment.transactionId);
       setStep(3);
     } catch (e) {
+      tenderHaptics.fail();
       setError(e.message);
     } finally {
       setSendLoading(false);
@@ -113,11 +118,25 @@ function SellPage() {
 
   const handleCreateSellOrder = async () => {
     if (orderCreating) return;
+
+    // Real balance check, not just the min-amount check useOrderFlow does —
+    // this is the one place a user can request more than they actually
+    // hold, so it gets its own distinct rejection signature rather than
+    // being folded into the generic validation error.
+    if (
+      selectedAssetBalance &&
+      Number(cryptoAmount) > Number(selectedAssetBalance.formattedBalance || 0)
+    ) {
+      tenderHaptics.insufficientBalance();
+      setError(`You only hold ${selectedAssetBalance.formattedBalance} ${asset}.`);
+      return;
+    }
+
     haptic("medium");
     setOrderCreating(true);
     const order = await placeOrder();
     if (order) {
-      haptic("success");
+      tenderHaptics.commit();
       setOrderJustPlaced(true);
     }
     setOrderCreating(false);
@@ -224,47 +243,24 @@ function SellPage() {
     );
   }
 
-  /* ── STEP 3: Full success screen ──────────────────────────────── */
+  /* ── STEP 3: Settlement receipt ─────────────────────────────────── */
   if (step === 3 && currentOrder) {
     return (
       <div className="content-grid">
-        <section className="panel stack task-panel trade-panel-compact">
-          <div className="order-success-screen">
-            <div className="oss-ring" aria-hidden="true">
-              <span className="oss-check"><Icon name="check" size={30} strokeWidth={2.4} /></span>
-            </div>
-            <h2 className="oss-title">
-              {canSendInsideMiniApp ? "Payment sent!" : "Order submitted!"}
-            </h2>
-            <p className="oss-body">
-              Admin will confirm your payment and send{" "}
-              <strong>{formatKES(currentOrder.kesAmount)}</strong> to{" "}
-              <strong>{currentOrder.payoutPhoneNumber}</strong>.
-            </p>
-            <div className="oss-summary">
-              <div className="oss-sum-row">
-                <span>Order type</span>
-                <strong>Sell {currentOrder.asset}</strong>
-              </div>
-              <div className="oss-sum-row">
-                <span>You sent</span>
-                <strong>{formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset}</strong>
-              </div>
-              <div className="oss-sum-row">
-                <span>KES payout</span>
-                <strong>{formatKES(currentOrder.kesAmount)}</strong>
-              </div>
-              <div className="oss-sum-row">
-                <span>M-Pesa to</span>
-                <strong>{currentOrder.payoutPhoneNumber}</strong>
-              </div>
-            </div>
-            <div className="oss-actions">
-              <Link to="/orders" className="button">View in History</Link>
-              <button type="button" className="button-ghost" onClick={resetFlow}>New trade</button>
-            </div>
-          </div>
-        </section>
+        <Receipt
+          title={canSendInsideMiniApp ? "Payment sent" : "Order submitted"}
+          leadCopy={`Admin will confirm your payment and send ${formatKES(currentOrder.kesAmount)} to ${currentOrder.payoutPhoneNumber}.`}
+          amountLabel="KES payout"
+          amountValue={formatKES(currentOrder.kesAmount)}
+          reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
+          shareText={`Tcash receipt — sold ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
+          onNewTrade={resetFlow}
+          lines={[
+            { label: "Order type", value: `Sell ${currentOrder.asset}` },
+            { label: "You sent", value: `${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset}` },
+            { label: "M-Pesa to", value: currentOrder.payoutPhoneNumber },
+          ]}
+        />
       </div>
     );
   }
@@ -328,16 +324,13 @@ function SellPage() {
                   Approve the World Pay sheet — your KES payout begins after manual review.
                 </p>
               </div>
-              <button
-                type="button"
-                className="button"
-                onClick={handleMiniAppSend}
+              <HoldToConfirm
+                label={`Hold to send ${currentOrder.cryptoAmount} ${currentOrder.asset}`}
+                holdingLabel="Keep holding…"
                 disabled={sendLoading}
-              >
-                {sendLoading
-                  ? "Opening World payment…"
-                  : `Send ${currentOrder.cryptoAmount} ${currentOrder.asset} to Tcash`}
-              </button>
+                onConfirm={handleMiniAppSend}
+              />
+              {sendLoading ? <p className="tdr-login-status">Opening World payment…</p> : null}
             </>
           ) : (
             <>
@@ -356,13 +349,12 @@ function SellPage() {
                   placeholder="0x1234…"
                 />
               </div>
-              <button
-                type="button"
-                className="button"
-                onClick={() => markAsPaid(paymentReference)}
-              >
-                I have sent — submit hash
-              </button>
+              <HoldToConfirm
+                label="Hold to submit transaction"
+                holdingLabel="Keep holding…"
+                disabled={!paymentReference.trim()}
+                onConfirm={() => { tenderHaptics.send(); markAsPaid(paymentReference); }}
+              />
             </>
           )}
         </div>

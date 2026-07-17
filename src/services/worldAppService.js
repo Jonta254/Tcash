@@ -469,12 +469,30 @@ export async function openWorldChatInvite({ message }) {
 
 /**
  * Haptic feedback — silently ignored outside World App.
- * type: "light" | "medium" | "heavy" | "soft" | "rigid" | "success" | "warning" | "error"
+ * type: "light" | "medium" | "heavy" | "success" | "warning" | "error" | "selection"
+ *
+ * NOTE: MiniKit's real sendHapticFeedback payload is a tagged union —
+ * { hapticsType: "impact", style: "light"|"medium"|"heavy" }
+ * { hapticsType: "notification", style: "success"|"warning"|"error" }
+ * { hapticsType: "selection-changed" }
+ * — NOT the flat { hapticType } shape this used to send, which World App
+ * silently dropped. Every haptic call in this app has been a no-op.
  */
+const HAPTIC_PAYLOAD = {
+  light:     { hapticsType: "impact",             style: "light" },
+  medium:    { hapticsType: "impact",             style: "medium" },
+  heavy:     { hapticsType: "impact",             style: "heavy" },
+  success:   { hapticsType: "notification",        style: "success" },
+  warning:   { hapticsType: "notification",        style: "warning" },
+  error:     { hapticsType: "notification",        style: "error" },
+  selection: { hapticsType: "selection-changed" },
+};
+
 export function haptic(type = "light") {
   if (!MiniKit.isInstalled()) return;
+  const payload = HAPTIC_PAYLOAD[type] || HAPTIC_PAYLOAD.light;
   try {
-    MiniKit.commands?.sendHapticFeedback?.({ hapticType: type });
+    MiniKit.commands?.sendHapticFeedback?.(payload);
   } catch {
     // silently ignore — haptics are enhancement only
   }

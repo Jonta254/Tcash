@@ -79,10 +79,14 @@ Create env vars from [.env.example](C:/Users/ADMIN/Documents/New%20project/World
 - `ORDER_NOTIFICATION_EMAIL`: optional admin email override, defaults to `brianokindo2022@gmail.com`
 - `ORDER_EMAIL_FROM`: optional verified sender, defaults to Resend test sender
 
-## Demo Admin Account
+## Admin Sign-In
 
-- Phone: `0795621901`
-- Password: `Jonta@2003`
+Admin credentials are never stored in this repo or the client bundle.
+They're checked server-side in `api/admin-login.js` against the
+`ADMIN_PHONE` and `ADMIN_PASSWORD` environment variables, set only in
+Vercel → Project Settings → Environment Variables. A successful sign-in
+issues a short-lived signed session cookie; `api/orders.js` requires
+that cookie before accepting a "completed" or "rejected" status write.
 
 ## Run Locally
 

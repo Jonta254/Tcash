@@ -76,6 +76,21 @@ export async function confirmWorldPayment(payload) {
   return readJsonResponse(response);
 }
 
+export async function requestAdminSession(phone, password) {
+  const response = await fetchWithTimeout("/api/admin-login", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ phone, password }),
+  }).catch(() => {
+    throw new Error("Tcash could not reach the secure server. Please try again.");
+  });
+
+  return readJsonResponse(response);
+}
+
 export async function fetchAdminOrderQueue() {
   const response = await fetchWithTimeout("/api/orders", {
     cache: "no-store",

@@ -1,5 +1,21 @@
 import { del, list, put } from "@vercel/blob";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
+import { parseCookies } from "./_lib/cookies.js";
+import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "./_lib/adminAuth.js";
+
+// The two status transitions that finalize a trade — completed releases
+// crypto/KES, rejected closes it out. Both are operator-only in the
+// product (Admin fulfillment process, unchanged) and are now enforced
+// here, not just hidden in the client UI: a request trying to set either
+// status without a valid admin session is rejected before it reaches
+// the order store. Every other transition (a user creating a draft or
+// submitting their own payment reference) is untouched.
+const ADMIN_ONLY_STATUSES = new Set(["completed", "rejected"]);
+
+function requestHasAdminSession(req) {
+  const cookies = parseCookies(req);
+  return verifyAdminSessionToken(cookies[ADMIN_SESSION_COOKIE]);
+}
 
 const ORDER_PREFIX = "tmpesa/orders/";
 // Upstash Redis via Vercel Marketplace — preferred order store (free tier is
@@ -410,6 +426,16 @@ export default async function handler(req, res) {
       sendJson(res, 400, {
         ok: false,
         error: "Send at least one valid Tcash order.",
+      });
+      return;
+    }
+
+    const attemptsAdminStatus = orders.some((order) => ADMIN_ONLY_STATUSES.has(order.status));
+
+    if (attemptsAdminStatus && !requestHasAdminSession(req)) {
+      sendJson(res, 403, {
+        ok: false,
+        error: "Only a signed-in Tcash operator can complete or reject an order.",
       });
       return;
     }

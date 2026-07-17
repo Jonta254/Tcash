@@ -12,6 +12,7 @@ import {
   getWorldAppContext,
   loginWithWorldApp,
   notifyAdminReferralEvent,
+  tenderHaptics,
 } from "../../services";
 
 function LoginPage() {
@@ -110,8 +111,10 @@ function LoginPage() {
         });
       }
 
+      tenderHaptics.verify();
       finalizeSessionRedirect();
     } catch (err) {
+      tenderHaptics.warn();
       setError(err.message);
     } finally {
       setAuthStage("idle");
@@ -122,97 +125,50 @@ function LoginPage() {
 
   return (
     <div className="page-bg">
-      <div className="auth-layout auth-layout-single">
-        <section className="auth-card stack auth-entry-card auth-splash-card">
-          <div className="auth-splash-top">
-            <div className="auth-logo-frame">
-              <img src="/tcash-logo.png" alt="Tcash" className="auth-logo-mark" />
-            </div>
-            <div className="auth-splash-copy">
-              <div className="auth-title-row">
-                <span className="brand-kicker">World mini app</span>
-                <span className="live-badge">Wallet Auth</span>
-              </div>
-              <h2>Tcash</h2>
-              <p className="muted">Buy and sell WLD or USDC with M-Pesa inside World App.</p>
-            </div>
-          </div>
+      <div className="tdr-login page-enter">
+        <span className="tdr-login-kicker">World mini app</span>
 
-          {error ? <div className="error">{error}</div> : null}
-          {authStatus ? <div className="notice">{authStatus}</div> : null}
+        <div className="tdr-login-mark" aria-hidden="true">
+          <span className="tdr-bridge-word">WLD</span>
+          <span className="tdr-bridge-line">
+            <span className="tdr-bridge-dot" />
+          </span>
+          <span className="tdr-bridge-word">KES</span>
+        </div>
 
-          <div className="auth-gate-card">
-            <div className="auth-gate-head">
-              <span className="secure-access-badge">World sign in</span>
-              <span className="secure-access-trust">Fast entry</span>
-            </div>
+        <h1 className="tdr-login-word">Tcash</h1>
+        <p className="tdr-login-copy">
+          The bridge between your World wallet and M-Pesa. One tap, a human review, your money.
+        </p>
 
-            <div className="auth-gate-copy">
-              <div>
-                <span className="tag">Wallet Auth</span>
-                <h3>Enter Tcash through World App</h3>
-              </div>
-              <p className="muted">Approve once, open your wallet session, and start trading.</p>
-            </div>
+        {error ? <p className="tdr-login-error">{error}</p> : null}
+        {authStatus ? <p className="tdr-login-status">{authStatus}</p> : null}
 
-            <div className="auth-mini-flow" aria-label="Wallet login flow">
-              <div className={authStage === "wallet" ? "active" : ""}>
-                <span>1</span>
-                <strong>Approve wallet</strong>
-              </div>
-              <div className={authStage === "unlock" ? "active" : ""}>
-                <span>2</span>
-                <strong>Open session</strong>
-              </div>
-              <div>
-                <span>3</span>
-                <strong>Start trading</strong>
-              </div>
-            </div>
-          </div>
+        <div className="tdr-login-actions">
+          <button
+            type="button"
+            className="tdr-login-cta"
+            onClick={handleWorldAppLogin}
+            disabled={!worldApp.isInstalled || worldLoading}
+          >
+            {worldLoading ? "Opening World approval…" : "Continue with World App"}
+          </button>
 
-          <div className="stack auth-cta-block">
-            <button
-              type="button"
-              className="button auth-connect-button"
-              onClick={handleWorldAppLogin}
-              disabled={!worldApp.isInstalled || worldLoading}
+          {worldApp.isInstalled ? (
+            <span className="tdr-login-hint">Tcash opens your wallet session automatically.</span>
+          ) : settings.worldAppId ? (
+            <a
+              className="tdr-login-fallback"
+              href={buildWorldAppDeeplink("/login")}
+              target="_blank"
+              rel="noreferrer"
             >
-              {worldLoading ? "Opening World approval..." : "Continue with World App"}
-            </button>
-            <div className="notice auth-inline-note">
-              {worldApp.isInstalled
-                ? "World App detected. Tcash will open your wallet session and continue inside the app."
-                : "Wallet Auth only works inside World App — open Tcash there to sign in."}
-            </div>
-            {!worldApp.isInstalled && settings.worldAppId ? (
-              <a
-                className="button-secondary auth-connect-button"
-                href={buildWorldAppDeeplink("/login")}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open in World App
-              </a>
-            ) : null}
-          </div>
-
-          <div className="auth-compact-benefits">
-            <div className="auth-benefit-chip">
-              <span className="auth-feature-icon auth-feature-green">KES</span>
-              <strong>Cash settlement</strong>
-            </div>
-            <div className="auth-benefit-chip">
-              <span className="auth-feature-icon auth-feature-blue">WLD</span>
-              <strong>World-native desk</strong>
-            </div>
-            <div className="auth-benefit-chip">
-              <span className="auth-feature-icon auth-feature-gold">PRO</span>
-              <strong>Operator reviewed</strong>
-            </div>
-          </div>
-        </section>
-
+              Open in World App →
+            </a>
+          ) : (
+            <span className="tdr-login-hint">Wallet Auth only works inside World App.</span>
+          )}
+        </div>
       </div>
     </div>
   );

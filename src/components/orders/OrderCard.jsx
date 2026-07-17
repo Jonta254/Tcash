@@ -1,5 +1,6 @@
+import { useState } from "react";
 import Icon from "../icons/Icon";
-import { getCurrentUser } from "../../services";
+import { getCurrentUser, tenderHaptics } from "../../services";
 import StatusPill from "./StatusPill";
 
 function fmt(date) {
@@ -8,109 +9,135 @@ function fmt(date) {
   });
 }
 
-const STAGE = {
-  completed: 3,
-  paid:      2,
-  rejected:  0,
-  cancelled: 0,
+const UPDATE_LABEL = {
+  paid: "Reviewing since",
+  completed: "Settled",
+  rejected: "Closed",
+  cancelled: "Closed",
 };
 
+/*
+ * A ledger entry, not a card. Collapsed, it's a single row — identical
+ * shape to Home's recent-activity lines, so History reads as more of
+ * that journal rather than a second, different-looking list. Tapping
+ * it grows the row in place to reveal the full record: no modal, no
+ * navigation, no separate screen. Orders still needing the user's own
+ * next action (a pending order waiting on an M-Pesa code or a manual
+ * tx hash) open by default — the same inline form that used to always
+ * be visible stays exactly that reachable; only settled/closed history
+ * defaults to collapsed, which is the actual improvement, not a
+ * relearned procedure.
+ */
 function OrderCard({ order, children }) {
-  const user     = getCurrentUser();
-  const isSell   = order.type === "sell";
-  const stage    = STAGE[order.status] ?? 1;
+  const user = getCurrentUser();
   const isFailed = order.status === "rejected" || order.status === "cancelled";
+  const needsUserAction = order.status === "pending";
+  const [open, setOpen] = useState(needsUserAction);
+
+  const toggle = () => {
+    if (open) {
+      tenderHaptics.select();
+    } else if (order.status === "pending" || order.status === "paid") {
+      tenderHaptics.pendingSettlement();
+    } else {
+      tenderHaptics.select();
+    }
+    setOpen((current) => !current);
+  };
+
+  const hasUpdate = order.updatedAt && order.updatedAt !== order.createdAt;
 
   return (
-    <article className={`order-card stack${isFailed ? " order-card-failed" : ""}`}>
-
-      {/* ── Card header ─────────────────────────────────────── */}
-      <div className="oc-header">
-        <div className="oc-type-block">
-          <span className={`oc-type-badge oc-type-${order.type}`}>
-            <Icon name={order.type === "buy" ? "arrowUp" : "arrowDown"} size={12} strokeWidth={2.6} />
-            {order.type === "buy" ? "Buy" : "Sell"}
+    <article className={`tdr-ledger-entry${isFailed ? " tdr-ledger-entry-failed" : ""}`}>
+      <button
+        type="button"
+        className="tdr-ledger-entry-row"
+        onClick={toggle}
+        aria-expanded={open}
+      >
+        <span className={`tdr-ledger-icon tdr-ledger-icon-${order.type}`} aria-hidden="true">
+          <Icon name={order.type === "buy" ? "arrowUp" : "arrowDown"} size={13} strokeWidth={2.2} />
+        </span>
+        <div className="tdr-ledger-mid">
+          <span className="tdr-ledger-title">
+            {order.type === "buy" ? "Buy" : "Sell"} {order.cryptoAmount} {order.asset}
           </span>
-          <h3 className="oc-title">
-            {order.cryptoAmount} {order.asset}
-          </h3>
+          <span className="tdr-ledger-date">{fmt(order.createdAt)}</span>
         </div>
-        <StatusPill status={order.status} />
-      </div>
+        <div className="tdr-ledger-right">
+          <span className="tdr-ledger-amt">KES {Number(order.kesAmount).toLocaleString()}</span>
+          <StatusPill status={order.status} />
+        </div>
+      </button>
 
-      {/* ── Key figures ─────────────────────────────────────── */}
-      <div className="oc-figures">
-        <div className="oc-fig">
-          <span>{isSell ? "KES payout" : "KES to pay"}</span>
-          <strong>KES {Number(order.kesAmount).toLocaleString()}</strong>
-        </div>
-        <div className="oc-fig">
-          <span>Asset</span>
-          <strong>{order.cryptoAmount} {order.asset}</strong>
-        </div>
-        {order.payoutPhoneNumber && (
-          <div className="oc-fig">
-            <span>M-Pesa</span>
-            <strong>{order.payoutPhoneNumber}</strong>
-          </div>
-        )}
-        {order.paymentReference && (
-          <div className="oc-fig">
-            <span>Reference</span>
-            <strong className="oc-ref">{order.paymentReference}</strong>
-          </div>
-        )}
-        {order.destinationUsername && (
-          <div className="oc-fig">
-            <span>World user</span>
-            <strong>@{order.destinationUsername}</strong>
-          </div>
-        )}
-      </div>
-
-      {/* ── Admin-only details ──────────────────────────────── */}
-      {user?.isAdmin && (
-        <div className="oc-admin-meta">
-          {order.userPhone         && <span>Phone: {order.userPhone}</span>}
-          {order.userWalletAddress && <span>Wallet: {order.userWalletAddress}</span>}
-          {order.userLabel         && <span>User: {order.userLabel}</span>}
-          {order.humanVerificationStatus && (
-            <span>
-              Verified: {order.humanVerificationStatus}
-              {order.humanVerificationLevel ? ` (${order.humanVerificationLevel})` : ""}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* ── Timeline ────────────────────────────────────────── */}
-      {!isFailed ? (
-        <div className="oc-timeline" aria-label="Order progress">
-          {["Placed", "Under review", "Completed"].map((label, i) => (
-            <div key={label} className={`oc-step${stage > i ? " done" : stage === i + 1 ? " active" : ""}`}>
-              <div className="oc-step-dot">
-                {stage > i ? <span className="oc-step-tick"><Icon name="check" size={13} strokeWidth={2.6} /></span> : null}
-              </div>
-              <small>{label}</small>
+      <div className={`tdr-ledger-reveal${open ? " open" : ""}`}>
+        <div className="tdr-ledger-reveal-inner">
+          <div className="tdr-receipt-lines">
+            <div className="tdr-receipt-line">
+              <span>{order.type === "sell" ? "KES payout" : "KES to pay"}</span>
+              <strong>KES {Number(order.kesAmount).toLocaleString()}</strong>
             </div>
-          ))}
-          <div className="oc-timeline-line" />
-        </div>
-      ) : (
-        <div className="oc-failed-note">
-          Order {order.status} — contact support if you need help.
-        </div>
-      )}
+            <div className="tdr-receipt-line">
+              <span>Asset</span>
+              <strong>{order.cryptoAmount} {order.asset}</strong>
+            </div>
+            {order.payoutPhoneNumber && (
+              <div className="tdr-receipt-line">
+                <span>M-Pesa</span>
+                <strong>{order.payoutPhoneNumber}</strong>
+              </div>
+            )}
+            {order.paymentReference && (
+              <div className="tdr-receipt-line">
+                <span>Reference</span>
+                <strong>{order.paymentReference}</strong>
+              </div>
+            )}
+            {order.destinationUsername && (
+              <div className="tdr-receipt-line">
+                <span>World user</span>
+                <strong>@{order.destinationUsername}</strong>
+              </div>
+            )}
+          </div>
 
-      {/* ── Footer timestamp ────────────────────────────────── */}
-      <div className="oc-footer">
-        <span className="oc-date">{fmt(order.createdAt)}</span>
-        {order.updatedAt && order.updatedAt !== order.createdAt && (
-          <span className="oc-date">Updated {fmt(order.updatedAt)}</span>
-        )}
+          {user?.isAdmin && (
+            <div className="oc-admin-meta">
+              {order.userPhone && <span>Phone: {order.userPhone}</span>}
+              {order.userWalletAddress && <span>Wallet: {order.userWalletAddress}</span>}
+              {order.userLabel && <span>User: {order.userLabel}</span>}
+              {order.humanVerificationStatus && (
+                <span>
+                  Verified: {order.humanVerificationStatus}
+                  {order.humanVerificationLevel ? ` (${order.humanVerificationLevel})` : ""}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* journal — real recorded timestamps only, never a fabricated
+              per-stage progress illustration */}
+          <div className="tdr-receipt-lines">
+            <div className="tdr-receipt-line">
+              <span>Placed</span>
+              <strong>{fmt(order.createdAt)}</strong>
+            </div>
+            {hasUpdate && (
+              <div className="tdr-receipt-line">
+                <span>{UPDATE_LABEL[order.status] || "Updated"}</span>
+                <strong>{fmt(order.updatedAt)}</strong>
+              </div>
+            )}
+          </div>
+          {isFailed && (
+            <p className="muted tdr-ledger-closed-note">
+              Order {order.status} — contact support if you need help.
+            </p>
+          )}
+
+          {children}
+        </div>
       </div>
-
-      {children}
     </article>
   );
 }

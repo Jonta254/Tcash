@@ -86,3 +86,4 @@ export {
   requestWorldNotificationPermission,
   shareMiniAppInvite,
 } from "./worldAppService";
+export { tenderHaptics } from "./tenderHaptics";

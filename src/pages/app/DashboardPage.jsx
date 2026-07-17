@@ -15,6 +15,7 @@ import {
   haptic,
   markReferralShared,
   shareMiniAppInvite,
+  tenderHaptics,
   updateCurrentUserProfile,
 } from "../../services";
 
@@ -139,7 +140,10 @@ export default function DashboardPage() {
 
   const handleRefreshRates = async () => {
     setMktRefreshing(true); haptic("light");
-    try { await fetchWorldMarketRates(); }
+    try {
+      await fetchWorldMarketRates();
+      tenderHaptics.bridgeComplete();
+    }
     catch { /* silent — rates stay cached */ }
     finally { setMktRefreshing(false); }
   };
@@ -184,122 +188,90 @@ export default function DashboardPage() {
   const initials    = (user?.username || user?.fullName || "T")[0].toUpperCase();
 
   return (
-    <div className="home-root page-enter">
+    <div className="tdr-home page-enter">
 
-      {/* ══ HERO CARD ══════════════════════════════════════════ */}
-      <div className="home-hero">
-        <div className="hh-glow hh-glow-a" aria-hidden="true" />
-        <div className="hh-glow hh-glow-b" aria-hidden="true" />
-
-        {/* brand row */}
-        <div className="hh-toprow">
-          <div className="hh-brand">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-              <rect width="28" height="28" rx="7" fill="#001A0F"/>
-              <rect width="28" height="28" rx="7" fill="url(#tcash-bg)" opacity="0.9"/>
-              <circle cx="14" cy="14" r="8" fill="none" stroke="#00C97A" strokeWidth="1.2" opacity="0.5"/>
-              <line x1="8" y1="14" x2="20" y2="14" stroke="#00C97A" strokeWidth="1.5" strokeLinecap="round"/>
-              <polyline points="16,10 20,14 16,18" fill="none" stroke="#00C97A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="9" cy="14" r="2" fill="#00C97A" opacity="0.8"/>
-              <defs>
-                <linearGradient id="tcash-bg" x1="0" y1="0" x2="28" y2="28">
-                  <stop offset="0%" stopColor="#00C97A" stopOpacity="0.18"/>
-                  <stop offset="100%" stopColor="#00C97A" stopOpacity="0.04"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <span className="hh-brand-name">Tcash</span>
-            {hasWorld && (
-              <span className="hh-verified-chip">
-                <span className="hh-verified-dot" aria-hidden="true" />
-                World
-              </span>
-            )}
-          </div>
-          <Link to="/profile" className="hh-avatar" aria-label="Profile">{initials}</Link>
+      {/* ── identity ─────────────────────────────────────────── */}
+      <div className="tdr-home-topline">
+        <div className="tdr-home-brand">
+          <span className="tdr-home-brand-word">Tcash</span>
+          {hasWorld && <span className="tdr-trust-verified">World</span>}
         </div>
-
-        {/* balance */}
-        <div className="hh-balance-section">
-          <p className="hh-greeting">{greeting}{displayName ? `, ${displayName}` : ""}</p>
-          <div className="hh-balance-row">
-            <strong className="hh-balance-num">{balanceLabel}</strong>
-            <button type="button" className="hh-refresh-btn" onClick={handleRefreshWallet} aria-label="Refresh">
-              <span className={wltRefreshing ? "spin" : ""}><Icon name="refresh" size={15} strokeWidth={2.1} /></span>
-            </button>
-          </div>
-          <div className="hh-balance-meta">
-            <span className="hh-balance-sub">{balanceSub}</span>
-            <Link to="/wallet" className="hh-wallet-link">Wallet →</Link>
-          </div>
-          {walletError && !hasBalances && <div className="hh-wallet-err">{walletError}</div>}
-        </div>
-
-        {/* asset chips — live rates embedded */}
-        <div className="hh-assets">
-          <div className="hh-asset hh-asset-wld">
-            <span className="hh-asset-sym">W</span>
-            <div className="hh-asset-body">
-              <span className="hh-asset-name">WLD</span>
-              <strong className="hh-asset-amt">{assetAmt(walletBoard.wld)}</strong>
-              {mktRates[0].kes > 1 && <span className="hh-asset-rate">{formatKES(mktRates[0].kes)}</span>}
-            </div>
-          </div>
-          <div className="hh-asset hh-asset-usdc">
-            <span className="hh-asset-sym">$</span>
-            <div className="hh-asset-body">
-              <span className="hh-asset-name">USDC</span>
-              <strong className="hh-asset-amt">{assetAmt(walletBoard.usdc)}</strong>
-              {mktRates[1].kes > 1 && <span className="hh-asset-rate">{formatKES(mktRates[1].kes)}</span>}
-            </div>
-          </div>
-          <div className="hh-rates-refresh">
-            <button type="button" className="hh-refresh-btn" onClick={handleRefreshRates} aria-label="Refresh rates">
-              <span className={mktRefreshing ? "spin" : ""}><Icon name="refresh" size={15} strokeWidth={2.1} /></span>
-            </button>
-            {hasLiveRates && <span className="hh-live-label">Live</span>}
-          </div>
-        </div>
-
-        {/* divider */}
-        <div className="hh-divider" aria-hidden="true" />
-
-        {/* actions */}
-        <nav className="hh-actions" aria-label="Quick actions">
-          <Link to="/trade?tab=buy"  className="hh-action hh-action-buy">
-            <span className="hh-action-icon"><Icon name="arrowUp" size={17} strokeWidth={2.1} /></span>
-            <span className="hh-action-label">Buy</span>
-          </Link>
-          <Link to="/trade?tab=sell" className="hh-action hh-action-sell">
-            <span className="hh-action-icon"><Icon name="arrowDown" size={17} strokeWidth={2.1} /></span>
-            <span className="hh-action-label">Sell</span>
-          </Link>
-          <Link to="/wallet#receive" className="hh-action hh-action-receive">
-            <span className="hh-action-icon"><Icon name="hexagon" size={17} strokeWidth={2.1} /></span>
-            <span className="hh-action-label">Receive</span>
-          </Link>
-          <Link to="/orders"         className="hh-action hh-action-history">
-            <span className="hh-action-icon"><Icon name="history" size={17} strokeWidth={2.1} /></span>
-            <span className="hh-action-label">History</span>
-          </Link>
-        </nav>
+        <Link to="/profile" className="shell-avatar" aria-label="Profile">{initials}</Link>
       </div>
 
-      {/* ══ SETUP NUDGE (only when M-Pesa number missing) ══════ */}
-      {!user?.isAdmin && !user?.mpesaPhoneNumber && (
-        <section className="home-nudge">
-          <div className="nudge-head">
-            <span className="nudge-icon" aria-hidden="true"><Icon name="phone" size={18} strokeWidth={1.9} /></span>
-            <div>
-              <strong>Add M-Pesa number</strong>
-              <p className="muted" style={{ margin: "1px 0 0", fontSize: "0.82rem" }}>
-                Required for sell payouts.
-              </p>
-            </div>
+      {/* ── balance — no card, sits directly on the page ────────── */}
+      <div>
+        <p className="tdr-home-greeting">{greeting}{displayName ? `, ${displayName}` : ""}</p>
+        <div className="tdr-home-balance-row">
+          <strong className="tdr-home-balance-num">{balanceLabel}</strong>
+          <button type="button" className="tdr-home-refresh" onClick={handleRefreshWallet} aria-label="Refresh balance">
+            <span className={wltRefreshing ? "spin" : ""}><Icon name="refresh" size={13} strokeWidth={2} /></span>
+          </button>
+        </div>
+        <div className="tdr-home-balance-meta">
+          <span>{balanceSub}</span>
+          <Link to="/wallet">Wallet →</Link>
+        </div>
+        {walletError && !hasBalances && <p className="tdr-login-error" style={{ marginTop: 6 }}>{walletError}</p>}
+      </div>
+
+      {/* ── the Bridge — what this app actually does, drawn once ─ */}
+      <div className="tdr-bridge">
+        <div className="tdr-bridge-col">
+          <span className="tdr-bridge-label">Crypto</span>
+          <div className="tdr-bridge-asset-row">
+            <span className="tdr-bridge-asset-amt">{assetAmt(walletBoard.wld)}</span>
+            <span className="tdr-bridge-asset-sym">WLD</span>
           </div>
-          {profileErr && <div className="error" style={{ fontSize: "0.8rem" }}>{profileErr}</div>}
-          {profileMsg && <div className="notice" style={{ fontSize: "0.8rem" }}>{profileMsg}</div>}
-          <div className="nudge-row">
+          {mktRates[0].kes > 1 && <span className="tdr-bridge-asset-rate">{formatKES(mktRates[0].kes)}</span>}
+          <div className="tdr-bridge-asset-row">
+            <span className="tdr-bridge-asset-amt">{assetAmt(walletBoard.usdc)}</span>
+            <span className="tdr-bridge-asset-sym">USDC</span>
+          </div>
+          {mktRates[1].kes > 1 && <span className="tdr-bridge-asset-rate">{formatKES(mktRates[1].kes)}</span>}
+        </div>
+
+        <button type="button" className="tdr-bridge-core" onClick={handleRefreshRates} aria-label="Refresh rates">
+          <span className="tdr-bridge-line"><span className={mktRefreshing ? "" : "tdr-bridge-dot"} /></span>
+          {hasLiveRates && <span className="tdr-bridge-core-label">Live</span>}
+        </button>
+
+        <div className="tdr-bridge-col tdr-bridge-col-right">
+          <span className="tdr-bridge-label">Settles as</span>
+          <span className="tdr-bridge-kes-figure">KES</span>
+        </div>
+      </div>
+
+      {/* ── the one thing you came here to do ────────────────────── */}
+      <div>
+        <nav className="tdr-trade-split" aria-label="Trade">
+          <Link to="/trade?tab=buy" className="tdr-trade-half">
+            <span className="tdr-trade-half-label">Buy</span>
+            <span className="tdr-trade-half-sub">Pay KES</span>
+          </Link>
+          <Link to="/trade?tab=sell" className="tdr-trade-half">
+            <span className="tdr-trade-half-label">Sell</span>
+            <span className="tdr-trade-half-sub">Receive KES</span>
+          </Link>
+        </nav>
+        <div className="tdr-home-util-row" style={{ marginTop: 14 }}>
+          <Link to="/wallet#receive" className="tdr-home-util-link">Receive</Link>
+          <Link to="/orders" className="tdr-home-util-link">History</Link>
+        </div>
+      </div>
+
+      {/* ── setup nudge (only when M-Pesa number missing) ────────── */}
+      {!user?.isAdmin && !user?.mpesaPhoneNumber && (
+        <section className="tdr-home-nudge">
+          <div>
+            <strong style={{ fontSize: "0.9rem" }}>Add your M-Pesa number</strong>
+            <p className="muted" style={{ margin: "2px 0 0", fontSize: "0.82rem" }}>
+              Required before Tcash can pay out a sell order.
+            </p>
+          </div>
+          {profileErr && <p className="tdr-login-error" style={{ fontSize: "0.8rem" }}>{profileErr}</p>}
+          {profileMsg && <p className="tdr-home-verified" style={{ fontSize: "0.8rem" }}>{profileMsg}</p>}
+          <div className="tdr-home-nudge-row">
             <input
               value={profilePhone}
               onChange={e => setProfilePhone(e.target.value)}
@@ -312,68 +284,48 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* ══ RECENT ORDERS (max 2) ════════════════════════════════ */}
-      <section className="home-activity">
-        <div className="ha-head">
-          <span className="ha-title">Recent orders</span>
-          {recentOrders.length > 0 && <Link to="/orders" className="ha-see-all">All →</Link>}
+      {/* ── recent activity — ledger lines, not cards ────────────── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Recent</span>
+          {recentOrders.length > 0 && <Link to="/orders" className="tdr-home-section-link">All →</Link>}
         </div>
         {recentOrders.length > 0 ? (
-          <div className="ha-list">
+          <div className="tdr-ledger-list">
             {recentOrders.map(o => (
-              <Link key={o.id} to="/orders" className="ha-item">
-                <span className={`ha-type ha-type-${o.type}`}>
-                  <Icon name={o.type === "buy" ? "arrowUp" : "arrowDown"} size={14} strokeWidth={2.3} />
+              <Link key={o.id} to="/orders" className="tdr-ledger-row">
+                <span className="tdr-ledger-icon" aria-hidden="true">
+                  <Icon name={o.type === "buy" ? "arrowUp" : "arrowDown"} size={13} strokeWidth={2.2} />
                 </span>
-                <div className="ha-mid">
-                  <strong className="ha-asset">
+                <div className="tdr-ledger-mid">
+                  <span className="tdr-ledger-title">
                     {o.cryptoAmount ? `${formatCryptoAmount(o.cryptoAmount)} ` : ""}{o.asset}
-                  </strong>
-                  <small className="ha-date">{new Date(o.createdAt).toLocaleDateString()}</small>
+                  </span>
+                  <span className="tdr-ledger-date">{new Date(o.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="ha-right">
-                  <strong className="ha-kes">{formatKES(o.kesAmount)}</strong>
-                  <small className="ha-status" style={{ color: statusColor(o.status) }}>
+                <div className="tdr-ledger-right">
+                  <span className="tdr-ledger-amt">{formatKES(o.kesAmount)}</span>
+                  <span className="tdr-ledger-status" style={{ color: statusColor(o.status) }}>
                     {statusLabel(o.status)}
-                  </small>
+                  </span>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="ha-empty">
-            <span className="ha-empty-icon" aria-hidden="true"><Icon name="history" size={20} strokeWidth={1.8} /></span>
-            <div>
-              <strong>No orders yet</strong>
-              <p className="muted">Buy or sell WLD and USDC to see your trade history here.</p>
-            </div>
-          </div>
+          <p className="tdr-home-empty">No orders yet. Buy or sell to start your history.</p>
         )}
       </section>
 
-      {/* ══ REFERRAL ════════════════════════════════════════════ */}
-      <section className="home-referral">
-        <div className="hr-left">
-          <span className="hr-icon" aria-hidden="true"><Icon name="gift" size={18} strokeWidth={1.8} /></span>
-          <div>
-            <strong style={{ fontSize: "0.88rem" }}>Invite &amp; earn</strong>
-            <p className="muted" style={{ margin: "1px 0 0", fontSize: "0.76rem" }}>
-              Code <span className="hr-code">{referralSummary.code}</span>
-            </p>
-          </div>
-        </div>
-        <div className="hr-right">
-          {referralMsg && <small style={{ color: "var(--success)", fontSize: "0.72rem" }}>{referralMsg}</small>}
-          <button
-            type="button"
-            className="button"
-            style={{ padding: "7px 16px", fontSize: "0.8rem" }}
-            onClick={handleShare}
-          >
-            Share
-          </button>
-        </div>
-      </section>
+      {/* ── invite — one quiet line, not a competing card ────────── */}
+      <div className="tdr-home-invite">
+        <span className="tdr-home-invite-copy">
+          Invite a friend · code <span className="tdr-home-invite-code">{referralSummary.code}</span>
+        </span>
+        {referralMsg
+          ? <span className="tdr-home-invite-copy" style={{ color: "var(--success)" }}>{referralMsg}</span>
+          : <button type="button" className="tdr-home-invite-action" onClick={handleShare}>Share</button>}
+      </div>
 
     </div>
   );
