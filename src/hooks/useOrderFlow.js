@@ -202,11 +202,25 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       type === "buy" ? nextReference.trim().toUpperCase() : nextReference.trim();
 
     // Order is complete now — this is the first time it's stored and admin is
-    // notified. Tolerant of sync failure; backfill re-syncs on next app open.
-    const updated = await commitPaidOrder(currentOrder, {
-      paymentReference: formattedReference,
-      status: "paid",
-    });
+    // notified. commitPaidOrder is tolerant of a transient sync failure
+    // (backfill re-syncs on next app open) but throws on a server-explicit
+    // rejection (duplicate payment reference, blocked request) — that must
+    // never advance to the success receipt, since the admin will never
+    // actually see this order.
+    let updated;
+    try {
+      updated = await commitPaidOrder(currentOrder, {
+        paymentReference: formattedReference,
+        status: "paid",
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Tcash could not record this payment. Please contact support before retrying.",
+      );
+      return null;
+    }
 
     setPaymentReference(formattedReference);
     setCurrentOrder(updated);

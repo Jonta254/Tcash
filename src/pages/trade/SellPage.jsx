@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
+import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
@@ -169,20 +170,16 @@ function SellPage() {
             </div>
           </div>
 
+          <AmountField
+            id="cryptoAmount"
+            label={`Amount of ${asset} to sell`}
+            value={cryptoAmount}
+            onChange={setCryptoAmount}
+            placeholder="10"
+            suffix={asset}
+          />
+
           <div className="trade-amount-row">
-            <div className="field">
-              <label htmlFor="cryptoAmount">Amount of {asset} to sell</label>
-              <input
-                id="cryptoAmount"
-                type="number"
-                inputMode="decimal"
-                min="0"
-                step="0.01"
-                value={cryptoAmount}
-                onChange={(e) => setCryptoAmount(e.target.value)}
-                placeholder="10"
-              />
-            </div>
             <div className="field">
               <label htmlFor="sellAsset">Asset</label>
               <select id="sellAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>

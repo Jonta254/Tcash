@@ -19,7 +19,14 @@ async function readJsonResponse(response) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload?.error || payload?.message || "Tcash could not reach the secure server. Please try again.");
+    const error = new Error(
+      payload?.error || payload?.message || "Tcash could not reach the secure server. Please try again.",
+    );
+    // Callers need this to tell "the server explicitly rejected this" (409
+    // conflict, 403 unauthorized) apart from a transient network failure —
+    // the former must never be silently retried later, the latter should be.
+    error.status = response.status;
+    throw error;
   }
 
   return payload;

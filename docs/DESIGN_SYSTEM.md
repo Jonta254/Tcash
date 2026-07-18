@@ -177,11 +177,26 @@ bottom sheets, no floating toast cards, no backdrop-blur panels. If a
 second floating element appears anywhere, it's a violation — merge it
 into the page or cut it. `LIVE`.
 
-**Spacing rhythm.** Base unit 2px. The working scale is **6 · 10 · 14 ·
-18 · 28** — section-to-section gap is always 28, hairline-row padding is
-always 13–14, tight inline gaps are 6, form gaps are 12. No arbitrary
-15px/17px/22px one-offs creeping in over time; every new spacing value
-gets snapped to this scale or it's wrong. `LIVE` on rebuilt screens.
+**Spacing rhythm.** Base unit 2px. The working scale is **2 (micro) · 6
+· 10 · 14 · 18 · 28** — section-to-section gap is always 28, a tappable
+row's own padding is always 14 (a touch target leans generous, not
+dense), tight inline gaps are 6, dense-list-row internal gaps are 10,
+form gaps are 10. The 2px micro step is reserved specifically for a
+directly-stacked label/value pair with no visual grouping needed between
+them (a ledger row's title-over-date, a receipt's amount-over-label) —
+it was already in use in five places before it was written down here;
+this is the scale catching up to the code, not the other way round.
+
+A full audit against this scale (`node` script over every `.tdr-`-
+prefixed rule) found 41 off-scale values — mostly near-misses (8, 9, 12,
+13, 16, 20, 22, 26) that had drifted during iteration rather than been
+chosen deliberately. All 41 were corrected: dense list rows tightened
+their horizontal gaps but *not* their vertical padding (the padding is
+the row's actual touch-target height, and that direction should stay
+generous even when the gap direction tightens); hero-adjacent elements
+(the balance-and-refresh pairing, a receipt's formal rows) were given
+more air, not less. No arbitrary one-off creeping back in — every new
+spacing value gets snapped to this scale or it's wrong. `LIVE`.
 
 ---
 

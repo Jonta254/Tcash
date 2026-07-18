@@ -1,3 +1,5 @@
+const MAX_BODY_BYTES = 256 * 1024; // 256KB — generous for this app's JSON payloads
+
 export function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json");
@@ -6,8 +8,15 @@ export function sendJson(res, statusCode, payload) {
 
 export async function readJsonBody(req) {
   const chunks = [];
+  let totalBytes = 0;
 
   for await (const chunk of req) {
+    totalBytes += chunk.length;
+
+    if (totalBytes > MAX_BODY_BYTES) {
+      throw new Error("Request body too large.");
+    }
+
     chunks.push(chunk);
   }
 

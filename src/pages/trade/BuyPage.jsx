@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
+import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
@@ -82,26 +83,20 @@ function BuyPage() {
             </div>
           )}
 
-          <div className="trade-amount-row">
-            <div className="field">
-              <label htmlFor="buyAmountKes">Amount to pay (KES)</label>
-              <input
-                id="buyAmountKes"
-                type="number"
-                inputMode="decimal"
-                min="0"
-                step="1"
-                value={buyKesInput}
-                onChange={(e) => setBuyKesInput(e.target.value)}
-                placeholder="600"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="buyAsset">Asset</label>
-              <select id="buyAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
-                {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
+          <AmountField
+            id="buyAmountKes"
+            label="Amount to pay"
+            value={buyKesInput}
+            onChange={setBuyKesInput}
+            placeholder="600"
+            suffix="KES"
+          />
+
+          <div className="field">
+            <label htmlFor="buyAsset">Asset</label>
+            <select id="buyAsset" value={asset} onChange={(e) => setAsset(e.target.value)}>
+              {supportedAssets.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
           </div>
           <span className="muted field-hint trade-limits-hint">
             Limits: {formatKES(buyKesMin)} – {formatKES(buyKesMax)}

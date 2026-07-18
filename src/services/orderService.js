@@ -201,12 +201,19 @@ export async function commitPaidOrder(draftOrder, changes = {}) {
   );
 
   // Push to the shared admin queue (notifyAdmin:false — notifyAdminOrderCreated
-  // below is the single admin notification path). Awaited but tolerant: the
-  // bounded fetch can't hang, and the boot-time backfill re-syncs on failure.
+  // below is the single admin notification path). Tolerant of a *transient*
+  // failure (network drop, server hiccup) — the boot-time backfill re-syncs
+  // those. NOT tolerant of a server-explicit rejection (409 = this payment
+  // reference is already used on a different order; 403 = blocked) — those
+  // will never succeed on retry, and silently swallowing one would show the
+  // user a success receipt for an order the admin will never actually see.
   try {
     await syncOrderToAdminQueue(committed, { notifyAdmin: false });
-  } catch {
-    // Saved locally; backfill retries on next app open.
+  } catch (error) {
+    if (error?.status === 409 || error?.status === 403) {
+      throw error;
+    }
+    // Transient — saved locally, backfill retries on next app open.
   }
   void notifyAdminOrderCreated(committed).catch(() => null);
   void notifyWorldUserOrderCreated(committed).catch(() => null);

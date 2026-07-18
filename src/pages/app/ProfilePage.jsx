@@ -23,12 +23,13 @@ import {
   openWorldChatInvite,
   requestWorldNotificationPermission,
   shareMiniAppInvite,
+  tenderHaptics,
   updateCurrentUserProfile,
 } from "../../services";
 
 function formatJoinedDate(value) {
   if (!value) {
-    return "N/A";
+    return "—";
   }
 
   return new Date(value).toLocaleDateString(undefined, {
@@ -38,12 +39,17 @@ function formatJoinedDate(value) {
   });
 }
 
-const PROFILE_TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "referrals", label: "Referrals" },
-  { id: "more", label: "More" },
-];
-
+/*
+ * Profile as a financial identity record, not a settings dump. The
+ * three-tab switcher this replaced was the only tabbed screen in the
+ * app — everywhere else (Home, Wallet, Support) is one continuous
+ * scroll sectioned by hairline dividers, so the tabs were also a
+ * cohesion break, not just a hierarchy one. Every section here reuses
+ * .tdr-receipt-line / .tdr-ledger-row — the same "record", not a
+ * bespoke stat-card component — so a user's own profile reads with the
+ * identical grammar as a receipt or a transaction row. Settings
+ * (appearance, rating) are the last things on the page, on purpose.
+ */
 function ProfilePage() {
   const user = getCurrentUser();
   const location = useLocation();
@@ -51,7 +57,6 @@ function ProfilePage() {
   const orders = getOrdersForCurrentUser();
   const worldApp = getWorldAppContext();
   const { isLightTheme, toggleTheme } = useThemeMode();
-  const [activeTab, setActiveTab] = useState("overview");
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [notificationLoading, setNotificationLoading] = useState(false);
@@ -89,12 +94,7 @@ function ProfilePage() {
     const firstTrade = orders[orders.length - 1]?.createdAt || null;
     const completionRate = totalTrades ? Math.round((fulfilled / totalTrades) * 100) : 0;
 
-    return {
-      totalTrades,
-      fulfilled,
-      completionRate,
-      firstTrade,
-    };
+    return { totalTrades, fulfilled, completionRate, firstTrade };
   }, [orders]);
 
   const nextReferralMilestone = useMemo(
@@ -119,7 +119,9 @@ function ProfilePage() {
       }
 
       setNotificationsEnabled(true);
+      tenderHaptics.verify();
     } catch (error) {
+      tenderHaptics.warn();
       setNotificationError(
         error instanceof Error ? error.message : "Tcash could not enable notifications.",
       );
@@ -128,6 +130,8 @@ function ProfilePage() {
     }
   };
 
+  // No more tab to switch back to before scrolling — the section this
+  // targets is always on the page now, so a deep link just scrolls.
   useEffect(() => {
     const shouldHighlight =
       location.hash === "#notifications" ||
@@ -138,8 +142,6 @@ function ProfilePage() {
     if (!shouldHighlight) {
       return;
     }
-
-    setActiveTab("overview");
 
     window.setTimeout(() => {
       notificationSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -167,19 +169,22 @@ function ProfilePage() {
     setPayoutMessage("");
 
     if (!payoutPhone.trim()) {
+      tenderHaptics.warn();
       setPayoutError("Enter the M-Pesa number Tcash should use for payouts and rewards.");
       return;
     }
 
     const normalized = normalizeKenyanPhone(payoutPhone.trim());
     if (!normalized) {
+      tenderHaptics.warn();
       setPayoutError("Enter a valid Kenyan M-Pesa number, e.g. 0712345678 or +254712345678.");
       return;
     }
 
     setPayoutPhone(normalized);
     updateCurrentUserProfile({ mpesaPhoneNumber: normalized });
-    setPayoutMessage("Payout number saved. Tcash will use it for sell settlements and referral rewards.");
+    tenderHaptics.commit();
+    setPayoutMessage("Saved. Tcash will use this number for sell settlements and referral rewards.");
   };
 
   const handleShareInvite = async () => {
@@ -226,7 +231,7 @@ function ProfilePage() {
   };
 
   const handleExit = async () => {
-    haptic("light");
+    tenderHaptics.cancellation();
     logoutUser();
     await closeMiniApp().catch(() => null);
     navigate("/login");
@@ -249,6 +254,7 @@ function ProfilePage() {
         eligibleRewardKes: claim.rewardKes,
         createdAt: claim.createdAt,
       });
+      tenderHaptics.commit();
       setReferralSummary(getReferralSummary(user));
       setReferralMessage("Claim request sent. Tcash admin will review and settle the reward to your M-Pesa number.");
     } catch (error) {
@@ -256,413 +262,292 @@ function ProfilePage() {
     }
   };
 
+  const initials = (user?.username || user?.fullName || "T").slice(0, 1).toUpperCase();
+  const isWorldVerified = Boolean(user?.username);
+  const isWalletConnected = user?.authMethod === "world-app";
+
   return (
-    <div className="stack page-enter">
-      <section className="panel profile-hero">
-        <div className="profile-hero-head">
-          <div className="profile-avatar" aria-hidden="true">
-            {(user?.username || user?.fullName || "T").slice(0, 1).toUpperCase()}
+    <div className="tdr-home page-enter">
+      <h1 className="sr-only">Profile — your Tcash identity</h1>
+
+      {/* ── identity — no card, the same "sits on the page" treatment
+          as Home's balance ─────────────────────────────────────────── */}
+      <div className="tdr-profile-identity">
+        <div className="tdr-profile-avatar" aria-hidden="true">{initials}</div>
+        <div className="tdr-profile-identity-copy">
+          <h2 className="tdr-profile-name">
+            {user?.username ? `@${user.username}` : user?.fullName || "Tcash user"}
+          </h2>
+          <div className="tdr-profile-trust-row">
+            {isWorldVerified && <span className="tdr-trust-verified">World ID verified</span>}
+            <span className="tdr-trust-verified" data-connected={isWalletConnected}>
+              {isWalletConnected ? "Wallet connected" : "Local session"}
+            </span>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-              <span className="brand-kicker">Account</span>
-              {user?.username ? (
-                <span className="live-badge live-badge-small" style={{ fontSize: "0.72rem" }}>
-                  World verified
-                </span>
-              ) : null}
-            </div>
-            <h2 style={{ margin: "2px 0 0", overflowWrap: "anywhere", wordBreak: "break-word" }}>
-              {user?.username ? `@${user.username}` : user?.fullName || "Tcash user"}
-            </h2>
+        </div>
+      </div>
+
+      {/* ── reputation — the record of what this identity has actually
+          done, read like a ledger, not a stat-card grid ────────────── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Reputation</span>
+        </div>
+        <div className="tdr-receipt-lines">
+          <div className="tdr-receipt-line">
+            <span>Trades completed</span>
+            <strong>{profileStats.fulfilled} of {profileStats.totalTrades}</strong>
+          </div>
+          <div className="tdr-receipt-line">
+            <span>Completion rate</span>
+            <strong>{profileStats.completionRate}%</strong>
+          </div>
+          <div className="tdr-receipt-line">
+            <span>Member since</span>
+            <strong>{formatJoinedDate(user?.createdAt)}</strong>
           </div>
         </div>
       </section>
 
-      <section className="panel stack">
-        <div className="profile-stats-list">
-          <div className="profile-stat-row">
-            <span>Preferred currency</span>
-            <strong>{user?.preferredCurrency || "KES"}</strong>
+      {/* ── settlement — the one setting that's actually load-bearing
+          for the sell flow, kept visible and editable, not buried ──── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Settlement</span>
+        </div>
+        <p className="muted" style={{ margin: "0 0 12px", fontSize: "0.82rem" }}>
+          Where Tcash sends KES for sell orders and referral rewards.
+        </p>
+        {payoutError ? <p className="tdr-login-error" style={{ fontSize: "0.82rem" }}>{payoutError}</p> : null}
+        {payoutMessage ? <p className="tdr-inline-success" style={{ fontSize: "0.82rem" }}>{payoutMessage}</p> : null}
+        <div className="tdr-home-nudge-row">
+          <input
+            id="profilePayoutPhone"
+            value={payoutPhone}
+            onChange={(event) => setPayoutPhone(event.target.value)}
+            placeholder="0712345678"
+            inputMode="tel"
+            aria-label="M-Pesa payout number"
+          />
+          <button type="button" className="button" onClick={handleSavePayoutNumber}>Save</button>
+        </div>
+      </section>
+
+      {/* ── notifications ─────────────────────────────────────────── */}
+      <section
+        className={`tdr-home-section${location.hash === "#notifications" ? " panel-focus-ring" : ""}`}
+        id="notifications"
+        ref={notificationSectionRef}
+      >
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Notifications</span>
+          <span className={`status-pill ${notificationsEnabled ? "completed" : "pending"}`}>
+            {notificationsEnabled ? "Active" : "Off"}
+          </span>
+        </div>
+        <p className="muted" style={{ margin: "0 0 12px", fontSize: "0.82rem" }}>
+          World App alerts you the moment an order is placed, reviewed, or completed.
+        </p>
+        {notificationError ? <p className="tdr-login-error" style={{ fontSize: "0.82rem" }}>{notificationError}</p> : null}
+        {!notificationsEnabled && (
+          <button
+            type="button"
+            className="button"
+            onClick={handleEnableNotifications}
+            disabled={notificationLoading}
+          >
+            {notificationLoading ? "Opening World App…" : "Enable notifications"}
+          </button>
+        )}
+      </section>
+
+      {/* ── security — the trust facts, stated as a record, not a
+          "compliance" checklist ─────────────────────────────────────── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Security</span>
+        </div>
+        <div className="tdr-receipt-lines">
+          <div className="tdr-receipt-line">
+            <span>Wallet authentication</span>
+            <strong>{isWalletConnected ? "Verified via World ID" : "Local session"}</strong>
           </div>
-          <div className="profile-stat-row">
-            <span>Payout number</span>
-            <strong>{user?.mpesaPhoneNumber || "Not added"}</strong>
-          </div>
-          <div className="profile-stat-row">
+          <div className="tdr-receipt-line">
             <span>Launch source</span>
             <strong>{formatWorldLaunchSource(worldApp.location)}</strong>
           </div>
         </div>
-        <div className="button-row compact-actions">
-          <Link to="/wallet" className="button-secondary">
-            Open Wallet
+        <div className="tdr-ledger-list" style={{ marginTop: 4 }}>
+          <Link to="/guidelines" className="tdr-ledger-row">
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">User Guidelines</span>
+              <span className="tdr-ledger-date">Trade limits, referral terms, risk disclosure</span>
+            </div>
           </Link>
-          {user?.isAdmin ? (
-            <>
-              <Link to="/tmpesa-admin" className="button">
-                Open Admin Desk
-              </Link>
-              <div className="soft-note">Available only on the Tcash operator account.</div>
-            </>
-          ) : null}
+          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Terms &amp; Conditions</span>
+            </div>
+          </a>
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Privacy Policy</span>
+            </div>
+          </a>
         </div>
       </section>
 
-      {/* ── TAB SWITCHER ─────────────────────────────────────────── */}
-      <div className="orders-tab-row">
-        {PROFILE_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`orders-tab${activeTab === tab.id ? " active" : ""}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
+      {/* ── referrals ─────────────────────────────────────────────── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Referrals</span>
+        </div>
+        {referralMessage ? <p className="tdr-inline-success" style={{ fontSize: "0.82rem" }}>{referralMessage}</p> : null}
+        {referralError ? <p className="tdr-login-error" style={{ fontSize: "0.82rem" }}>{referralError}</p> : null}
+
+        <div className="tdr-home-invite" style={{ borderTop: 0, paddingTop: 0 }}>
+          <span className="tdr-home-invite-copy">
+            Code <span className="tdr-home-invite-code">{referralSummary.code}</span>
+          </span>
+          <button type="button" className="tdr-home-invite-action" onClick={handleShareInvite}>Share</button>
+        </div>
+
+        <div className="tdr-receipt-lines">
+          <div className="tdr-receipt-line">
+            <span>New users invited</span>
+            <strong>{referralSummary.referredUsers}</strong>
+          </div>
+          <div className="tdr-receipt-line">
+            <span>Activated traders</span>
+            <strong>{referralSummary.activatedUsers}</strong>
+          </div>
+          <div className="tdr-receipt-line">
+            <span>Rewards paid</span>
+            <strong>KES {referralSummary.lifetimeRewardsKes}</strong>
+          </div>
+          <div className="tdr-receipt-line">
+            <span>Next reward</span>
+            <strong>
+              {nextReferralMilestone
+                ? `${nextReferralMilestone.users - referralSummary.activatedUsers} more for KES ${nextReferralMilestone.rewardKes}`
+                : "All live milestones reached"}
+            </strong>
+          </div>
+        </div>
+
+        <div className="button-row compact-actions" style={{ marginTop: 12 }}>
+          <button type="button" className="button-secondary" onClick={handleShareToWorldChat}>
+            Invite via World Chat
           </button>
-        ))}
-      </div>
+        </div>
 
-      {activeTab === "overview" && (
-        <>
-          <section className="panel stack">
-            <div className="split">
-              <div>
-                <span className="brand-kicker">Payout settings</span>
-                <h3>Save your M-Pesa payout number</h3>
-                <p className="muted">
-                  Save the M-Pesa number used for sell settlements and referral reward payouts. Use a number registered for M-Pesa.
-                </p>
-              </div>
-            </div>
-            {payoutError ? <div className="error">{payoutError}</div> : null}
-            {payoutMessage ? <div className="notice">{payoutMessage}</div> : null}
-            <div className="field">
-              <label htmlFor="profilePayoutPhone">M-Pesa payout number</label>
-              <input
-                id="profilePayoutPhone"
-                value={payoutPhone}
-                onChange={(event) => setPayoutPhone(event.target.value)}
-                placeholder="0712345678"
-                inputMode="tel"
-              />
-              <span className="muted field-hint">Accepted formats: 0712345678 · +254712345678 · 254712345678</span>
-            </div>
-            <div className="button-row compact-actions">
-              <button type="button" className="button" onClick={handleSavePayoutNumber}>
-                Save payout number
+        {referralSummary.pendingMilestones.length ? (
+          <div className="tdr-ledger-list" style={{ marginTop: 4 }}>
+            {referralSummary.pendingMilestones.map((milestone) => (
+              <button
+                key={milestone.users}
+                type="button"
+                className="tdr-ledger-row"
+                style={{ width: "100%", textAlign: "left" }}
+                onClick={() => handleClaimReferralReward(milestone.users)}
+              >
+                <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="gift" size={13} strokeWidth={1.9} /></span>
+                <div className="tdr-ledger-mid">
+                  <span className="tdr-ledger-title">Claim KES {milestone.rewardKes}</span>
+                  <span className="tdr-ledger-date">{milestone.users} activated referrals reached</span>
+                </div>
               </button>
-            </div>
-          </section>
+            ))}
+          </div>
+        ) : null}
+      </section>
 
-          <section
-            className={`panel stack${
-              location.hash === "#notifications" ? " panel-focus-ring" : ""
-            }`}
-            id="notifications"
-            ref={notificationSectionRef}
+      {/* ── preferences — secondary, on purpose, near the bottom ────── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Preferences</span>
+        </div>
+        <div className="settings-list">
+          <div className="settings-row">
+            <div className="settings-row-icon">
+              <Icon name={isLightTheme ? "sun" : "moon"} size={18} />
+            </div>
+            <div className="settings-row-text">
+              <strong>Appearance</strong>
+              <span className="muted">{isLightTheme ? "Light mode" : "Dark mode"}</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!isLightTheme}
+              aria-label="Toggle dark mode"
+              className={`theme-switch${!isLightTheme ? " on" : ""}`}
+              onClick={toggleTheme}
+            >
+              <span className="theme-switch-thumb" />
+            </button>
+          </div>
+        </div>
+        <div className="tdr-receipt-line" style={{ marginTop: 4 }}>
+          <span>Rate Tcash</span>
+          <strong>{ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5` : "New"}</strong>
+        </div>
+        {ratingError ? <p className="tdr-login-error" style={{ fontSize: "0.82rem" }}>{ratingError}</p> : null}
+        <div className="button-row compact-actions" style={{ marginTop: 10 }}>
+          <button type="button" className="button-secondary" onClick={handleOpenRating}>Rate in World App</button>
+        </div>
+      </section>
+
+      {/* ── support — secondary ──────────────────────────────────── */}
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Support</span>
+          <Link to="/support" className="tdr-home-section-link">All →</Link>
+        </div>
+        <div className="tdr-ledger-list">
+          <button
+            type="button"
+            className="tdr-ledger-row"
+            style={{ width: "100%", textAlign: "left" }}
+            onClick={() =>
+              openSupportEmail({
+                subject: "Tcash privacy request",
+                body: "Hello Tcash support,\n\nI have a privacy or account data question.",
+              })
+            }
           >
-            <div className="split">
-              <div>
-                <span className="brand-kicker">Push notifications</span>
-                <h3>Get World App order alerts</h3>
-                <p className="muted">
-                  Turn on World notifications so Tcash can alert you when an order is placed, reviewed, or completed. Alerts are delivered inside World App.
-                </p>
-              </div>
-              <span className={`status-pill ${notificationsEnabled ? "completed" : "pending"}`}>
-                {notificationsEnabled ? "Active" : "Off"}
-              </span>
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="phone" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Email support</span>
+              <span className="tdr-ledger-date">Account, data, and security questions</span>
             </div>
-            {notificationError ? <div className="error">{notificationError}</div> : null}
-            {!notificationsEnabled ? (
-              <button
-                type="button"
-                className="button"
-                onClick={handleEnableNotifications}
-                disabled={notificationLoading}
-                style={{ minHeight: 52 }}
-              >
-                {notificationLoading ? "Opening World App..." : "Enable World notifications"}
-              </button>
-            ) : (
-              <div className="notice" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ display: "inline-flex", color: "var(--success)" }}>
-                  <Icon name="bell" size={17} />
-                </span>
-                <span>World push notifications are active for your Tcash account.</span>
-              </div>
-            )}
-          </section>
+          </button>
+          <button
+            type="button"
+            className="tdr-ledger-row"
+            style={{ width: "100%", textAlign: "left" }}
+            onClick={() =>
+              openWhatsAppSupport({
+                message: "Hello Tcash support,\n\nI need urgent help with my account or order.",
+              })
+            }
+          >
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="phone" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">WhatsApp support</span>
+              <span className="tdr-ledger-date">Faster path for a delayed order or payout</span>
+            </div>
+          </button>
+        </div>
+      </section>
 
-          <section className="panel stack">
-            <span className="brand-kicker">Trading statistics</span>
-            <div className="profile-stats-list">
-              <div className="profile-stat-row">
-                <span>Total trades</span>
-                <strong>{profileStats.totalTrades}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Fulfilled</span>
-                <strong>{profileStats.fulfilled}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Completion rate</span>
-                <strong>{profileStats.completionRate}%</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>First trade</span>
-                <strong>{formatJoinedDate(profileStats.firstTrade)}</strong>
-              </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {activeTab === "referrals" && (
-        <section className="panel stack">
-          <div className="split">
-            <div>
-              <span className="brand-kicker">Referral center</span>
-              <h3>Invite new World users to Tcash</h3>
-              <p className="muted">
-                Share your Tcash link, track active traders, and claim referral rewards when a
-                milestone is unlocked.
-              </p>
-            </div>
-            <span className="status-pill paid">Code {referralSummary.code}</span>
-          </div>
-          {referralMessage ? <div className="notice">{referralMessage}</div> : null}
-          {referralError ? <div className="error">{referralError}</div> : null}
-          <div className="profile-stats-list">
-            <div className="profile-stat-row">
-              <span>Invite actions</span>
-              <strong>{referralSummary.shareCount}</strong>
-            </div>
-            <div className="profile-stat-row">
-              <span>New users</span>
-              <strong>{referralSummary.referredUsers}</strong>
-            </div>
-            <div className="profile-stat-row">
-              <span>Activated traders</span>
-              <strong>{referralSummary.activatedUsers}</strong>
-            </div>
-            <div className="profile-stat-row">
-              <span>Last shared</span>
-              <strong>{formatJoinedDate(referralSummary.lastSharedAt)}</strong>
-            </div>
-            <div className="profile-stat-row">
-              <span>Paid rewards</span>
-              <strong>KES {referralSummary.lifetimeRewardsKes}</strong>
-            </div>
-            <div className="profile-stat-row">
-              <span>Pending milestones</span>
-              <strong>
-                {referralSummary.pendingMilestones.length
-                  ? referralSummary.pendingMilestones.map((milestone) => `KES ${milestone.rewardKes}`).join(", ")
-                  : "None"}
-              </strong>
-            </div>
-            <div className="profile-stat-row">
-              <span>Next reward</span>
-              <strong>
-                {nextReferralMilestone
-                  ? `${nextReferralMilestone.users - referralSummary.activatedUsers} more for KES ${nextReferralMilestone.rewardKes}`
-                  : "All live milestones reached"}
-              </strong>
-            </div>
-          </div>
-          <div className="button-row compact-actions">
-            <button type="button" className="button" onClick={handleShareInvite}>
-              Share Invite
-            </button>
-            <button type="button" className="button-secondary" onClick={handleShareToWorldChat}>
-              Invite via World Chat
-            </button>
-          </div>
-          <div className="soft-note">
-            Tcash records referred users, activated traders, and claim requests. Once you hit a live
-            milestone, claim it here and the admin payout queue is notified for M-Pesa settlement.
-          </div>
-          {referralSummary.pendingMilestones.length ? (
-            <div className="stack">
-              <span className="brand-kicker">Claim rewards</span>
-              <div className="profile-links-grid">
-                {referralSummary.pendingMilestones.map((milestone) => (
-                  <button
-                    key={milestone.users}
-                    type="button"
-                    className="profile-link-card"
-                    onClick={() => handleClaimReferralReward(milestone.users)}
-                  >
-                    <strong>Claim KES {milestone.rewardKes}</strong>
-                    <span>{milestone.users} activated referrals reached. Request payout to your saved M-Pesa number.</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          {referralSummary.claims?.length ? (
-            <div className="stack">
-              <span className="brand-kicker">Reward claims</span>
-              <div className="profile-stats-list">
-                {referralSummary.claims.slice(0, 3).map((claim) => (
-                  <div key={claim.id} className="profile-stat-row">
-                    <span>{claim.milestoneUsers} referrals</span>
-                    <strong>{claim.status.toUpperCase()} - KES {claim.rewardKes}</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </section>
-      )}
-
-      {activeTab === "more" && (
-        <>
-          <section className="panel stack">
-            <span className="brand-kicker">Settings</span>
-            <div className="settings-list">
-              <div className="settings-row">
-                <div className="settings-row-icon">
-                  <Icon name={isLightTheme ? "sun" : "moon"} size={18} />
-                </div>
-                <div className="settings-row-text">
-                  <strong>Appearance</strong>
-                  <span className="muted">{isLightTheme ? "Light mode" : "Dark mode"}</span>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={!isLightTheme}
-                  aria-label="Toggle dark mode"
-                  className={`theme-switch${!isLightTheme ? " on" : ""}`}
-                  onClick={toggleTheme}
-                >
-                  <span className="theme-switch-thumb" />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="panel stack">
-            <div className="split">
-              <div>
-                <span className="brand-kicker">Rate Tcash</span>
-                <h3>Rate the live mini app</h3>
-                <p className="muted">
-                  Open the Tcash World mini app entry to leave your rating in the live app
-                  experience.
-                </p>
-              </div>
-              <span className="status-pill completed">
-                {ratingSummary.totalRatings ? `${ratingSummary.averageRating}/5` : "New"}
-              </span>
-            </div>
-            {ratingError ? <div className="error">{ratingError}</div> : null}
-            <div className="button-row compact-actions">
-              <button type="button" className="button" onClick={handleOpenRating}>
-                Rate in World App
-              </button>
-            </div>
-            <div className="notice">
-              {ratingSummary.totalRatings
-                ? `Tcash pulse: ${ratingSummary.averageRating}/5 from ${ratingSummary.totalRatings} stored ratings.`
-                : "This opens the Tcash World mini app entry for rating and feedback."}
-            </div>
-          </section>
-
-          <section className="panel stack">
-            <span className="brand-kicker">Compliance and trust</span>
-            <div className="profile-stats-list">
-              <div className="profile-stat-row">
-                <span>Wallet Auth</span>
-                <strong>{user?.authMethod === "world-app" ? "Connected" : "Local only"}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Mini app access</span>
-                <strong>{user?.authMethod === "world-app" ? "Ready" : "Local session"}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>World username</span>
-                <strong>{user?.username ? `@${user.username}` : "Unavailable"}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Notification permission</span>
-                <strong>{notificationsEnabled ? "Enabled" : "Not enabled"}</strong>
-              </div>
-              <div className="profile-stat-row">
-                <span>Joined</span>
-                <strong>{formatJoinedDate(user?.createdAt)}</strong>
-              </div>
-            </div>
-            <div className="profile-links-grid" style={{ marginTop: 8 }}>
-              <Link to="/guidelines" className="profile-link-card" style={{ textDecoration: "none" }}>
-                <strong>User Guidelines</strong>
-                <span>Rules, trade limits, referral terms, and risk disclosure.</span>
-              </Link>
-              <a
-                href="/terms.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="profile-link-card"
-                style={{ textDecoration: "none" }}
-              >
-                <strong>Terms &amp; Conditions</strong>
-                <span>Full legal terms for using Tcash.</span>
-              </a>
-              <a
-                href="/privacy.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="profile-link-card"
-                style={{ textDecoration: "none" }}
-              >
-                <strong>Privacy Policy</strong>
-                <span>How Tcash handles your data and your rights.</span>
-              </a>
-            </div>
-          </section>
-
-          <section className="panel stack">
-            <div className="split">
-              <div>
-                <span className="brand-kicker">Support</span>
-                <h3>Quick support links</h3>
-              </div>
-              <Link to="/support" className="button-secondary">
-                Open Support
-              </Link>
-            </div>
-            <div className="profile-links-grid">
-              <button
-                type="button"
-                className="profile-link-card"
-                onClick={() =>
-                  openSupportEmail({
-                    subject: "Tcash privacy request",
-                    body: "Hello Tcash support,\n\nI have a privacy or account data question.",
-                  })
-                }
-              >
-                <strong>Privacy and account help</strong>
-                <span>Reach Tcash support for account, data, and security questions.</span>
-              </button>
-              <button
-                type="button"
-                className="profile-link-card"
-                onClick={() =>
-                  openWhatsAppSupport({
-                    message: "Hello Tcash support,\n\nI need urgent help with my account or order.",
-                  })
-                }
-              >
-                <strong>Urgent support on WhatsApp</strong>
-                <span>Open a faster support path when an order or payout needs quick follow-up.</span>
-              </button>
-            </div>
-          </section>
-        </>
+      {user?.isAdmin && (
+        <Link to="/tmpesa-admin" className="button" style={{ textAlign: "center" }}>
+          Open Admin Desk
+        </Link>
       )}
 
       <button type="button" className="profile-logout-btn" onClick={handleExit}>

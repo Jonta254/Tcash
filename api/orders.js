@@ -1,7 +1,10 @@
 import { del, list, put } from "@vercel/blob";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { parseCookies } from "./_lib/cookies.js";
-import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "./_lib/adminAuth.js";
+import { isTrustedOrigin } from "./_lib/csrf.js";
+import { logEvent, logSecurityEvent } from "./_lib/log.js";
+import { requestIsRecognizedAdmin } from "./_lib/adminAuth.js";
+import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./_lib/userSession.js";
 
 // The two status transitions that finalize a trade — completed releases
 // crypto/KES, rejected closes it out. Both are operator-only in the
@@ -12,9 +15,32 @@ import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "./_lib/adminAuth.
 // submitting their own payment reference) is untouched.
 const ADMIN_ONLY_STATUSES = new Set(["completed", "rejected"]);
 
-function requestHasAdminSession(req) {
+// The one server-verified fact about "who is calling" — read from the
+// signed session cookie api/complete-siwe.js issues after a real SIWE
+// verification, never from a client-supplied userId/walletAddress field
+// in the request body. Every ownership check in this file is built on
+// this, not on anything the caller merely asserts.
+function requestUserWallet(req) {
   const cookies = parseCookies(req);
-  return verifyAdminSessionToken(cookies[ADMIN_SESSION_COOKIE]);
+  const session = verifyUserSessionToken(cookies[USER_SESSION_COOKIE]);
+  return session.valid ? session.walletAddress : null;
+}
+
+export function orderBelongsToWallet(order, wallet) {
+  if (!wallet) {
+    return false;
+  }
+  // Normalizes both sides rather than trusting the caller to have already
+  // lowercased `wallet` — the real request path always does (it comes
+  // straight out of verifyUserSessionToken, which normalizes on issue),
+  // but this function has no way to enforce that from here, and a
+  // silently-wrong ownership check is exactly the kind of bug that
+  // shouldn't depend on every future caller remembering an invariant.
+  const callerWallet = String(wallet).toLowerCase();
+  const owned = [order.userWalletAddress, order.walletAddress]
+    .filter(Boolean)
+    .map((address) => String(address).toLowerCase());
+  return owned.includes(callerWallet);
 }
 
 const ORDER_PREFIX = "tmpesa/orders/";
@@ -105,24 +131,62 @@ function sanitizeOrderId(value) {
     .slice(0, 90);
 }
 
-function isOrderRecord(value) {
+// Bounds are generous relative to real usage (a bureau-de-change trade
+// batch is never more than a handful of orders, and no legitimate free
+// -text field here — a phone number, a wallet address, an M-Pesa code —
+// approaches these lengths) but stop a single request from writing an
+// unbounded number of records or absurdly large strings into the store.
+const MAX_ORDERS_PER_REQUEST = 20;
+const MAX_STRING_FIELD_LENGTH = 256;
+const MAX_AMOUNT_VALUE = 1_000_000_000;
+
+export function isBoundedString(value, maxLength = MAX_STRING_FIELD_LENGTH) {
+  return typeof value !== "string" || value.length <= maxLength;
+}
+
+export function isSaneAmount(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 && n <= MAX_AMOUNT_VALUE;
+}
+
+export function isOrderRecord(value) {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const stringFields = [
+    "id",
+    "walletAddress",
+    "destinationUsername",
+    "payoutPhoneNumber",
+    "paymentReference",
+    "userLabel",
+    "userPhone",
+    "userWalletAddress",
+    "referredByCode",
+    "humanVerificationStatus",
+    "humanVerificationLevel",
+  ];
+
   return (
-    value &&
-    typeof value === "object" &&
     typeof value.id === "string" &&
+    value.id.length > 0 &&
+    value.id.length <= 90 &&
     ["buy", "sell"].includes(value.type) &&
     typeof value.asset === "string" &&
-    Number.isFinite(Number(value.cryptoAmount)) &&
-    Number.isFinite(Number(value.kesAmount))
+    value.asset.length <= 16 &&
+    isSaneAmount(value.cryptoAmount) &&
+    isSaneAmount(value.kesAmount) &&
+    stringFields.every((field) => isBoundedString(value[field]))
   );
 }
 
-function normalizeOrders(value) {
+export function normalizeOrders(value) {
   const orders = Array.isArray(value.orders) ? value.orders : [value.order];
-  return orders.filter(isOrderRecord);
+  return orders.slice(0, MAX_ORDERS_PER_REQUEST).filter(isOrderRecord);
 }
 
-function sortOrders(first, second) {
+export function sortOrders(first, second) {
   const firstDate = new Date(first.updatedAt || first.createdAt || 0).getTime();
   const secondDate = new Date(second.updatedAt || second.createdAt || 0).getTime();
   return secondDate - firstDate;
@@ -320,6 +384,29 @@ async function readOrderBlob(blob) {
   }
 }
 
+// Payment replay / duplicate-submission guard: a paymentReference is
+// either a self-reported M-Pesa code (buy) or a MiniKit World Pay
+// transactionId (sell) — both are the one piece of evidence that money
+// actually moved. Nothing previously stopped the *same* reference from
+// being attached to a second, different order id, which would let one
+// real payment be claimed as proof for multiple payouts. This checks
+// the reference against every other stored order before a paid/
+// completed write is accepted.
+async function findOrderByPaymentReference(reference, excludeOrderId) {
+  if (!reference) {
+    return null;
+  }
+
+  const orders = redisConfigured() ? await readRedisOrders() : await readAllBlobOrders();
+  return orders.find((order) => order.paymentReference === reference && order.id !== excludeOrderId) || null;
+}
+
+async function readAllBlobOrders() {
+  const blobs = await listOrderBlobs();
+  const snapshots = await Promise.all(blobs.map(readOrderBlob));
+  return snapshots.filter(Boolean);
+}
+
 async function listOrderBlobs() {
   const blobs = [];
   let cursor;
@@ -359,10 +446,27 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "GET") {
+    // Every order record carries phone numbers, wallet addresses, and KES
+    // amounts — this used to be returned to any caller, authenticated or
+    // not. An admin session sees everything (the operator desk's actual
+    // job); a regular user session sees only orders their own verified
+    // wallet placed; anyone else gets nothing.
+    const isAdmin = requestIsRecognizedAdmin(req);
+    const callerWallet = isAdmin ? null : requestUserWallet(req);
+
+    if (!isAdmin && !callerWallet) {
+      logSecurityEvent("orders.unauthorized_read", {});
+      sendJson(res, 401, { ok: false, orders: [], error: "Sign in to view orders." });
+      return;
+    }
+
+    const scopeToCaller = (orders) =>
+      isAdmin ? orders : orders.filter((order) => orderBelongsToWallet(order, callerWallet));
+
     if (redisConfigured()) {
       try {
         const orders = await readRedisOrders();
-        sendJson(res, 200, { ok: true, orders: orders.sort(sortOrders) });
+        sendJson(res, 200, { ok: true, orders: scopeToCaller(orders).sort(sortOrders) });
       } catch (error) {
         sendJson(res, 502, {
           ok: false,
@@ -406,7 +510,7 @@ export default async function handler(req, res) {
 
       sendJson(res, 200, {
         ok: true,
-        orders: Array.from(latestById.values()).sort(sortOrders),
+        orders: scopeToCaller(Array.from(latestById.values())).sort(sortOrders),
       });
     } catch (error) {
       sendJson(res, 502, {
@@ -431,13 +535,83 @@ export default async function handler(req, res) {
     }
 
     const attemptsAdminStatus = orders.some((order) => ADMIN_ONLY_STATUSES.has(order.status));
+    const isAdmin = requestIsRecognizedAdmin(req);
 
-    if (attemptsAdminStatus && !requestHasAdminSession(req)) {
+    if (attemptsAdminStatus && !isTrustedOrigin(req)) {
+      logSecurityEvent("order_status.blocked_origin", { orderIds: orders.map((o) => o.id) });
+      sendJson(res, 403, { ok: false, error: "Request origin could not be verified." });
+      return;
+    }
+
+    if (attemptsAdminStatus && !isAdmin) {
+      logSecurityEvent("order_status.unauthorized_attempt", {
+        orderIds: orders.map((o) => o.id),
+        attemptedStatuses: orders.map((o) => o.status),
+      });
       sendJson(res, 403, {
         ok: false,
         error: "Only a signed-in Tcash operator can complete or reject an order.",
       });
       return;
+    }
+
+    // Ownership enforcement for everything else: the admin desk manages
+    // every user's orders by design (that's the entire point of it), so
+    // an admin session skips this. Anyone else must be a real,
+    // SIWE-verified session, and every order in the batch must actually
+    // belong to that wallet — a client-supplied userId/walletAddress
+    // field is never enough on its own, only what the signed session
+    // cookie says.
+    if (!isAdmin) {
+      const callerWallet = requestUserWallet(req);
+
+      if (!callerWallet) {
+        logSecurityEvent("orders.unauthorized_write", { orderIds: orders.map((o) => o.id) });
+        sendJson(res, 401, { ok: false, error: "Sign in to save this order." });
+        return;
+      }
+
+      const foreignOrder = orders.find((order) => !orderBelongsToWallet(order, callerWallet));
+
+      if (foreignOrder) {
+        logSecurityEvent("orders.ownership_mismatch", {
+          orderId: foreignOrder.id,
+          callerWallet,
+        });
+        sendJson(res, 403, { ok: false, error: "This order does not belong to your wallet." });
+        return;
+      }
+    }
+
+    for (const order of orders) {
+      if (!order.paymentReference) {
+        continue;
+      }
+
+      const conflict = await findOrderByPaymentReference(order.paymentReference, order.id).catch(() => null);
+
+      if (conflict) {
+        logSecurityEvent("order.payment_reference_replay_blocked", {
+          orderId: order.id,
+          conflictingOrderId: conflict.id,
+          reference: order.paymentReference,
+        });
+        sendJson(res, 409, {
+          ok: false,
+          error: "This payment reference is already attached to a different order.",
+        });
+        return;
+      }
+    }
+
+    for (const order of orders) {
+      logEvent("order.status_write", {
+        orderId: order.id,
+        type: order.type,
+        asset: order.asset,
+        status: order.status,
+        isAdminAction: ADMIN_ONLY_STATUSES.has(order.status),
+      });
     }
 
     const syncedAt = new Date().toISOString();

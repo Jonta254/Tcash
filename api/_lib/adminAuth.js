@@ -1,6 +1,15 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { parseCookies } from "./cookies.js";
+import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./userSession.js";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12; // 12 hours
+
+// Same public, on-chain address already configured in src/config/appConfig.js
+// (APP_CONFIG.admin.worldWalletAddress) and already duplicated once in
+// api/orders.js as ADMIN_WORLD_WALLET — not a secret, just the operator's
+// wallet. Kept here too rather than importing across the client/server
+// boundary, matching the existing pattern in this codebase.
+const ADMIN_WORLD_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
 
 function getAdminSecret() {
   // Falls back to SIWE_NONCE_SECRET rather than a literal so there is no
@@ -64,7 +73,12 @@ export function verifyAdminSessionToken(token) {
 
   const [prefix, issuedAtRaw, signature] = parts;
   const payload = `${prefix}.${issuedAtRaw}`;
-  const expected = sign(payload);
+  let expected;
+  try {
+    expected = sign(payload);
+  } catch {
+    return false;
+  }
 
   if (!timingSafeStringEqual(signature, expected)) {
     return false;
@@ -81,3 +95,31 @@ export function verifyAdminSessionToken(token) {
 
 export const ADMIN_SESSION_COOKIE = "tmpesa_admin_session";
 export const ADMIN_SESSION_MAX_AGE = SESSION_MAX_AGE_SECONDS;
+
+/**
+ * There are two legitimate ways to become the TCash operator, and until
+ * this fix only one of them was actually enforced server-side:
+ *
+ *   1. The phone/password fallback (api/admin-login.js) — sets
+ *      ADMIN_SESSION_COOKIE. Meant for testing outside World App.
+ *   2. Opening TCash inside World App as the configured admin wallet —
+ *      this is the *real* operator path in production, and it only ever
+ *      set a client-side `isAdmin: true` flag (src/services/authService.js
+ *      isConfiguredWorldAdmin). The server-side gate added for
+ *      completed/rejected order writes checked *only* path 1, which
+ *      means the actual operator logging in the actual way the product
+ *      expects would have been rejected by their own server.
+ *
+ * This checks both, from the server's own verified state in both cases —
+ * never a client-supplied "trust me, I'm admin" flag.
+ */
+export function requestIsRecognizedAdmin(req) {
+  const cookies = parseCookies(req);
+
+  if (verifyAdminSessionToken(cookies[ADMIN_SESSION_COOKIE])) {
+    return true;
+  }
+
+  const userSession = verifyUserSessionToken(cookies[USER_SESSION_COOKIE]);
+  return Boolean(userSession.valid && userSession.walletAddress === ADMIN_WORLD_WALLET.toLowerCase());
+}

@@ -1,5 +1,6 @@
 import { parseCookies, serializeCookie } from "./_lib/cookies.js";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
+import { logEvent, logSecurityEvent } from "./_lib/log.js";
 import { getWorldPortalConfig, hasWorldPortalConfig } from "./_lib/world.js";
 
 export default async function handler(req, res) {
@@ -20,6 +21,7 @@ export default async function handler(req, res) {
     }
 
     if (!expectedReference || payload.reference !== expectedReference) {
+      logSecurityEvent("payment.reference_mismatch", { transactionId });
       sendJson(res, 400, {
         verified: false,
         error: "Payment reference mismatch.",
@@ -72,6 +74,8 @@ export default async function handler(req, res) {
     // anything else (e.g. "failed", "reverted") = genuinely failed
     const status = transaction?.transaction_status || "unknown";
     const submitted = ["mined", "pending", "unknown"].includes(status);
+
+    logEvent("payment.confirmed", { transactionId, status, verified: submitted });
 
     sendJson(res, 200, {
       verified: submitted,

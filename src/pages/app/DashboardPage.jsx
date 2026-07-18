@@ -270,7 +270,7 @@ export default function DashboardPage() {
             </p>
           </div>
           {profileErr && <p className="tdr-login-error" style={{ fontSize: "0.8rem" }}>{profileErr}</p>}
-          {profileMsg && <p className="tdr-home-verified" style={{ fontSize: "0.8rem" }}>{profileMsg}</p>}
+          {profileMsg && <p className="tdr-inline-success" style={{ fontSize: "0.8rem" }}>{profileMsg}</p>}
           <div className="tdr-home-nudge-row">
             <input
               value={profilePhone}

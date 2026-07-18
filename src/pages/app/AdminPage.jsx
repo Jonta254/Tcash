@@ -242,6 +242,38 @@ function AdminPage() {
       return;
     }
 
+    const resort = (list) =>
+      list.slice().sort((a, b) => {
+        const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
+        return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+      });
+
+    setOrderQueueError("");
+    // Optimistic update: the admin sees the new status immediately...
+    const updated = updateOrder(order.id, { status }, order, { sync: false });
+    setOrders(resort(getAllOrders()));
+
+    try {
+      // Admin is doing this update — no need to re-notify admin; user gets
+      // notified via notifyWorldUserOrderStatus inside updateOrder above.
+      await syncOrderToAdminQueue(updated, { notifyAdmin: false });
+    } catch (error) {
+      // ...but if the server rejected it (expired session, network failure,
+      // a replay conflict), the optimistic write above must not stand —
+      // showing "Completed" locally while the shared record still says
+      // "Paid" is exactly the kind of silent lie a financial admin tool
+      // can't afford. Roll the local copy back to what it was before this
+      // action, and say plainly that nothing actually happened.
+      updateOrder(order.id, { status: order.status }, order, { sync: false });
+      tenderHaptics.fail();
+      setOrderQueueError(
+        (error instanceof Error ? error.message : "Tcash could not save this status.") +
+          " Nothing was changed — sign in again if your session expired, then retry.",
+      );
+      setOrders(resort(getAllOrders()));
+      return;
+    }
+
     if (status === "completed") {
       tenderHaptics.settle();
     } else if (status === "rejected") {
@@ -250,25 +282,7 @@ function AdminPage() {
       tenderHaptics.commit();
     }
 
-    setOrderQueueError("");
-    const updated = updateOrder(order.id, { status }, order, { sync: false });
-
-    try {
-      // Admin is doing this update — no need to re-notify admin; user gets
-      // notified via notifyWorldUserOrderStatus inside updateOrder above.
-      await syncOrderToAdminQueue(updated, { notifyAdmin: false });
-    } catch (error) {
-      setOrderQueueError(
-        error instanceof Error
-          ? error.message
-          : "Tcash could not save this status to the shared admin queue.",
-      );
-    }
-
-    setOrders(getAllOrders().slice().sort((a, b) => {
-      const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
-      return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
-    }));
+    setOrders(resort(getAllOrders()));
   };
 
   const handleFeeSave = () => {

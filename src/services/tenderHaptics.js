@@ -36,11 +36,14 @@
  *                    only *repeated* error signature in the app — a
  *                    single error means "that didn't work", a triple
  *                    means "stop and look at the screen".
- *   escrowRelease  — light impact, then a success chirp ~80ms later, no
- *                    heavy impact anywhere in it. Softer than send/settle
- *                    on purpose: nothing the user just did caused this —
- *                    funds becoming available in the background shouldn't
- *                    feel as forceful as an action they took themselves.
+ *   escrowRelease  — a selection tick, then a success chirp ~80ms later.
+ *                    Softer than send/settle on purpose (no heavy impact
+ *                    anywhere in it — nothing the user just did caused
+ *                    this), and deliberately opens on "selection" rather
+ *                    than "light" so its type sequence doesn't collapse
+ *                    into `receive`'s (light→success) — a difference in
+ *                    timing alone (60ms vs 80ms) isn't something a
+ *                    finger can reliably tell apart.
  *   pendingSettlement — a tick, then a soft knock ~90ms later (rising:
  *                    quiet → firm). Fires when a user opens a ledger
  *                    entry that's still awaiting review — "yes, this is
@@ -54,7 +57,7 @@
 import { haptic } from "./worldAppService";
 
 function after(ms, type) {
-  window.setTimeout(() => haptic(type), ms);
+  setTimeout(() => haptic(type), ms);
 }
 
 export const tenderHaptics = {
@@ -91,7 +94,7 @@ export const tenderHaptics = {
     after(160, "error");
   },
   escrowRelease: () => {
-    haptic("light");
+    haptic("selection");
     after(80, "success");
   },
   pendingSettlement: () => {

@@ -1,5 +1,8 @@
 import { serializeCookie } from "./_lib/cookies.js";
+import { isTrustedOrigin } from "./_lib/csrf.js";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
+import { logSecurityEvent } from "./_lib/log.js";
+import { checkRateLimit, getClientIp } from "./_lib/rateLimit.js";
 import {
   ADMIN_SESSION_COOKIE,
   ADMIN_SESSION_MAX_AGE,
@@ -7,6 +10,8 @@ import {
   isConfiguredAdminEnv,
   verifyAdminCredentials,
 } from "./_lib/adminAuth.js";
+
+const LOGIN_RATE_LIMIT = { limit: 8, windowSeconds: 10 * 60 };
 
 /**
  * Admin credentials are never compared in the client. The phone/password
@@ -21,6 +26,14 @@ export default async function handler(req, res) {
     return;
   }
 
+  const clientIp = getClientIp(req);
+
+  if (!isTrustedOrigin(req)) {
+    logSecurityEvent("admin_login.blocked_origin", { ip: clientIp });
+    sendJson(res, 403, { ok: false, error: "Request origin could not be verified." });
+    return;
+  }
+
   if (!isConfiguredAdminEnv()) {
     sendJson(res, 503, {
       ok: false,
@@ -29,14 +42,27 @@ export default async function handler(req, res) {
     return;
   }
 
+  const rateLimit = await checkRateLimit(`admin-login:${clientIp}`, LOGIN_RATE_LIMIT);
+
+  if (!rateLimit.allowed) {
+    logSecurityEvent("admin_login.rate_limited", { ip: clientIp });
+    sendJson(res, 429, {
+      ok: false,
+      error: "Too many sign-in attempts. Try again in a few minutes.",
+    });
+    return;
+  }
+
   try {
     const { phone, password } = await readJsonBody(req);
 
     if (!verifyAdminCredentials({ phone, password })) {
+      logSecurityEvent("admin_login.failed", { ip: clientIp });
       sendJson(res, 401, { ok: false, error: "Invalid admin phone number or password." });
       return;
     }
 
+    logSecurityEvent("admin_login.success", { ip: clientIp });
     const token = createAdminSessionToken();
 
     res.setHeader(

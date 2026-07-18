@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Icon from "../icons/Icon";
 import { useAppSettings } from "../../hooks/useAppSettings";
+import { useOnlineStatus } from "../../hooks/useOnlineStatus";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import {
   APP_CONFIG,
@@ -34,6 +35,7 @@ function AppShell() {
   const worldApp  = getWorldAppContext();
   const settings  = useAppSettings();
   const { isLightTheme, toggleTheme } = useThemeMode();
+  const isOnline  = useOnlineStatus();
 
   const insets          = worldApp.deviceProperties?.safeAreaInsets;
   const hasWorldSession = user?.authMethod === "world-app" || Boolean(user?.username);
@@ -170,6 +172,16 @@ function AppShell() {
               </button>
             </div>
           </header>
+        )}
+
+        {/* ── OFFLINE NOTICE — a fact, not an alarm. Money-moving actions
+            still fail on their own terms with their own message; this just
+            stops that failure from reading as a mystery. ─────────────────── */}
+        {!isOnline && (
+          <div className="tdr-offline-banner" role="status">
+            <span className="tdr-offline-dot" aria-hidden="true" />
+            You're offline. Tcash will reconnect automatically.
+          </div>
         )}
 
         {/* ── BOTTOM BAR — three quiet tabs + one raised action ───────────── */}

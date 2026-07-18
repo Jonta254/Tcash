@@ -1,6 +1,12 @@
 import { verifySiweMessage } from "@worldcoin/minikit-js";
 import { parseCookies, serializeCookie } from "./_lib/cookies.js";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
+import { logEvent, logSecurityEvent } from "./_lib/log.js";
+import {
+  createUserSessionToken,
+  USER_SESSION_COOKIE,
+  USER_SESSION_MAX_AGE,
+} from "./_lib/userSession.js";
 import { isValidSignedServerNonce } from "./_lib/world.js";
 
 export default async function handler(req, res) {
@@ -24,6 +30,7 @@ export default async function handler(req, res) {
     const signedNonceMatches = isValidSignedServerNonce(nonce, nonceSignature);
 
     if (!cookieMatches && !signedNonceMatches) {
+      logSecurityEvent("siwe.nonce_mismatch", {});
       sendJson(res, 400, {
         isValid: false,
         error: "World wallet session expired. Please try again.",
@@ -33,17 +40,36 @@ export default async function handler(req, res) {
 
     const verification = await verifySiweMessage(payload, nonce);
     const verifiedAddress = verification.siweMessageData?.address || payload.address;
+    const isValid = Boolean(verification.isValid && verifiedAddress);
 
-    res.setHeader(
-      "Set-Cookie",
-      serializeCookie("tmpesa_siwe", "", {
-        maxAge: 0,
-        secure: process.env.NODE_ENV === "production",
-      }),
-    );
+    const clearSiweNonceCookie = serializeCookie("tmpesa_siwe", "", {
+      maxAge: 0,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    if (!isValid) {
+      logSecurityEvent("siwe.verification_failed", {});
+      res.setHeader("Set-Cookie", clearSiweNonceCookie);
+      sendJson(res, 200, { isValid: false, address: verifiedAddress, nonce });
+      return;
+    }
+
+    // This is the one place a real, server-verified identity comes into
+    // existence for a regular user — every other endpoint that needs to
+    // know "who is this" reads the signed cookie set here, never a
+    // client-supplied walletAddress/userId field.
+    const sessionToken = createUserSessionToken(verifiedAddress);
+    const setUserSessionCookie = serializeCookie(USER_SESSION_COOKIE, sessionToken, {
+      maxAge: USER_SESSION_MAX_AGE,
+      sameSite: "None",
+      secure: true,
+    });
+
+    res.setHeader("Set-Cookie", [clearSiweNonceCookie, setUserSessionCookie]);
+    logEvent("siwe.verified", { walletAddress: verifiedAddress });
 
     sendJson(res, 200, {
-      isValid: Boolean(verification.isValid && verifiedAddress),
+      isValid: true,
       address: verifiedAddress,
       nonce,
     });
