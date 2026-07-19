@@ -126,7 +126,7 @@ export async function notifyAdminOrderCreated(order) {
   );
 
   const results = await Promise.allSettled([
-    postJson("/api/notify-order", { order }),
+    postJson("/api/notify-admin", { order }),
     notifyAdminWorldOrderCreated(order),
   ]);
 
@@ -225,7 +225,7 @@ export async function notifyAdminReferralEvent(payload) {
   );
 
   try {
-    const response = await fetch("/api/notify-referral", {
+    const response = await fetch("/api/notify-admin", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
