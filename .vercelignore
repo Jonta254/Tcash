@@ -1,0 +1,7 @@
+# Test files should never become deployed serverless functions. Vercel's
+# zero-config api/ routing treats every top-level .js file as a function
+# entry point, and it can't tell a *.test.js file apart from a real
+# handler -- without this, they silently count against the Hobby plan's
+# 12-function-per-deployment ceiling (this is exactly what broke the
+# deploy that added api/settings.test.js and api/referral-claims.test.js).
+**/*.test.js
