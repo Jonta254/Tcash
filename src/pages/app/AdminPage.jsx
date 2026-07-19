@@ -8,6 +8,7 @@ import {
   getAdminAlertsUpdatedEventName,
   getAdminAlerts,
   fetchSharedAdminOrders,
+  fetchSharedReferralClaimQueue,
   getAllReferralClaims,
   getAllOrders,
   markAdminAlertRead,
@@ -47,8 +48,12 @@ function AdminPage() {
   }));
   const [rateMessage, setRateMessage] = useState("");
   const [rateError, setRateError] = useState("");
+  const [feeSaving, setFeeSaving] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState("");
   const [settingsError, setSettingsError] = useState("");
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [referralUpdatingId, setReferralUpdatingId] = useState(null);
+  const [referralClaimError, setReferralClaimError] = useState("");
   const [orderQueueMessage, setOrderQueueMessage] = useState("");
   const [orderQueueError, setOrderQueueError] = useState("");
   const payoutQueue = useMemo(
@@ -111,6 +116,18 @@ function AdminPage() {
             error instanceof Error ? error.message : "Could not load shared admin orders.",
           );
         }
+      }
+
+      try {
+        const claimsPayload = await fetchSharedReferralClaimQueue();
+
+        if (active && claimsPayload?.ok) {
+          setReferralClaims(claimsPayload.claims || []);
+        }
+      } catch {
+        // Falls back to whatever's in local storage from this
+        // browser's own prior loads — same tolerance as the order
+        // queue's own fetch above.
       }
     };
     const adminAlertsEventName = getAdminAlertsUpdatedEventName();
@@ -216,36 +233,60 @@ function AdminPage() {
     setOrders(resort(getAllOrders()));
   };
 
-  const handleFeeSave = () => {
+  const handleFeeSave = async () => {
+    if (feeSaving) return;
     setRateError("");
     setRateMessage("");
+    setFeeSaving(true);
 
     try {
-      const nextFees = updateFeeKesPerCoin(feeInputs);
+      const nextFees = await updateFeeKesPerCoin(feeInputs);
       setFeeInputs({
         WLD: String(nextFees.WLD),
         USDC: String(nextFees.USDC),
       });
-      setRateMessage("Tcash fee settings updated successfully.");
+      setRateMessage("Saved — every user now sees this fee.");
     } catch (error) {
       setRateError(error.message);
+    } finally {
+      setFeeSaving(false);
     }
   };
 
-  const handleReferralClaimUpdate = (claimId, status) => {
-    updateReferralClaim(claimId, {
-      status,
-      paidAt: status === "paid" ? new Date().toISOString() : undefined,
-    });
-    setReferralClaims(getAllReferralClaims());
-  };
-
-  const handleSettingsSave = () => {
-    setSettingsError("");
-    setSettingsMessage("");
+  const handleReferralClaimUpdate = async (claimId, status) => {
+    if (referralUpdatingId) return;
+    setReferralUpdatingId(claimId);
+    setReferralClaimError("");
+    const claim = referralClaims.find((entry) => entry.id === claimId);
 
     try {
-      const nextSettings = updateOperationalSettings(operationalInputs);
+      const updated = await updateReferralClaim(claimId, {
+        status,
+        paidAt: status === "paid" ? new Date().toISOString() : undefined,
+      });
+      setReferralClaims((current) => current.map((entry) => (entry.id === claimId ? updated : entry)));
+      tenderHaptics.commit();
+    } catch (error) {
+      // Nothing changed locally yet (the write is server-first — see
+      // referralService.js), so there's no optimistic state to roll
+      // back, just an error to surface plainly.
+      setReferralClaimError(
+        (error instanceof Error ? error.message : "Tcash could not update this claim.") +
+          (claim ? ` (${claim.referrerUsername ? `@${claim.referrerUsername}` : claim.referrerLabel})` : ""),
+      );
+    } finally {
+      setReferralUpdatingId(null);
+    }
+  };
+
+  const handleSettingsSave = async () => {
+    if (settingsSaving) return;
+    setSettingsError("");
+    setSettingsMessage("");
+    setSettingsSaving(true);
+
+    try {
+      const nextSettings = await updateOperationalSettings(operationalInputs);
       setOperationalInputs({
         sellWalletAddress: nextSettings.sellWalletAddress,
         mpesaPaybillNumber: nextSettings.mpesaPaybillNumber,
@@ -254,9 +295,11 @@ function AdminPage() {
         supportEmail: nextSettings.supportEmail,
         worldAppId: nextSettings.worldAppId || "",
       });
-      setSettingsMessage("Operational settings updated successfully.");
+      setSettingsMessage("Saved — every user now reads these live settings.");
     } catch (error) {
       setSettingsError(error.message);
+    } finally {
+      setSettingsSaving(false);
     }
   };
 
@@ -381,8 +424,8 @@ function AdminPage() {
           </div>
         </div>
 
-        <button type="button" className="button" onClick={handleFeeSave}>
-          Save Fee Settings
+        <button type="button" className="button" onClick={handleFeeSave} disabled={feeSaving}>
+          {feeSaving ? "Saving…" : "Save Fee Settings"}
         </button>
       </section>
 
@@ -499,8 +542,8 @@ function AdminPage() {
           </div>
         </div>
 
-        <button type="button" className="button" onClick={handleSettingsSave}>
-          Save Mini App Settings
+        <button type="button" className="button" onClick={handleSettingsSave} disabled={settingsSaving}>
+          {settingsSaving ? "Saving…" : "Save Mini App Settings"}
         </button>
       </section>
 
@@ -537,34 +580,41 @@ function AdminPage() {
               directly to the saved M-Pesa number.
             </p>
           </div>
+          {referralClaimError ? <div className="error">{referralClaimError}</div> : null}
           <div className="stack">
-            {referralQueue.map((claim) => (
-              <div key={claim.id} className="info-box stack">
-                <strong>{claim.referrerUsername ? `@${claim.referrerUsername}` : claim.referrerLabel}</strong>
-                <code>M-Pesa: {claim.referrerMpesaPhoneNumber}</code>
-                <code>Milestone: {claim.milestoneUsers} referrals</code>
-                <code>Reward: KES {claim.rewardKes}</code>
-                <code>Status: {claim.status}</code>
-                <div className="button-row compact-actions">
-                  {claim.status !== "approved" ? (
+            {referralQueue.map((claim) => {
+              const isUpdating = referralUpdatingId === claim.id;
+
+              return (
+                <div key={claim.id} className="info-box stack">
+                  <strong>{claim.referrerUsername ? `@${claim.referrerUsername}` : claim.referrerLabel}</strong>
+                  <code>M-Pesa: {claim.referrerMpesaPhoneNumber}</code>
+                  <code>Milestone: {claim.milestoneUsers} referrals</code>
+                  <code>Reward: KES {claim.rewardKes}</code>
+                  <code>Status: {claim.status}</code>
+                  <div className="button-row compact-actions">
+                    {claim.status !== "approved" ? (
+                      <button
+                        type="button"
+                        className="button-secondary"
+                        disabled={isUpdating}
+                        onClick={() => handleReferralClaimUpdate(claim.id, "approved")}
+                      >
+                        {isUpdating ? "Saving…" : "Mark Approved"}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
-                      className="button-secondary"
-                      onClick={() => handleReferralClaimUpdate(claim.id, "approved")}
+                      className="button"
+                      disabled={isUpdating}
+                      onClick={() => handleReferralClaimUpdate(claim.id, "paid")}
                     >
-                      Mark Approved
+                      {isUpdating ? "Saving…" : "Mark Paid"}
                     </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => handleReferralClaimUpdate(claim.id, "paid")}
-                  >
-                    Mark Paid
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       ) : null}

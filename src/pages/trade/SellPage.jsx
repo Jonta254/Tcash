@@ -231,7 +231,7 @@ function SellPage() {
             type="button"
             className="button"
             onClick={handleCreateSellOrder}
-            disabled={orderCreating}
+            disabled={orderCreating || !cryptoAmount || grossKesAmount < sellMinKesEquivalent}
           >
             {orderCreating ? "Placing order…" : "Confirm sell order"}
           </button>

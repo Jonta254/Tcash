@@ -132,3 +132,57 @@ export async function syncAdminOrders(orders, options = {}) {
 
   return readJsonResponse(response);
 }
+
+export async function fetchSharedSettings() {
+  const response = await fetchWithTimeout("/api/settings", {
+    cache: "no-store",
+    credentials: "include",
+  }).catch(() => {
+    throw new Error("Tcash could not load live operational settings.");
+  });
+
+  return readJsonResponse(response);
+}
+
+export async function pushSharedSettings(changes) {
+  const response = await fetchWithTimeout("/api/settings", {
+    method: "POST",
+    cache: "no-store",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(changes),
+  }).catch(() => {
+    throw new Error("Tcash could not save the new settings.");
+  });
+
+  return readJsonResponse(response);
+}
+
+export async function fetchSharedReferralClaims() {
+  const response = await fetchWithTimeout("/api/referral-claims", {
+    cache: "no-store",
+    credentials: "include",
+  }).catch(() => {
+    throw new Error("Tcash could not load the shared referral claim queue.");
+  });
+
+  return readJsonResponse(response);
+}
+
+export async function syncReferralClaim(claim) {
+  const response = await fetchWithTimeout("/api/referral-claims", {
+    method: "POST",
+    cache: "no-store",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ claim }),
+  }).catch(() => {
+    throw new Error("Tcash could not sync this referral claim.");
+  });
+
+  return readJsonResponse(response);
+}

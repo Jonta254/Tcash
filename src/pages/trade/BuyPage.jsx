@@ -136,7 +136,7 @@ function BuyPage() {
             type="button"
             className="button"
             onClick={handleCreateBuyOrder}
-            disabled={orderCreating}
+            disabled={orderCreating || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
           >
             {orderCreating ? "Placing order…" : "Confirm buy order"}
           </button>

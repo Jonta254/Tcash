@@ -9,6 +9,7 @@ import {
   backfillExistingOrdersToAdminQueue,
   initializeOrders,
   initializeSettings,
+  refreshSharedSettings,
 } from "./services";
 import { initializeTheme } from "./services/themeService";
 
@@ -17,6 +18,9 @@ try {
   initializeSettings();
   initializeTheme();
   void backfillExistingOrdersToAdminQueue().catch(() => null);
+  // Picks up whatever an operator last saved via the admin console —
+  // every user's session, not just the admin's own browser.
+  void refreshSharedSettings().catch(() => null);
 } catch (error) {
   console.warn("Tcash boot setup skipped", error);
 }

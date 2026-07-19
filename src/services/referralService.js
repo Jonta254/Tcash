@@ -1,4 +1,5 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
+import { fetchSharedReferralClaims, syncReferralClaim } from "./backendService";
 import { readStorage, writeStorage } from "./localStorage";
 import { getAllOrders } from "./orderService";
 import { getCurrentUser, getUsers } from "./authService";
@@ -169,7 +170,14 @@ export function markReferralMilestonesAnnounced(referralCode, milestones = []) {
   });
 }
 
-export function createReferralClaim(user = getCurrentUser(), milestoneUsers) {
+// Local write happens first here (unlike settings) because this is a
+// user-initiated action inside a flow that shouldn't feel network-
+// gated, and losing a claim record to a transient failure is
+// recoverable (the milestone stays pending-claimable, they can tap
+// again) — the shared push is tolerated failing transiently, same
+// posture as commitPaidOrder, but a server-explicit rejection (e.g.
+// ownership mismatch) still surfaces rather than being swallowed.
+export async function createReferralClaim(user = getCurrentUser(), milestoneUsers) {
   if (!user) {
     throw new Error("You must be logged in to claim referral rewards.");
   }
@@ -193,6 +201,7 @@ export function createReferralClaim(user = getCurrentUser(), milestoneUsers) {
     referrerUsername: user.username || "",
     referrerLabel: user.fullName || user.phone || "Tcash referrer",
     referrerMpesaPhoneNumber: user.mpesaPhoneNumber,
+    referrerWalletAddress: user.walletAddress || "",
     milestoneUsers: milestone.users,
     rewardKes: milestone.rewardKes,
     status: "pending",
@@ -200,19 +209,61 @@ export function createReferralClaim(user = getCurrentUser(), milestoneUsers) {
   };
 
   writeStorage(STORAGE_KEYS.referralClaims, [claim, ...claims]);
+
+  try {
+    await syncReferralClaim(claim);
+  } catch (error) {
+    if (error?.status === 403 || error?.status === 401) {
+      throw error;
+    }
+    // Transient — stays in local storage; the admin queue's own
+    // periodic re-fetch and this project's existing backfill pattern
+    // are what this project has for retrying, same as orders.
+  }
+
   return claim;
 }
 
-export function updateReferralClaim(claimId, changes) {
+// Admin-only status change (approve / mark paid) — the shared write
+// happens *before* the local write, matching updateFeeKesPerCoin's
+// reasoning: there's no optimistic-UI urgency here, and showing an
+// admin a "paid" claim that didn't actually reach the shared queue
+// would be the same silent-lie bug class this project has fixed twice
+// already (order-status rollback, duplicate-payment-reference swallow).
+export async function updateReferralClaim(claimId, changes) {
   const claims = getReferralClaims();
-  const updatedClaims = claims.map((claim) =>
-    claim.id === claimId ? { ...claim, ...changes, updatedAt: new Date().toISOString() } : claim,
-  );
+  const existing = claims.find((claim) => claim.id === claimId);
 
+  if (!existing) {
+    throw new Error("This referral claim could not be found.");
+  }
+
+  const updated = { ...existing, ...changes, updatedAt: new Date().toISOString() };
+  const result = await syncReferralClaim(updated);
+
+  if (!result?.ok) {
+    throw new Error(result?.error || "Tcash could not update this referral claim.");
+  }
+
+  const updatedClaims = claims.map((claim) => (claim.id === claimId ? updated : claim));
   writeStorage(STORAGE_KEYS.referralClaims, updatedClaims);
-  return updatedClaims.find((claim) => claim.id === claimId) || null;
+  return updated;
 }
 
 export function getAllReferralClaims() {
   return getReferralClaims();
+}
+
+// Admin-only — pulls the real shared queue (every real user's claims,
+// not just ones created in this browser) the same way
+// fetchSharedAdminOrders does for orders.
+export async function fetchSharedReferralClaimQueue() {
+  const payload = await fetchSharedReferralClaims();
+
+  if (!payload?.ok) {
+    return { ...payload, claims: getReferralClaims() };
+  }
+
+  writeStorage(STORAGE_KEYS.referralClaims, payload.claims || []);
+  return payload;
 }

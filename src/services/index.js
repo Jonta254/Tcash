@@ -28,6 +28,7 @@ export {
   getExchangeRates,
   getSettings,
   initializeSettings,
+  refreshSharedSettings,
   subscribeToSettings,
   subscribeToRateUpdates,
   updateFeeKesPerCoin,
@@ -37,6 +38,7 @@ export {
 export {
   createReferralClaim,
   evaluateReferralRewards,
+  fetchSharedReferralClaimQueue,
   findReferrerByCode,
   getAllReferralClaims,
   getReferralSummary,

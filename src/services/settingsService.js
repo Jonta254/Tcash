@@ -1,4 +1,5 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
+import { fetchSharedSettings, pushSharedSettings } from "./backendService";
 import { readStorage, writeStorage } from "./localStorage";
 
 const SETTINGS_UPDATED_EVENT = "worldtmpesa:settings-updated";
@@ -159,7 +160,15 @@ export function getFeePerCoin(asset = "WLD") {
   return getSettings().feeKesPerCoin?.[asset] || APP_CONFIG.defaultSettings.feeKesPerCoin[asset] || 0;
 }
 
-export function updateFeeKesPerCoin(nextFees) {
+// The shared write (api/settings.js, admin-only) happens *before* the
+// local write, and only a confirmed success reaches local storage.
+// Fee/PayBill/wallet settings existed only in this browser's
+// localStorage until now, which meant "Save" here never actually
+// affected the real users the admin console exists to serve — the
+// whole point of this function is the shared effect, so a failed push
+// (rejection or network) throws without touching local state, rather
+// than showing the admin a "saved" value that only they can see.
+export async function updateFeeKesPerCoin(nextFees) {
   const parsedFees = Object.entries(nextFees).reduce((accumulator, [asset, value]) => {
     const parsedFee = Number(value);
 
@@ -171,24 +180,23 @@ export function updateFeeKesPerCoin(nextFees) {
     return accumulator;
   }, {});
 
-  const previousSettings = getSettings();
-  const settings = {
-    ...previousSettings,
-    feeKesPerCoin: {
-      ...APP_CONFIG.defaultSettings.feeKesPerCoin,
-      ...(previousSettings.feeKesPerCoin || {}),
-      ...parsedFees,
-    },
-    updatedAt: new Date().toISOString(),
-  };
+  const result = await pushSharedSettings({ feeKesPerCoin: parsedFees });
 
+  if (!result?.ok) {
+    throw new Error(result?.error || "Tcash could not save fee settings to the shared server.");
+  }
+
+  // The server already computed the authoritative merged document
+  // (including anything a concurrent admin session changed) — use it
+  // directly rather than re-deriving a merge locally, which could
+  // drift from what's actually shared.
+  const settings = mergeSettings({ ...getSettings(), ...result.settings });
   writeStorage(STORAGE_KEYS.settings, settings);
   emitSettingsUpdate(settings);
   return settings.feeKesPerCoin;
 }
 
-export function updateOperationalSettings(nextSettings) {
-  const previousSettings = getSettings();
+export async function updateOperationalSettings(nextSettings) {
   const sellWalletAddress = (nextSettings.sellWalletAddress || "").trim();
   const mpesaPaybillNumber = (nextSettings.mpesaPaybillNumber || "").trim();
   const mpesaAccountNumber = (nextSettings.mpesaAccountNumber || "").trim();
@@ -214,20 +222,53 @@ export function updateOperationalSettings(nextSettings) {
     throw new Error("Enter a valid support email address.");
   }
 
-  const settings = {
-    ...previousSettings,
+  const result = await pushSharedSettings({
     sellWalletAddress,
     mpesaPaybillNumber,
     mpesaAccountNumber,
     mpesaTillName,
     supportEmail,
-    worldAppId: APP_CONFIG.worldAppId,
-    updatedAt: new Date().toISOString(),
-  };
+  });
 
+  if (!result?.ok) {
+    throw new Error(result?.error || "Tcash could not save these settings to the shared server.");
+  }
+
+  // Same reasoning as updateFeeKesPerCoin: trust the server's own
+  // merged document over re-deriving one locally. worldAppId is never
+  // part of the shared document (it's a build-time config value, not
+  // an admin-editable one — always resolved from APP_CONFIG).
+  const settings = mergeSettings({
+    ...getSettings(),
+    ...result.settings,
+    worldAppId: APP_CONFIG.worldAppId,
+  });
   writeStorage(STORAGE_KEYS.settings, settings);
   emitSettingsUpdate(settings);
   return settings;
+}
+
+// Called once on app boot (main.jsx) so every user's session — not
+// just the admin's own browser — picks up whatever the operator last
+// saved. Tolerant of failure: an unreachable server or a fresh
+// deployment with Redis not yet configured must never block the app
+// from rendering with whatever's cached locally (or the shipped
+// defaults, on a first-ever load).
+export async function refreshSharedSettings() {
+  try {
+    const payload = await fetchSharedSettings();
+
+    if (payload?.ok && payload.settings) {
+      const merged = mergeSettings({ ...getSettings(), ...payload.settings });
+      writeStorage(STORAGE_KEYS.settings, merged);
+      emitSettingsUpdate(merged);
+      return merged;
+    }
+  } catch {
+    // Transient — keep whatever's already cached locally.
+  }
+
+  return getSettings();
 }
 
 export function subscribeToSettings(callback) {

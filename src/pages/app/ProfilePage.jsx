@@ -248,7 +248,7 @@ function ProfilePage() {
     setReferralMessage("");
 
     try {
-      const claim = createReferralClaim(user, milestoneUsers);
+      const claim = await createReferralClaim(user, milestoneUsers);
       await notifyAdminReferralEvent({
         eventType: "claim",
         referralCode: claim.referralCode,
