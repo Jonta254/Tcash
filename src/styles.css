@@ -4550,7 +4550,16 @@ input[type="number"] {
 .tdr-home-balance-num {
   font-family: var(--font-ledger);
   font-weight: 500;
-  font-size: clamp(2.6rem, 12vw, 3.4rem);
+  /* Was clamp(2.6rem, 12vw, 3.4rem) — on real device widths (~390-430px)
+     12vw sits right at the 3.4rem cap, so the figure always rendered at
+     its absolute maximum size regardless of digit count, stretching
+     edge-to-edge instead of reading as a considered hero number. Real
+     device photo (390px-class phone) confirmed this: the balance
+     dominated the screen more than Apple Wallet/Revolut/Cash App size
+     their equivalent figure, which stays large but leaves visible
+     margin either side. Tightened the scaling factor and cap so a
+     typical KES balance sits comfortably inside the content column. */
+  font-size: clamp(2.15rem, 9vw, 2.75rem);
   line-height: 1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
@@ -4700,8 +4709,27 @@ input[type="number"] {
 .tdr-trade-half.active .tdr-trade-half-label { color: var(--primary); }
 
 .tdr-trade-half-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.96rem;
   font-weight: 700;
+}
+
+/* Home's Buy/Sell split, not Trade's own toggle (which already uses
+   this same color to mean "selected" — .active on that page). This is
+   the app's single most important action ("the one thing you came here
+   to do," per its own code comment), and on a real device it rendered
+   with less visual weight than the muted "Live" rate pill next to it —
+   plain text color, no accent, no icon. Scoped to this one nav so
+   Trade's toggle semantics (copper = which side is active) stay exactly
+   as they were. */
+.tdr-trade-split-cta .tdr-trade-half-label {
+  color: var(--primary);
+}
+
+.tdr-trade-split-cta .tdr-trade-half-label svg {
+  flex-shrink: 0;
 }
 
 .tdr-trade-half-sub {

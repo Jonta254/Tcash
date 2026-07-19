@@ -223,12 +223,12 @@ export default function DashboardPage() {
             <span className="tdr-bridge-asset-amt">{assetAmt(walletBoard.wld)}</span>
             <span className="tdr-bridge-asset-sym">WLD</span>
           </div>
-          {mktRates[0].kes > 1 && <span className="tdr-bridge-asset-rate">{formatKES(mktRates[0].kes)}</span>}
+          {mktRates[0].kes > 1 && <span className="tdr-bridge-asset-rate">@ {formatKES(mktRates[0].kes)}</span>}
           <div className="tdr-bridge-asset-row">
             <span className="tdr-bridge-asset-amt">{assetAmt(walletBoard.usdc)}</span>
             <span className="tdr-bridge-asset-sym">USDC</span>
           </div>
-          {mktRates[1].kes > 1 && <span className="tdr-bridge-asset-rate">{formatKES(mktRates[1].kes)}</span>}
+          {mktRates[1].kes > 1 && <span className="tdr-bridge-asset-rate">@ {formatKES(mktRates[1].kes)}</span>}
         </div>
 
         <button type="button" className="tdr-bridge-core" onClick={handleRefreshRates} aria-label="Refresh rates">
@@ -244,13 +244,19 @@ export default function DashboardPage() {
 
       {/* ── the one thing you came here to do ────────────────────── */}
       <div>
-        <nav className="tdr-trade-split" aria-label="Trade">
+        <nav className="tdr-trade-split tdr-trade-split-cta" aria-label="Trade">
           <Link to="/trade?tab=buy" className="tdr-trade-half">
-            <span className="tdr-trade-half-label">Buy</span>
+            <span className="tdr-trade-half-label">
+              <Icon name="arrowUp" size={14} strokeWidth={2.2} />
+              Buy
+            </span>
             <span className="tdr-trade-half-sub">Pay KES</span>
           </Link>
           <Link to="/trade?tab=sell" className="tdr-trade-half">
-            <span className="tdr-trade-half-label">Sell</span>
+            <span className="tdr-trade-half-label">
+              <Icon name="arrowDown" size={14} strokeWidth={2.2} />
+              Sell
+            </span>
             <span className="tdr-trade-half-sub">Receive KES</span>
           </Link>
         </nav>
