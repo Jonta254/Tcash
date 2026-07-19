@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import OrderCard from "../../components/orders/OrderCard";
+import { useAdminSession } from "../../hooks/useAdminSession";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
@@ -9,10 +10,8 @@ import {
   fetchSharedAdminOrders,
   getAllReferralClaims,
   getAllOrders,
-  loginAdmin,
   markAdminAlertRead,
   getFeePerCoin,
-  getCurrentUser,
   openOrderSupportEmail,
   syncOrderToAdminQueue,
   tenderHaptics,
@@ -23,13 +22,7 @@ import {
 } from "../../services";
 
 function AdminPage() {
-  const [user, setUser] = useState(() => getCurrentUser());
-  const [operatorForm, setOperatorForm] = useState({
-    phone: "",
-    password: "",
-  });
-  const [operatorError, setOperatorError] = useState("");
-  const [operatorSigningIn, setOperatorSigningIn] = useState(false);
+  const adminSession = useAdminSession();
   const liveRates = useExchangeRates();
   const liveSettings = useAppSettings();
   const [orders, setOrders] = useState(() =>
@@ -72,10 +65,18 @@ function AdminPage() {
   );
 
   useEffect(() => {
+    // Nothing here runs until the server has confirmed this session is
+    // really an admin — fetching the order queue speculatively before
+    // that would be pointless (the server rejects it anyway) and is the
+    // wrong instinct for a privileged screen: assume denied until proven
+    // otherwise, not the reverse.
+    if (adminSession !== "granted") {
+      return undefined;
+    }
+
     let active = true;
 
     const syncAdminData = async () => {
-      setUser(getCurrentUser());
       setOrders(getAllOrders().slice().sort((a, b) => {
         const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
         return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
@@ -132,99 +133,29 @@ function AdminPage() {
       window.removeEventListener("storage", syncAdminDataSafely);
       window.removeEventListener(adminAlertsEventName, syncAdminDataSafely);
     };
-  }, []);
+  }, [adminSession]);
 
-  if (!user?.isAdmin) {
+  // While the server check is in flight, render nothing rather than a
+  // flash of "Access denied" (or worse, a flash of the console) — a
+  // privileged screen should never show either state speculatively.
+  if (adminSession === "checking") {
+    return <div className="stack page-enter" aria-busy="true" />;
+  }
+
+  if (adminSession !== "granted") {
     return (
       <div className="stack page-enter">
         <section className="panel stack task-panel auth-layout-single">
           <div className="page-section-head">
             <div>
               <span className="brand-kicker">Operator access</span>
-              <h2>Open the Tcash admin desk</h2>
+              <h2>This account isn't recognized as a Tcash operator</h2>
               <p className="muted">
-                Sign in here to review orders, manage payouts, and update live trading settings.
+                The admin desk opens automatically for the operator's World App wallet — there's no
+                separate sign-in. If this should be an operator account, it needs to be added to the
+                server's approved admin wallet list.
               </p>
             </div>
-          </div>
-
-          <div className="auth-gate-card">
-            <div className="auth-gate-head">
-              <div className="auth-gate-copy">
-                <div>
-                  <span className="brand-kicker">Private operator route</span>
-                  <h3>Admin access stays outside the normal user wallet flow.</h3>
-                </div>
-              </div>
-              <span className="secure-access-trust">Protected desk</span>
-            </div>
-
-            <div className="auth-mini-flow">
-              <div className="active">
-                <span>1</span>
-                <strong>Sign in</strong>
-              </div>
-              <div>
-                <span>2</span>
-                <strong>Review queue</strong>
-              </div>
-              <div>
-                <span>3</span>
-                <strong>Confirm payouts</strong>
-              </div>
-            </div>
-
-            {operatorError ? <div className="error">{operatorError}</div> : null}
-
-            <form
-              className="stack"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setOperatorError("");
-                setOperatorSigningIn(true);
-
-                try {
-                  const nextUser = await loginAdmin(operatorForm);
-                  setUser(nextUser);
-                  setOperatorForm((current) => ({ ...current, password: "" }));
-                } catch (error) {
-                  setOperatorError(error.message);
-                } finally {
-                  setOperatorSigningIn(false);
-                }
-              }}
-            >
-              <div className="field">
-                <label htmlFor="adminPhoneNumber">Admin phone number</label>
-                <input
-                  id="adminPhoneNumber"
-                  value={operatorForm.phone}
-                  onChange={(event) =>
-                    setOperatorForm((current) => ({ ...current, phone: event.target.value }))
-                  }
-                  placeholder="0795621901"
-                  autoComplete="username"
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="adminPassword">Admin password</label>
-                <input
-                  id="adminPassword"
-                  type="password"
-                  value={operatorForm.password}
-                  onChange={(event) =>
-                    setOperatorForm((current) => ({ ...current, password: event.target.value }))
-                  }
-                  placeholder="Enter operator password"
-                  autoComplete="current-password"
-                />
-              </div>
-
-              <button type="submit" className="button" disabled={operatorSigningIn}>
-                {operatorSigningIn ? "Signing in…" : "Open Admin"}
-              </button>
-            </form>
           </div>
         </section>
       </div>

@@ -1,9 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { del, list, put } from "@vercel/blob";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { parseCookies } from "./_lib/cookies.js";
 import { isTrustedOrigin } from "./_lib/csrf.js";
-import { logEvent, logSecurityEvent } from "./_lib/log.js";
-import { requestIsRecognizedAdmin } from "./_lib/adminAuth.js";
+import { logAdminAction, logEvent, logSecurityEvent } from "./_lib/log.js";
+import { getRequestAdminWallet, requestIsRecognizedAdmin } from "./_lib/adminAuth.js";
 import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./_lib/userSession.js";
 
 // The two status transitions that finalize a trade — completed releases
@@ -536,9 +537,23 @@ export default async function handler(req, res) {
 
     const attemptsAdminStatus = orders.some((order) => ADMIN_ONLY_STATUSES.has(order.status));
     const isAdmin = requestIsRecognizedAdmin(req);
+    const adminWallet = isAdmin ? getRequestAdminWallet(req) : null;
+    const requestId = randomUUID();
 
     if (attemptsAdminStatus && !isTrustedOrigin(req)) {
       logSecurityEvent("order_status.blocked_origin", { orderIds: orders.map((o) => o.id) });
+      if (isAdmin) {
+        for (const order of orders.filter((o) => ADMIN_ONLY_STATUSES.has(o.status))) {
+          logAdminAction({
+            requestId,
+            administrator: adminWallet,
+            action: `order.status.${order.status}`,
+            target: order.id,
+            result: "denied",
+            reason: "untrusted_origin",
+          });
+        }
+      }
       sendJson(res, 403, { ok: false, error: "Request origin could not be verified." });
       return;
     }
@@ -596,6 +611,16 @@ export default async function handler(req, res) {
           conflictingOrderId: conflict.id,
           reference: order.paymentReference,
         });
+        if (isAdmin && ADMIN_ONLY_STATUSES.has(order.status)) {
+          logAdminAction({
+            requestId,
+            administrator: adminWallet,
+            action: `order.status.${order.status}`,
+            target: order.id,
+            result: "failed",
+            reason: "payment_reference_replay",
+          });
+        }
         sendJson(res, 409, {
           ok: false,
           error: "This payment reference is already attached to a different order.",
@@ -614,28 +639,59 @@ export default async function handler(req, res) {
       });
     }
 
+    const adminActionOrders = isAdmin
+      ? orders.filter((order) => ADMIN_ONLY_STATUSES.has(order.status))
+      : [];
     const syncedAt = new Date().toISOString();
 
-    if (redisConfigured()) {
-      await writeRedisOrders(orders, syncedAt);
-    } else {
-      await Promise.all(
-        orders.map((order) => {
-          const orderId = sanitizeOrderId(order.id);
+    try {
+      if (redisConfigured()) {
+        await writeRedisOrders(orders, syncedAt);
+      } else {
+        await Promise.all(
+          orders.map((order) => {
+            const orderId = sanitizeOrderId(order.id);
 
-          // One canonical blob per order, overwritten in place — appending a
-          // timestamped blob per sync is what blew the store's free quota.
-          return put(
-            `${ORDER_PREFIX}${orderId}.json`,
-            JSON.stringify({ order, syncedAt }, null, 2),
-            {
-              access: "public",
-              allowOverwrite: true,
-              contentType: "application/json",
-            },
-          );
-        }),
-      );
+            // One canonical blob per order, overwritten in place — appending a
+            // timestamped blob per sync is what blew the store's free quota.
+            return put(
+              `${ORDER_PREFIX}${orderId}.json`,
+              JSON.stringify({ order, syncedAt }, null, 2),
+              {
+                access: "public",
+                allowOverwrite: true,
+                contentType: "application/json",
+              },
+            );
+          }),
+        );
+      }
+    } catch (writeError) {
+      for (const order of adminActionOrders) {
+        logAdminAction({
+          requestId,
+          administrator: adminWallet,
+          action: `order.status.${order.status}`,
+          target: order.id,
+          result: "failed",
+          reason: "store_write_error",
+        });
+      }
+      throw writeError;
+    }
+
+    // The write above is the actual privileged effect — this is the
+    // audit record's "result" only fires once that effect is confirmed,
+    // never optimistically before it, so this log can never claim
+    // "success" for something that didn't actually happen.
+    for (const order of adminActionOrders) {
+      logAdminAction({
+        requestId,
+        administrator: adminWallet,
+        action: `order.status.${order.status}`,
+        target: order.id,
+        result: "success",
+      });
     }
 
     const shouldNotifyAdmin = payload.notifyAdmin !== false;

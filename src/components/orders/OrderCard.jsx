@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Icon from "../icons/Icon";
-import { getCurrentUser, tenderHaptics } from "../../services";
+import { formatCryptoAmount, formatKES, getCurrentUser, tenderHaptics } from "../../services";
 import StatusPill from "./StatusPill";
 
 function fmt(date) {
@@ -60,12 +60,12 @@ function OrderCard({ order, children }) {
         </span>
         <div className="tdr-ledger-mid">
           <span className="tdr-ledger-title">
-            {order.type === "buy" ? "Buy" : "Sell"} {order.cryptoAmount} {order.asset}
+            {order.type === "buy" ? "Buy" : "Sell"} {formatCryptoAmount(order.cryptoAmount)} {order.asset}
           </span>
           <span className="tdr-ledger-date">{fmt(order.createdAt)}</span>
         </div>
         <div className="tdr-ledger-right">
-          <span className="tdr-ledger-amt">KES {Number(order.kesAmount).toLocaleString()}</span>
+          <span className="tdr-ledger-amt">{formatKES(order.kesAmount)}</span>
           <StatusPill status={order.status} />
         </div>
       </button>
@@ -75,11 +75,11 @@ function OrderCard({ order, children }) {
           <div className="tdr-receipt-lines">
             <div className="tdr-receipt-line">
               <span>{order.type === "sell" ? "KES payout" : "KES to pay"}</span>
-              <strong>KES {Number(order.kesAmount).toLocaleString()}</strong>
+              <strong>{formatKES(order.kesAmount)}</strong>
             </div>
             <div className="tdr-receipt-line">
               <span>Asset</span>
-              <strong>{order.cryptoAmount} {order.asset}</strong>
+              <strong>{formatCryptoAmount(order.cryptoAmount)} {order.asset}</strong>
             </div>
             {order.payoutPhoneNumber && (
               <div className="tdr-receipt-line">

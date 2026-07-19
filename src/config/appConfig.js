@@ -6,10 +6,13 @@ export const APP_CONFIG = {
   appName: "Tcash",
   repoName: "Tcash",
   worldAppId: RESOLVED_WORLD_APP_ID,
+  // Client-side hints only, used for cosmetic/UI purposes (see
+  // authService.js's isConfiguredWorldAdmin). The real admin identity
+  // check is server-side (api/_lib/adminAuth.js's ADMIN_WALLET_ADDRESSES
+  // allowlist) and does not read this object.
   admin: {
     worldWalletAddress: "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc",
     worldUsername: "jontAWorld",
-    localPhone: "0795621901",
   },
   worldChain: {
     rpcUrl: "https://worldchain-mainnet.g.alchemy.com/public",

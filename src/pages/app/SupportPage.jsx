@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getCurrentUser, openSupportEmail, openWhatsAppSupport } from "../../services";
+import Icon from "../../components/icons/Icon";
+import { getCurrentUser, haptic, openSupportEmail, openWhatsAppSupport } from "../../services";
 
 const GUIDE_SECTIONS = [
   {
@@ -45,6 +46,14 @@ const GUIDE_SECTIONS = [
   },
 ];
 
+/*
+ * Rebuilt on the same grammar as Home/Wallet/Profile: no boxed hero, no
+ * card grid — a plain greeting line, then hairline-divided sections. The
+ * FAQ accordion reuses .tdr-ledger-row (the row itself is the toggle,
+ * an arrow icon instead of the generic "+/−" text glyph the old version
+ * used) so this screen reads as the same continuous ledger as the rest
+ * of the app, not a separate "help center" component style.
+ */
 function SupportPage() {
   const user = getCurrentUser();
   const [openGuideId, setOpenGuideId] = useState("getting-started");
@@ -85,57 +94,51 @@ function SupportPage() {
     [user?.username],
   );
 
+  const toggleGuide = (id) => {
+    haptic("light");
+    setOpenGuideId((current) => (current === id ? "" : id));
+  };
+
   return (
-    <div className="stack page-enter">
-      <section className="panel profile-hero">
-        <div className="profile-hero-head">
-          <div>
-            <span className="brand-kicker">Support</span>
-            <h2>Support and help center</h2>
-            <p className="muted">Quick answers, payment delay support, and direct help.</p>
-          </div>
-        </div>
-      </section>
+    <div className="tdr-home page-enter">
+      <h1 className="sr-only">Support — help and direct contact</h1>
 
-      <section id="guide" className="panel stack">
-        <div className="split">
-          <div>
-            <span className="brand-kicker">Tcash guide</span>
-            <h3>Simple answers for every user</h3>
-            <p className="muted">Open a topic to get the answer quickly.</p>
-          </div>
-          <span className="status-pill completed">Quick help</span>
-        </div>
+      <div>
+        <p className="tdr-home-greeting">Answers, and a direct line when you need one</p>
+      </div>
 
-        <div className="help-guide-list">
+      <section id="guide" className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Guide</span>
+        </div>
+        <div className="tdr-ledger-list">
           {GUIDE_SECTIONS.map((section) => {
             const isOpen = openGuideId === section.id;
 
             return (
-              <div key={section.id} className={`help-guide-card${isOpen ? " active" : ""}`}>
+              <div key={section.id}>
                 <button
                   type="button"
-                  className="help-guide-toggle"
-                  onClick={() => setOpenGuideId(isOpen ? "" : section.id)}
+                  className="tdr-ledger-row"
+                  style={{ width: "100%" }}
+                  onClick={() => toggleGuide(section.id)}
                   aria-expanded={isOpen}
                 >
-                  <span>
-                    <strong>{section.title}</strong>
-                    <small>{section.summary}</small>
-                  </span>
-                  <span className="help-guide-arrow" aria-hidden="true">
-                    {isOpen ? "\u2212" : "+"}
+                  <div className="tdr-ledger-mid">
+                    <span className="tdr-ledger-title">{section.title}</span>
+                    <span className="tdr-ledger-date">{section.summary}</span>
+                  </div>
+                  <span className="tdr-ledger-right" aria-hidden="true">
+                    <Icon name={isOpen ? "arrowUp" : "arrowDown"} size={14} strokeWidth={2.1} />
                   </span>
                 </button>
 
                 {isOpen ? (
-                  <div className="help-guide-answer">
-                    <ul className="help-guide-points">
-                      {section.points.map((point) => (
-                        <li key={point}>{point}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  <ul className="tdr-guide-points">
+                    {section.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
                 ) : null}
               </div>
             );
@@ -143,12 +146,15 @@ function SupportPage() {
         </div>
       </section>
 
-      <section className="panel stack">
-        <span className="brand-kicker">Direct support</span>
-        <div className="profile-links-grid">
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Direct support</span>
+        </div>
+        <div className="tdr-ledger-list">
           <button
             type="button"
-            className="profile-link-card"
+            className="tdr-ledger-row"
+            style={{ width: "100%", textAlign: "left" }}
             onClick={() =>
               openSupportEmail({
                 subject: "Tcash support request",
@@ -156,50 +162,56 @@ function SupportPage() {
               })
             }
           >
-            <strong>Email support</strong>
-            <span>Use email for account questions, order help, privacy issues, or general support.</span>
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="mail" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Email support</span>
+              <span className="tdr-ledger-date">Account questions, order help, privacy issues</span>
+            </div>
           </button>
           <button
             type="button"
-            className="profile-link-card"
+            className="tdr-ledger-row"
+            style={{ width: "100%", textAlign: "left" }}
             onClick={() =>
               openWhatsAppSupport({
                 message: whatsappBody,
               })
             }
           >
-            <strong>Payment delay support</strong>
-            <span>Open WhatsApp when a payment, payout, or crypto delivery needs quick follow-up.</span>
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="chat" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Payment delay support</span>
+              <span className="tdr-ledger-date">WhatsApp — for a payout or delivery that needs quick follow-up</span>
+            </div>
           </button>
         </div>
       </section>
 
-      <section className="panel stack">
-        <span className="brand-kicker">Legal and policies</span>
-        <div className="profile-links-grid">
-          <Link to="/guidelines" className="profile-link-card" style={{ textDecoration: "none" }}>
-            <strong>User Guidelines</strong>
-            <span>Rules, responsibilities, trade limits, referral rules, and risk disclosure.</span>
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Legal and policies</span>
+        </div>
+        <div className="tdr-ledger-list">
+          <Link to="/guidelines" className="tdr-ledger-row">
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">User Guidelines</span>
+              <span className="tdr-ledger-date">Rules, responsibilities, trade limits, referral rules</span>
+            </div>
           </Link>
-          <a
-            href="/terms.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-card"
-            style={{ textDecoration: "none" }}
-          >
-            <strong>Terms &amp; Conditions</strong>
-            <span>The full terms governing your use of Tcash.</span>
+          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Terms &amp; Conditions</span>
+              <span className="tdr-ledger-date">The full terms governing your use of Tcash</span>
+            </div>
           </a>
-          <a
-            href="/privacy.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-card"
-            style={{ textDecoration: "none" }}
-          >
-            <strong>Privacy Policy</strong>
-            <span>What data Tcash collects, how it is used, and your data rights.</span>
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Privacy Policy</span>
+              <span className="tdr-ledger-date">What data Tcash collects and your data rights</span>
+            </div>
           </a>
         </div>
       </section>

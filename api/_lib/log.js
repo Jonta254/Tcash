@@ -40,3 +40,36 @@ export function logSecurityEvent(event, fields = {}) {
   // eslint-disable-next-line no-console
   console.warn(JSON.stringify(line));
 }
+
+/**
+ * The audit trail for privileged administrator actions specifically —
+ * distinct from logEvent/logSecurityEvent because an audit record has a
+ * fixed, required shape (who, when, what, on what, with what outcome),
+ * not a free-form fields bag. Every privileged write must call this
+ * exactly once with its real outcome; there is no "silent" administrative
+ * action in this codebase — if a privileged branch doesn't produce one of
+ * these lines, that's a bug in the endpoint, not a missing feature here.
+ *
+ * `administrator` is the admin's own wallet address (from
+ * api/_lib/adminAuth.js's getRequestAdminWallet, never a client-supplied
+ * value), `requestId` ties every audit line for one HTTP request
+ * together even when it touches multiple targets (e.g. a batch order
+ * sync), and `result` is always one of "success" | "denied" | "failed"
+ * so these lines can be filtered/alerted on without parsing free text.
+ */
+export function logAdminAction({ requestId, administrator, action, target, result, ...fields }) {
+  const line = {
+    ts: new Date().toISOString(),
+    event: "admin.action",
+    audit: true,
+    requestId,
+    administrator,
+    action,
+    target,
+    result,
+    ...fields,
+  };
+
+  // eslint-disable-next-line no-console
+  console.log(JSON.stringify(line));
+}

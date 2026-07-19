@@ -1,125 +1,71 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { parseCookies } from "./cookies.js";
 import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./userSession.js";
 
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12; // 12 hours
-
-// Same public, on-chain address already configured in src/config/appConfig.js
-// (APP_CONFIG.admin.worldWalletAddress) and already duplicated once in
-// api/orders.js as ADMIN_WORLD_WALLET — not a secret, just the operator's
-// wallet. Kept here too rather than importing across the client/server
-// boundary, matching the existing pattern in this codebase.
-const ADMIN_WORLD_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
-
-function getAdminSecret() {
-  // Falls back to SIWE_NONCE_SECRET rather than a literal so there is no
-  // string in source that, on its own, is a usable credential.
-  return process.env.ADMIN_SESSION_SECRET || process.env.SIWE_NONCE_SECRET || process.env.DEV_PORTAL_API_KEY;
-}
-
-function timingSafeStringEqual(a, b) {
-  const bufferA = Buffer.from(String(a || ""));
-  const bufferB = Buffer.from(String(b || ""));
-
-  if (bufferA.length !== bufferB.length) {
-    // Still run a comparison of equal length to avoid a length-based
-    // timing signal, then report the real (unequal) result.
-    timingSafeEqual(bufferA, Buffer.alloc(bufferA.length));
-    return false;
-  }
-
-  return timingSafeEqual(bufferA, bufferB);
-}
+// The operator's public, on-chain wallet address — not a secret, and
+// already visible in api/orders.js's World-notification target. Kept
+// here as the zero-config default so the real admin path keeps working
+// without requiring an environment variable to be set. Once
+// ADMIN_WALLET_ADDRESSES is set in production, it fully replaces this
+// default (not merged with it) — that's what makes revocation possible:
+// removing a wallet from the env var actually removes its access,
+// rather than a hardcoded fallback silently keeping it recognized.
+const DEFAULT_ADMIN_WALLET = "0x6588e8765c495a9d44e93b0293aedd7ecd6167fc";
 
 /**
- * The operator's own login identity — never the secret itself. The
- * password lives only in the ADMIN_PASSWORD Vercel environment variable,
- * never in source, never in the client bundle.
+ * The server-held source of truth for "which wallets are administrators."
+ * Comma-separated in ADMIN_WALLET_ADDRESSES so production can add,
+ * remove, or rotate operators without a code change or redeploy of
+ * application logic — only an environment variable update (which still
+ * requires the platform to pick up the new value; see the certification
+ * report for what "immediately" actually means on Vercel).
  */
-export function isConfiguredAdminEnv() {
-  return Boolean(process.env.ADMIN_PHONE && process.env.ADMIN_PASSWORD && getAdminSecret());
+export function getAdminWalletAllowlist() {
+  const configured = String(process.env.ADMIN_WALLET_ADDRESSES || "")
+    .split(",")
+    .map((address) => address.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (configured.length > 0) {
+    return new Set(configured);
+  }
+
+  return new Set([DEFAULT_ADMIN_WALLET.toLowerCase()]);
 }
-
-export function verifyAdminCredentials({ phone, password }) {
-  if (!isConfiguredAdminEnv()) {
-    return false;
-  }
-
-  const phoneMatches = timingSafeStringEqual(phone, process.env.ADMIN_PHONE);
-  const passwordMatches = timingSafeStringEqual(password, process.env.ADMIN_PASSWORD);
-  return phoneMatches && passwordMatches;
-}
-
-function sign(value) {
-  return createHmac("sha256", getAdminSecret()).update(value).digest("base64url");
-}
-
-export function createAdminSessionToken() {
-  const issuedAt = Date.now();
-  const payload = `admin.${issuedAt}`;
-  const signature = sign(payload);
-  return `${payload}.${signature}`;
-}
-
-export function verifyAdminSessionToken(token) {
-  if (!token || typeof token !== "string") {
-    return false;
-  }
-
-  const parts = token.split(".");
-  if (parts.length !== 3) {
-    return false;
-  }
-
-  const [prefix, issuedAtRaw, signature] = parts;
-  const payload = `${prefix}.${issuedAtRaw}`;
-  let expected;
-  try {
-    expected = sign(payload);
-  } catch {
-    return false;
-  }
-
-  if (!timingSafeStringEqual(signature, expected)) {
-    return false;
-  }
-
-  const issuedAt = Number(issuedAtRaw);
-  if (!Number.isFinite(issuedAt)) {
-    return false;
-  }
-
-  const ageSeconds = (Date.now() - issuedAt) / 1000;
-  return ageSeconds >= 0 && ageSeconds <= SESSION_MAX_AGE_SECONDS;
-}
-
-export const ADMIN_SESSION_COOKIE = "tmpesa_admin_session";
-export const ADMIN_SESSION_MAX_AGE = SESSION_MAX_AGE_SECONDS;
 
 /**
- * There are two legitimate ways to become the TCash operator, and until
- * this fix only one of them was actually enforced server-side:
+ * The complete admin authorization decision, and the only one this
+ * application makes. There is no username, no password, no separate
+ * admin login endpoint, and no client-supplied flag involved anywhere
+ * in this function:
  *
- *   1. The phone/password fallback (api/admin-login.js) — sets
- *      ADMIN_SESSION_COOKIE. Meant for testing outside World App.
- *   2. Opening TCash inside World App as the configured admin wallet —
- *      this is the *real* operator path in production, and it only ever
- *      set a client-side `isAdmin: true` flag (src/services/authService.js
- *      isConfiguredWorldAdmin). The server-side gate added for
- *      completed/rejected order writes checked *only* path 1, which
- *      means the actual operator logging in the actual way the product
- *      expects would have been rejected by their own server.
+ *   World App → wallet connect → World ID → SIWE (api/complete-siwe.js)
+ *   → signed session cookie (api/_lib/userSession.js) → this function
+ *   reads that cookie's server-verified wallet address and checks it
+ *   against the server-held allowlist above.
  *
- * This checks both, from the server's own verified state in both cases —
- * never a client-supplied "trust me, I'm admin" flag.
+ * A request is an administrator if and only if it carries a valid,
+ * unexpired SIWE session whose wallet address is in the allowlist.
+ * Nothing about "admin-ness" is ever asserted by the client — this is
+ * the single choke point every privileged endpoint must call.
  */
 export function requestIsRecognizedAdmin(req) {
-  const cookies = parseCookies(req);
+  return getRequestAdminWallet(req) !== null;
+}
 
-  if (verifyAdminSessionToken(cookies[ADMIN_SESSION_COOKIE])) {
-    return true;
+/**
+ * The admin's own wallet address, for attribution in audit logs — or
+ * null if the request isn't a recognized admin. Reads the exact same
+ * verified session as requestIsRecognizedAdmin so the two can never
+ * disagree about who's calling.
+ */
+export function getRequestAdminWallet(req) {
+  const cookies = parseCookies(req);
+  const session = verifyUserSessionToken(cookies[USER_SESSION_COOKIE]);
+
+  if (!session.valid || !session.walletAddress) {
+    return null;
   }
 
-  const userSession = verifyUserSessionToken(cookies[USER_SESSION_COOKIE]);
-  return Boolean(userSession.valid && userSession.walletAddress === ADMIN_WORLD_WALLET.toLowerCase());
+  const wallet = session.walletAddress.toLowerCase();
+  return getAdminWalletAllowlist().has(wallet) ? wallet : null;
 }

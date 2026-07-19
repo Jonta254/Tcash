@@ -67,62 +67,64 @@ const SECTIONS = [
   },
 ];
 
+/*
+ * Rebuilt on the same grammar as Support/Profile: no boxed hero, hairline
+ * sections. Each rule reads as a .tdr-ledger-row record (title = rule,
+ * subtitle = detail) instead of the old .profile-stat-row card grid, so
+ * a legal document and a transaction ledger use the same visual voice.
+ */
 function GuidelinesPage() {
   return (
-    <div className="stack page-enter">
-      <section className="panel profile-hero">
-        <div className="profile-hero-head">
-          <div>
-            <span className="brand-kicker">Legal</span>
-            <h2>User Guidelines</h2>
-            <p className="muted">
-              Rules, responsibilities, and limits for using Tcash.
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="tdr-home page-enter">
+      <h1 className="sr-only">User Guidelines — rules and limits</h1>
+
+      <div>
+        <p className="tdr-home-greeting">Rules, responsibilities, and limits for using Tcash</p>
+      </div>
 
       {SECTIONS.map((section) => (
-        <section key={section.id} className="panel stack">
-          <span className="brand-kicker">{section.title}</span>
-          <div className="profile-stats-list">
+        <section key={section.id} className="tdr-home-section">
+          <div className="tdr-home-section-head">
+            <span className="tdr-home-section-title">{section.title}</span>
+          </div>
+          <div className="tdr-ledger-list">
             {section.items.map((item) => (
-              <div key={item.rule} className="profile-stat-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
-                <strong style={{ fontSize: "0.9rem" }}>{item.rule}</strong>
-                <span className="muted" style={{ fontSize: "0.85rem" }}>{item.detail}</span>
+              <div key={item.rule} className="tdr-ledger-row">
+                <div className="tdr-ledger-mid">
+                  <span className="tdr-ledger-title">{item.rule}</span>
+                  <span className="tdr-ledger-date">{item.detail}</span>
+                </div>
               </div>
             ))}
           </div>
         </section>
       ))}
 
-      <section className="panel stack">
-        <span className="brand-kicker">Legal documents</span>
-        <div className="profile-links-grid">
-          <a
-            href="/terms.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-card"
-            style={{ textDecoration: "none" }}
-          >
-            <strong>Terms &amp; Conditions</strong>
-            <span>Full terms governing your use of Tcash.</span>
+      <section className="tdr-home-section">
+        <div className="tdr-home-section-head">
+          <span className="tdr-home-section-title">Legal documents</span>
+        </div>
+        <div className="tdr-ledger-list">
+          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Terms &amp; Conditions</span>
+              <span className="tdr-ledger-date">Full terms governing your use of Tcash</span>
+            </div>
           </a>
-          <a
-            href="/privacy.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="profile-link-card"
-            style={{ textDecoration: "none" }}
-          >
-            <strong>Privacy Policy</strong>
-            <span>What data we collect, why, and your rights.</span>
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">
+            <div className="tdr-ledger-mid">
+              <span className="tdr-ledger-title">Privacy Policy</span>
+              <span className="tdr-ledger-date">What data we collect, why, and your rights</span>
+            </div>
           </a>
         </div>
-        <div className="soft-note">
-          By continuing to use Tcash you accept these guidelines, the Terms, and the Privacy Policy. For questions contact <a href="mailto:brianokindo2022@gmail.com" style={{ color: "var(--primary)" }}>brianokindo2022@gmail.com</a>.
-        </div>
+        <p className="muted" style={{ fontSize: "0.8rem", marginTop: 14 }}>
+          By continuing to use Tcash you accept these guidelines, the Terms, and the Privacy Policy.
+          For questions contact{" "}
+          <a href="mailto:brianokindo2022@gmail.com" style={{ color: "var(--primary)" }}>
+            brianokindo2022@gmail.com
+          </a>.
+        </p>
       </section>
     </div>
   );

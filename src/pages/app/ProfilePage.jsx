@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Icon from "../../components/icons/Icon";
+import { useAdminSession } from "../../hooks/useAdminSession";
 import { useThemeMode } from "../../hooks/useThemeMode";
 import {
   closeMiniApp,
@@ -57,6 +58,11 @@ function ProfilePage() {
   const orders = getOrdersForCurrentUser();
   const worldApp = getWorldAppContext();
   const { isLightTheme, toggleTheme } = useThemeMode();
+  // Server-verified — never the client's own isAdmin flag. Determines
+  // only whether the Admin Desk link is worth showing; the actual
+  // security boundary is AdminPage's own identical check plus every
+  // privileged endpoint's own server-side authorization.
+  const adminSession = useAdminSession();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [notificationLoading, setNotificationLoading] = useState(false);
@@ -519,7 +525,7 @@ function ProfilePage() {
               })
             }
           >
-            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="phone" size={13} strokeWidth={1.9} /></span>
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="mail" size={13} strokeWidth={1.9} /></span>
             <div className="tdr-ledger-mid">
               <span className="tdr-ledger-title">Email support</span>
               <span className="tdr-ledger-date">Account, data, and security questions</span>
@@ -535,7 +541,7 @@ function ProfilePage() {
               })
             }
           >
-            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="phone" size={13} strokeWidth={1.9} /></span>
+            <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="chat" size={13} strokeWidth={1.9} /></span>
             <div className="tdr-ledger-mid">
               <span className="tdr-ledger-title">WhatsApp support</span>
               <span className="tdr-ledger-date">Faster path for a delayed order or payout</span>
@@ -544,7 +550,7 @@ function ProfilePage() {
         </div>
       </section>
 
-      {user?.isAdmin && (
+      {adminSession === "granted" && (
         <Link to="/tmpesa-admin" className="button" style={{ textAlign: "center" }}>
           Open Admin Desk
         </Link>

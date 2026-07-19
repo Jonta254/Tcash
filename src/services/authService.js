@@ -1,27 +1,20 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
-import { requestAdminSession } from "./backendService";
 import { readStorage, removeStorage, writeStorage } from "./localStorage";
-
-// No password lives here. Admin sign-in is verified server-side
-// (api/admin-login.js, checked against ADMIN_PHONE/ADMIN_PASSWORD env
-// vars) — this object only carries the identity fields that were never
-// secret to begin with (the operator's World wallet is public on-chain).
-const seedAdminUser = {
-  id: "admin-001",
-  fullName: "Tcash Admin",
-  phone: APP_CONFIG.admin.localPhone,
-  mpesaPhoneNumber: APP_CONFIG.admin.localPhone,
-  walletAddress: APP_CONFIG.admin.worldWalletAddress,
-  username: APP_CONFIG.admin.worldUsername || "tmpesa-admin",
-  authMethod: "local",
-  isAdmin: true,
-  createdAt: new Date().toISOString(),
-};
 
 function normalizeUsername(username) {
   return String(username || "").trim().replace(/^@/, "").toLowerCase();
 }
 
+// This is a UI convenience only — it never gates access to anything.
+// The real admin authorization decision happens exclusively on the
+// server (api/_lib/adminAuth.js), checked against the signed SIWE
+// session cookie, and is what actually decides whether the Admin
+// Console renders or accepts a write (see useAdminSession /
+// api/admin-session.js). Everywhere this flag is read client-side, it's
+// for cosmetic or same-browser-only purposes (e.g. filtering this
+// browser's own locally-cached order list) that carry no real
+// financial or data-access consequence if a user manually edited it in
+// devtools — there is nothing privileged left behind this flag.
 function isConfiguredWorldAdmin(profile) {
   const configuredWallet = String(APP_CONFIG.admin.worldWalletAddress || "").trim().toLowerCase();
   const configuredUsername = normalizeUsername(APP_CONFIG.admin.worldUsername);
@@ -61,43 +54,6 @@ function normalizePassword(password) {
   return String(password || "").trim();
 }
 
-function upsertSeedAdmin(users) {
-  const seededAdminIndex = users.findIndex((user) => user.id === seedAdminUser.id);
-
-  if (seededAdminIndex === -1) {
-    return [seedAdminUser, ...users];
-  }
-
-  const nextUsers = [...users];
-  nextUsers[seededAdminIndex] = {
-    ...nextUsers[seededAdminIndex],
-    phone: seedAdminUser.phone,
-    mpesaPhoneNumber: seedAdminUser.mpesaPhoneNumber,
-    username: seedAdminUser.username,
-    isAdmin: true,
-  };
-
-  return nextUsers;
-}
-
-export function initializeUsers() {
-  const users = readStorage(STORAGE_KEYS.users, []);
-  const nextUsers = upsertSeedAdmin(users);
-  writeStorage(STORAGE_KEYS.users, nextUsers);
-
-  const currentUser = getCurrentUser();
-
-  if (currentUser?.id === seedAdminUser.id) {
-    writeStorage(STORAGE_KEYS.currentUser, {
-      ...currentUser,
-      phone: seedAdminUser.phone,
-      mpesaPhoneNumber: seedAdminUser.mpesaPhoneNumber,
-      username: seedAdminUser.username,
-      isAdmin: true,
-    });
-  }
-}
-
 export function getUsers() {
   return readStorage(STORAGE_KEYS.users, []);
 }
@@ -118,7 +74,7 @@ export function getCurrentUser() {
     user.id === currentUser.id ? { ...user, isAdmin: true } : user,
   );
 
-  writeStorage(STORAGE_KEYS.users, upsertSeedAdmin(nextUsers));
+  writeStorage(STORAGE_KEYS.users, nextUsers);
   writeStorage(STORAGE_KEYS.currentUser, nextUser);
   return nextUser;
 }
@@ -177,11 +133,11 @@ export function signupUser(payload) {
   return user;
 }
 
-// Local phone/password login remains for non-admin accounts created via
-// signupUser (unchanged). The admin bypass that used to live here — "if
-// the phone matches the operator's and the password matches a string in
-// this file, sign in as admin" — is gone; admin sign-in only happens
-// through loginAdmin(), which asks the server.
+// Local phone/password login for non-admin accounts created via
+// signupUser. There is no admin variant of this — admin identity is
+// established exclusively through World App (loginWithWorldApp below)
+// and verified server-side (api/_lib/adminAuth.js), never through a
+// phone/password form.
 export function loginUser({ phone, password }) {
   const normalizedPhone = normalizePhone(phone);
   const normalizedPassword = normalizePassword(password);
@@ -199,25 +155,6 @@ export function loginUser({ phone, password }) {
 
   writeStorage(STORAGE_KEYS.currentUser, user);
   return user;
-}
-
-// Admin credentials are verified by api/admin-login.js against
-// ADMIN_PHONE / ADMIN_PASSWORD (Vercel env vars) — never compared here.
-// A successful call sets a signed, httpOnly admin session cookie that
-// api/orders.js requires before it will accept a "completed"/"rejected"
-// status write; this local user object only reflects that the server
-// already said yes.
-export async function loginAdmin({ phone, password }) {
-  const result = await requestAdminSession(phone, password);
-
-  if (!result?.ok) {
-    throw new Error(result?.error || "Invalid admin phone number or password.");
-  }
-
-  const nextUsers = upsertSeedAdmin(getUsers());
-  writeStorage(STORAGE_KEYS.users, nextUsers);
-  writeStorage(STORAGE_KEYS.currentUser, seedAdminUser);
-  return seedAdminUser;
 }
 
 export function loginWithWorldApp(profile, changes = {}) {

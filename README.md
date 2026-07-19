@@ -79,14 +79,19 @@ Create env vars from [.env.example](C:/Users/ADMIN/Documents/New%20project/World
 - `ORDER_NOTIFICATION_EMAIL`: optional admin email override, defaults to `brianokindo2022@gmail.com`
 - `ORDER_EMAIL_FROM`: optional verified sender, defaults to Resend test sender
 
-## Admin Sign-In
+## Admin Identity
 
-Admin credentials are never stored in this repo or the client bundle.
-They're checked server-side in `api/admin-login.js` against the
-`ADMIN_PHONE` and `ADMIN_PASSWORD` environment variables, set only in
-Vercel → Project Settings → Environment Variables. A successful sign-in
-issues a short-lived signed session cookie; `api/orders.js` requires
-that cookie before accepting a "completed" or "rejected" status write.
+There is no admin login form, username, or password anywhere in this
+app. Admin access follows the same World App sign-in every user goes
+through — Connect Wallet → World ID → SIWE — and the server
+(`api/_lib/adminAuth.js`) checks the verified session's wallet address
+against `ADMIN_WALLET_ADDRESSES`, a comma-separated allowlist set only
+in Vercel → Project Settings → Environment Variables. An approved
+operator sees the Admin Console appear automatically in Profile after
+signing in normally; everyone else never sees it. `api/orders.js`
+re-checks this same server-side allowlist before accepting a
+"completed" or "rejected" status write — the client never asserts its
+own admin status for anything privileged.
 
 ## Run Locally
 

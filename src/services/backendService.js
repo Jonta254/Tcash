@@ -83,16 +83,17 @@ export async function confirmWorldPayment(payload) {
   return readJsonResponse(response);
 }
 
-export async function requestAdminSession(phone, password) {
-  const response = await fetchWithTimeout("/api/admin-login", {
-    method: "POST",
+// The only client-side call that decides whether to show admin UI —
+// reads the server's own verdict (api/admin-session.js), which itself
+// only trusts the signed SIWE session cookie. There is nothing else to
+// "log in" with: admin identity is World App identity, so this is a
+// GET, not a credential submission.
+export async function checkAdminSession() {
+  const response = await fetchWithTimeout("/api/admin-session", {
+    cache: "no-store",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ phone, password }),
   }).catch(() => {
-    throw new Error("Tcash could not reach the secure server. Please try again.");
+    throw new Error("Tcash could not verify admin access. Please try again.");
   });
 
   return readJsonResponse(response);

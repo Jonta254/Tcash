@@ -9,12 +9,10 @@ import {
   backfillExistingOrdersToAdminQueue,
   initializeOrders,
   initializeSettings,
-  initializeUsers,
 } from "./services";
 import { initializeTheme } from "./services/themeService";
 
 try {
-  initializeUsers();
   initializeOrders();
   initializeSettings();
   initializeTheme();
