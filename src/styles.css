@@ -5152,10 +5152,31 @@ input[type="number"] {
 
 .tdr-receipt-ref {
   margin-top: 14px;
+  max-width: 100%;
   font-size: 0.74rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
   color: var(--muted);
+}
+
+.tdr-receipt-ref-label {
+  letter-spacing: 0.08em;
+}
+
+.tdr-receipt-ref-label::after {
+  content: " · ";
+}
+
+/* The reference itself can be a full on-chain tx hash (66+ chars, no
+   natural break points) — without overflow-wrap it silently ran off
+   the card's edge instead of wrapping, which is what was actually
+   happening on real devices (see the reported screenshot). Tighter
+   letter-spacing than the label too, since 0.08em compounds badly
+   across a string this long. */
+.tdr-receipt-ref-value {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  letter-spacing: 0.01em;
 }
 
 .tdr-receipt-actions {

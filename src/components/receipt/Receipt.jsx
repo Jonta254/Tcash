@@ -54,7 +54,12 @@ function Receipt({ title, leadCopy, amountLabel, amountValue, lines, reference, 
         ))}
       </div>
 
-      {reference ? <div className="tdr-receipt-ref">REF · {reference}</div> : null}
+      {reference ? (
+        <div className="tdr-receipt-ref">
+          <span className="tdr-receipt-ref-label">REF</span>
+          <span className="tdr-receipt-ref-value">{reference}</span>
+        </div>
+      ) : null}
 
       <div className="tdr-receipt-actions">
         <button type="button" className="button-secondary" onClick={handleShare}>
