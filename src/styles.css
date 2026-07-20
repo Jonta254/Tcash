@@ -1133,6 +1133,26 @@ button:disabled {
   transform: scale(1.04);
 }
 
+/* label sits in the 20px gap between the raised button's bottom edge
+   and the bar's own bottom edge — the only space left once the button
+   escapes upward out of the bar */
+.tab-fab-label {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--muted);
+  transition: color var(--t-fast) var(--ease-tender);
+}
+
+.tab-fab.active .tab-fab-label {
+  color: var(--primary);
+}
+
 
 
 

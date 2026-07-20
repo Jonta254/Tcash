@@ -207,12 +207,12 @@ function AppShell() {
           <NavLink
             to="/trade"
             className={({ isActive }) => `tab-fab${isActive ? " active" : ""}`}
-            aria-label="Trade"
             onClick={() => haptic("light")}
           >
             <span className="tab-fab-button">
               <Icon name="swap" size={21} strokeWidth={2} />
             </span>
+            <span className="tab-fab-label">Trade</span>
           </NavLink>
 
           {navItems.slice(2).map((item) => (
