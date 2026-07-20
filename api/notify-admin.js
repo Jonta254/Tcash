@@ -48,14 +48,20 @@ function renderEmail({ kicker, title, rows }) {
   `;
 }
 
+function formatCryptoAmount(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: 6 }) : value;
+}
+
 function buildOrderEmail(order) {
   const isSell = order.type === "sell";
   const title = isSell
-    ? "New sell order needs M-Pesa payout after World payment"
-    : "New buy order needs M-Pesa payment confirmation";
+    ? "New sell order — send the M-Pesa payout after checking the World payment"
+    : "New buy order — confirm the M-Pesa payment before releasing crypto";
+  const cryptoAmount = formatCryptoAmount(order.cryptoAmount);
 
   return {
-    subject: `Tcash ${order.type?.toUpperCase()} order - ${order.cryptoAmount} ${order.asset}`,
+    subject: `Tcash ${order.type?.toUpperCase()} order — ${cryptoAmount} ${order.asset}`,
     idempotencyKey: `tmpesa-order-${order.id}`,
     html: renderEmail({
       kicker: "Tcash admin notification",
@@ -64,7 +70,7 @@ function buildOrderEmail(order) {
         ["Order ID", order.id],
         ["Type", order.type?.toUpperCase()],
         ["Asset", order.asset],
-        ["Crypto Amount", order.cryptoAmount],
+        ["Crypto Amount", cryptoAmount],
         [isSell ? "KES Payout" : "KES To Pay", `KES ${Number(order.kesAmount || 0).toLocaleString()}`],
         ["Status", order.status],
         ["User", order.userLabel],
@@ -81,7 +87,7 @@ function buildOrderEmail(order) {
 function buildReferralEmail(payload) {
   const subject =
     payload.eventType === "milestone"
-      ? `Tcash referral milestone reached - ${payload.eligibleRewardKes ? `KES ${payload.eligibleRewardKes}` : "reward pending"}`
+      ? `Tcash referral milestone reached — ${payload.eligibleRewardKes ? `KES ${payload.eligibleRewardKes}` : "reward pending"}`
       : "Tcash new referral signup";
 
   return {

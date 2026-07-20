@@ -258,7 +258,7 @@ function AppShell() {
                 </div>
               </div>
               <p className="muted">
-                Get a World App alert the moment your order is placed, reviewed, or completed.
+                World App alerts you the moment an order is placed, reviewed, or completed.
               </p>
               {notificationPromptError && <div className="error">{notificationPromptError}</div>}
               <div className="button-row compact-actions">

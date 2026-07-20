@@ -9,7 +9,7 @@ const GUIDE_SECTIONS = [
     title: "Getting started",
     summary: "How to begin using Tcash",
     points: [
-      "Connect your World wallet first so Tcash can read your username and wallet session.",
+      "Connect your World wallet first so Tcash knows who you are and can keep your account secure.",
       "Save your M-Pesa payout number in Profile before placing sell orders or claiming referral rewards.",
       "Use Home to view your KES balance, live WLD and USDC rates, and quick actions.",
     ],
