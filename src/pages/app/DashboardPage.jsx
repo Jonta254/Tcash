@@ -194,7 +194,12 @@ export default function DashboardPage() {
       <div className="tdr-home-topline">
         <div className="tdr-home-brand">
           <span className="tdr-home-brand-word">Tcash</span>
-          {hasWorld && <span className="tdr-trust-verified">World</span>}
+          {hasWorld && (
+            <span className="tdr-trust-verified tdr-trust-verified-stamp">
+              <Icon name="check" size={11} strokeWidth={2.1} />
+              World verified
+            </span>
+          )}
         </div>
         <Link to="/profile" className="shell-avatar" aria-label="Profile">{initials}</Link>
       </div>
@@ -233,7 +238,6 @@ export default function DashboardPage() {
 
         <button type="button" className="tdr-bridge-core" onClick={handleRefreshRates} aria-label="Refresh rates">
           <span className="tdr-bridge-line"><span className={mktRefreshing ? "" : "tdr-bridge-dot"} /></span>
-          {hasLiveRates && <span className="tdr-bridge-core-label">Live</span>}
         </button>
 
         <div className="tdr-bridge-col tdr-bridge-col-right">

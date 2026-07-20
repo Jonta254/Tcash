@@ -285,7 +285,12 @@ function ProfilePage() {
             {user?.username ? `@${user.username}` : user?.fullName || "Tcash user"}
           </h2>
           <div className="tdr-profile-trust-row">
-            {isWorldVerified && <span className="tdr-trust-verified">World ID verified</span>}
+            {isWorldVerified && (
+              <span className="tdr-trust-verified tdr-trust-verified-stamp">
+                <Icon name="check" size={11} strokeWidth={2.1} />
+                World verified
+              </span>
+            )}
             <span className="tdr-trust-verified" data-connected={isWalletConnected}>
               {isWalletConnected ? "Wallet connected" : "Local session"}
             </span>

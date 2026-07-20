@@ -1362,6 +1362,33 @@ button:disabled {
   background: var(--success);
 }
 
+/* The identity-verification badge specifically (not the generic
+   "Wallet connected"/"Local session" status line it sits next to) —
+   upgraded from the plain dot to the same stamp-check mark used for
+   settled/completed states elsewhere (StatusPill, receipts), so
+   "this identity is verified" reads with the same weight as "this
+   payment is verified" rather than a smaller, easier-to-miss dot.
+   Label text stays --muted (already verified at 5.47:1 in light mode
+   — see that token's own comment) rather than switching to --success:
+   computed against --bg, --success as *text* clears WCAG AA in light
+   mode at only 4.538:1 — technically a pass, but the kind of
+   razor-thin margin this project has specifically avoided before.
+   The icon alone carries --success — a non-text graphical element
+   only needs 3:1, which it clears with real room (6.56:1 dark /
+   4.54:1 light). */
+.tdr-trust-verified-stamp {
+  font-weight: 700;
+}
+
+.tdr-trust-verified-stamp::before {
+  content: none;
+}
+
+.tdr-trust-verified-stamp svg {
+  flex-shrink: 0;
+  color: var(--success);
+}
+
 /* .status-pill text colors were only ever tuned for a dark background —
    near-invisible on the light theme's white/near-white panels. */
 :root[data-theme="light"] .status-pill.pending { color: var(--warning); }
@@ -4656,19 +4683,21 @@ input[type="number"] {
 .tdr-bridge-core {
   display: grid;
   justify-items: center;
-  gap: 6px;
-  padding-top: 2px;
+  align-items: center;
+  /* The visible mark (line + dot) is a few px tall — the "Live" label
+     that used to sit under it was incidentally padding out the tap
+     target too. Removing the label without this would have shrunk an
+     already-marginal hit area down to ~7px tall, well under the 44px
+     WCAG minimum. min-height/min-width give the button real invisible
+     padding instead; the surrounding .tdr-bridge row is already taller
+     than this (set by the crypto column's two asset rows), so this
+     doesn't change the Bridge's overall height, just what's actually
+     tappable within it. */
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .tdr-bridge-core .tdr-bridge-line { width: 34px; }
-
-.tdr-bridge-core-label {
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--primary);
-}
 
 .tdr-bridge-kes-figure {
   font-family: var(--font-ledger);
