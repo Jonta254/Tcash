@@ -110,7 +110,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     return sellMinKesEquivalent / exchangeRate;
   }, [exchangeRate, sellMinKesEquivalent]);
 
-  const placeOrder = async (options = {}) => {
+  const placeOrder = async () => {
     setError("");
 
     if (type === "buy" && (!buyKesInput || parsedBuyKesAmount <= 0)) {
@@ -164,8 +164,6 @@ export function useOrderFlow(type, initialAsset = "WLD") {
         walletAddress: walletAddress.trim(),
         payoutPhoneNumber: payoutPhoneNumber.trim(),
         destinationUsername: currentUser?.username || "",
-        humanVerificationStatus: options.humanVerificationStatus || "",
-        humanVerificationLevel: options.humanVerificationLevel || "",
       });
 
       setCurrentOrder(order);

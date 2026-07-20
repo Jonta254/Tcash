@@ -106,12 +106,6 @@ function OrderCard({ order, children }) {
               {order.userPhone && <span>Phone: {order.userPhone}</span>}
               {order.userWalletAddress && <span>Wallet: {order.userWalletAddress}</span>}
               {order.userLabel && <span>User: {order.userLabel}</span>}
-              {order.humanVerificationStatus && (
-                <span>
-                  Verified: {order.humanVerificationStatus}
-                  {order.humanVerificationLevel ? ` (${order.humanVerificationLevel})` : ""}
-                </span>
-              )}
             </div>
           )}
 

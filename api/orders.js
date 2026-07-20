@@ -165,8 +165,6 @@ export function isOrderRecord(value) {
     "userPhone",
     "userWalletAddress",
     "referredByCode",
-    "humanVerificationStatus",
-    "humanVerificationLevel",
   ];
 
   return (

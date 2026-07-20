@@ -84,9 +84,6 @@ function LoginPage() {
       setAuthStatus("Opening your Tcash session...");
 
       loginWithWorldApp(profile, {
-        firstAccessVerified: existingUser?.firstAccessVerified || false,
-        firstAccessVerifiedAt: existingUser?.firstAccessVerifiedAt || null,
-        firstAccessVerificationLevel: existingUser?.firstAccessVerificationLevel || "",
         referredByCode:
           existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
       });
