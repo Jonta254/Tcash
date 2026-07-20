@@ -44,7 +44,6 @@ function AdminPage() {
     mpesaAccountNumber: liveSettings.mpesaAccountNumber,
     mpesaTillName: liveSettings.mpesaTillName,
     supportEmail: liveSettings.supportEmail,
-    worldAppId: liveSettings.worldAppId || "",
   }));
   const [rateMessage, setRateMessage] = useState("");
   const [rateError, setRateError] = useState("");
@@ -293,7 +292,6 @@ function AdminPage() {
         mpesaAccountNumber: nextSettings.mpesaAccountNumber,
         mpesaTillName: nextSettings.mpesaTillName,
         supportEmail: nextSettings.supportEmail,
-        worldAppId: nextSettings.worldAppId || "",
       });
       setSettingsMessage("Saved — every user now reads these live settings.");
     } catch (error) {
@@ -525,19 +523,10 @@ function AdminPage() {
 
           <div className="field">
             <label htmlFor="worldAppId">World App ID</label>
-            <input
-              id="worldAppId"
-              value={operationalInputs.worldAppId || ""}
-              onChange={(event) =>
-                setOperationalInputs((current) => ({
-                  ...current,
-                  worldAppId: event.target.value,
-                }))
-              }
-              placeholder="app_xxxxxxxxxxxxx"
-            />
+            <input id="worldAppId" value={liveSettings.worldAppId || ""} readOnly disabled />
             <span className="muted field-hint">
-              Used to build the Open in World App button with the documented mini app deeplink format.
+              Set at deploy time (VITE_WORLD_APP_ID), not editable here — it isn't part of Save Mini
+              App Settings below.
             </span>
           </div>
         </div>
