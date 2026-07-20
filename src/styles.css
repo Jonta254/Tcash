@@ -4700,6 +4700,16 @@ input[type="number"] {
   color: var(--muted);
 }
 
+/* The grid's actual center-column item — the button plus its caption,
+   so the caption can restore the missing "this is live, not static"
+   signal without ever touching the button's own box model (that's
+   what shrank the tap target last time this text existed). */
+.tdr-bridge-core-wrap {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
 .tdr-bridge-core {
   display: grid;
   justify-items: center;
@@ -4716,20 +4726,31 @@ input[type="number"] {
   background: none;
   border: none;
   padding: 0;
-  /* The visible mark (line + dot) is a few px tall — the "Live" label
-     that used to sit under it was incidentally padding out the tap
-     target too. Removing the label without this would have shrunk an
-     already-marginal hit area down to ~7px tall, well under the 44px
-     WCAG minimum. min-height/min-width give the button real invisible
-     padding instead; the surrounding .tdr-bridge row is already taller
-     than this (set by the crypto column's two asset rows), so this
-     doesn't change the Bridge's overall height, just what's actually
-     tappable within it. */
+  /* The visible mark (line + dot) alone is only a few px tall —
+     min-height/min-width give the button real invisible padding so
+     the tap target still clears the 44px WCAG minimum regardless of
+     what does or doesn't render beneath it. */
   min-height: 44px;
   min-width: 44px;
 }
 
 .tdr-bridge-core .tdr-bridge-line { width: 34px; }
+
+/* A pulsing dot with no text is only legible as "live" to someone who
+   already knows the convention — invisible in a static screenshot,
+   and something a first-time user has no way to learn on their own.
+   This names it once, outside the button's own hit area, without
+   touching the amount/rate pairing's typography (see DESIGN_SYSTEM.md
+   "Exchange rate typography" — that rule is about not labeling the
+   number pairing itself, not about leaving the refresh control
+   unlabeled). */
+.tdr-bridge-core-caption {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
 .tdr-bridge-kes-figure {
   font-family: var(--font-ledger);

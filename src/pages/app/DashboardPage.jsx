@@ -236,9 +236,12 @@ export default function DashboardPage() {
           {mktRates[1].kes > 1 && <span className="tdr-bridge-asset-rate">@ {formatKES(mktRates[1].kes)}</span>}
         </div>
 
-        <button type="button" className="tdr-bridge-core" onClick={handleRefreshRates} aria-label="Refresh rates">
-          <span className="tdr-bridge-line"><span className={mktRefreshing ? "" : "tdr-bridge-dot"} /></span>
-        </button>
+        <div className="tdr-bridge-core-wrap">
+          <button type="button" className="tdr-bridge-core" onClick={handleRefreshRates} aria-label="Refresh rates">
+            <span className="tdr-bridge-line"><span className={mktRefreshing ? "" : "tdr-bridge-dot"} /></span>
+          </button>
+          <span className="tdr-bridge-core-caption">Live rate</span>
+        </div>
 
         <div className="tdr-bridge-col tdr-bridge-col-right">
           <span className="tdr-bridge-label">Settles as</span>
