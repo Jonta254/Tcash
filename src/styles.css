@@ -4704,6 +4704,18 @@ input[type="number"] {
   display: grid;
   justify-items: center;
   align-items: center;
+  /* This is a <button>, and it never had its native chrome reset —
+     confirmed from a real device screenshot, it was rendering as an
+     opaque gray box with an outset 3D border (the browser's default
+     button appearance) sitting in the middle of an otherwise fully
+     custom "Bridge" section, not the near-invisible hairline+dot it
+     was designed to be. Every other custom button in this file resets
+     this implicitly by declaring its own background/border; this one
+     declared neither. */
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
   /* The visible mark (line + dot) is a few px tall — the "Live" label
      that used to sit under it was incidentally padding out the tap
      target too. Removing the label without this would have shrunk an
