@@ -4776,6 +4776,15 @@ input[type="number"] {
   padding: 18px 10px;
   color: var(--text);
   transition: background var(--t-fast) var(--ease-tender);
+  /* This class is shared between a <Link> (Home's one-shot nav choice)
+     and a <button> (TradePage's persistent toggle) -- the button usage
+     never had native chrome reset, so the inactive tab showed a flat
+     gray browser-default fill and the active tab's outset border
+     showed through underneath the intended copper tint. Same bug class
+     as .tdr-bridge-core, found the same way: real device screenshot. */
+  appearance: none;
+  background: none;
+  border: none;
 }
 
 .tdr-trade-half:first-child { border-right: 1px solid var(--border); }
