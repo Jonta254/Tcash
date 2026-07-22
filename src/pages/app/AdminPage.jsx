@@ -635,7 +635,7 @@ function AdminPage() {
                   <button
                     type="button"
                     className="button-ghost"
-                    style={{ color: "var(--error, #f87171)" }}
+                    style={{ color: "var(--error, #b5654f)" }}
                     onClick={() => handleStatusUpdate(order, "rejected")}
                   >
                     Mark Failed
