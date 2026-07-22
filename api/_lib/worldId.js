@@ -58,6 +58,22 @@ export function worldIdVerificationAvailable() {
   return worldIdSigningConfigured() && storeConfigured();
 }
 
+/**
+ * Booleans only — never the key itself, and never enough to reconstruct it.
+ * Exists so "verification is unavailable" can be diagnosed from outside
+ * (via /api/health) without shell access to the deployment: it says which
+ * half is missing, the signing key or the record store, instead of leaving
+ * a single opaque `available: false`.
+ */
+export function worldIdConfigDiagnostics() {
+  return {
+    signingKey: worldIdSigningConfigured(),
+    store: storeConfigured(),
+    redis: redisConfigured(),
+    blob: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+  };
+}
+
 async function redisCommand(command) {
   const response = await fetch(REDIS_URL, {
     method: "POST",
