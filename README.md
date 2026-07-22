@@ -64,8 +64,14 @@ This repository contains `TMpesa`, a React + Vite World mini app for manually ex
 - `POST /api/complete-siwe`: verify the World wallet auth payload on the server
 - `POST /api/payment-reference`: issue a backend payment reference before WLD send
 - `POST /api/confirm-payment`: confirm a World payment with the Developer Portal API
-- `GET /api/orders`: load the shared admin order queue
-- `POST /api/orders`: save a new or updated order to the shared admin order queue
+- `GET /api/orders`: load orders (admin sees all; a user sees only their own)
+- `POST /api/orders`: save a new or updated order (ownership + admin-status + World ID high-value gate enforced)
+- `GET /api/admin-session`: report whether the session wallet is a recognised operator
+- `POST /api/notify-admin`: admin email (order/referral) or World push, dispatched by payload shape
+- `GET|POST /api/settings`: live fee/operational settings (public read, admin-only write)
+- `GET|POST /api/referral-claims`: referral payout queue (admin read, ownership-checked write)
+- `GET|POST /api/world-id`: World ID high-value verification (status, sign, verify)
+- `GET /api/world-prices`: live WLD/USDC/KES rates (World public feed, Binance/CoinGecko fallback)
 - `GET /api/health`: quick backend health/config check
 
 ## Environment Variables

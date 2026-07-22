@@ -568,11 +568,14 @@ just defined.
 
 Also fixed this pass, unrelated to visuals but blocking submission
 either way: the hardcoded admin password is gone from source, README,
-and the client bundle — admin sign-in now goes through
-`api/admin-login.js`, checked against `ADMIN_PHONE`/`ADMIN_PASSWORD`
-Vercel env vars, and a signed session cookie now gates the two
-admin-only order-status writes (`completed`/`rejected`) in
-`api/orders.js` server-side, not just in the client UI.
+and the client bundle. (Note: the interim phone/password admin login
+described here — `api/admin-login.js` with `ADMIN_PHONE`/`ADMIN_PASSWORD`
+— was itself later removed. Admin identity is now the World App wallet:
+World ID → SIWE → a signed server session checked against the
+`ADMIN_WALLET_ADDRESSES` allowlist. See `api/_lib/adminAuth.js`.) A
+signed session cookie gates the two admin-only order-status writes
+(`completed`/`rejected`) in `api/orders.js` server-side, not just in
+the client UI.
 
 `SPEC`, next in priority order: (1) gesture amount entry on Buy/Sell
 step 1, (2) Profile's stat rows → inline ledger figures and identity/

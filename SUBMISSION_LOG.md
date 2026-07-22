@@ -63,13 +63,15 @@ All routes live under `/api/` and run as Vercel Node.js functions.
 | `POST /api/complete-siwe` | POST | Verify World wallet auth payload server-side |
 | `POST /api/payment-reference` | POST | Issue a unique payment reference before World Pay |
 | `POST /api/confirm-payment` | POST | Confirm World Pay transaction with Developer Portal API |
-| `GET /api/orders` | GET | Load shared admin order queue from Vercel Blob |
-| `POST /api/orders` | POST | Save new or updated order to Vercel Blob |
-| `POST /api/notify-order` | POST | Send admin email notification via Resend |
-| `POST /api/notify-referral` | POST | Send admin referral event email |
-| `POST /api/send-world-notification` | POST | Send World push notification to user or admin |
-| `GET /api/world-prices` | GET | Fetch live WLD/USDC/KES rates from CoinGecko + Binance |
-| `GET /api/health` | GET | Backend health check — confirms env vars configured |
+| `GET /api/orders` | GET | Load orders — admin sees all, a user sees only their own (Upstash Redis, Vercel Blob fallback) |
+| `POST /api/orders` | POST | Save a new/updated order; enforces ownership, admin-only status writes, and the World ID high-value gate |
+| `GET /api/admin-session` | GET | Report whether the SIWE session wallet is a recognised operator |
+| `POST /api/notify-admin` | POST | Admin notifications — Resend email (order or referral) or World push, by payload shape |
+| `GET /api/settings` | GET / POST | Read live fee/operational settings (public GET); admin-only writes |
+| `GET /api/referral-claims` | GET / POST | Referral payout queue — admin-only reads, ownership-checked writes |
+| `GET /api/world-id` | GET / POST | World ID high-value verification — status (GET), sign + verify (POST `action`) |
+| `GET /api/world-prices` | GET | Fetch live WLD/USDC/KES rates (World public feed, with Binance/CoinGecko fallback) |
+| `GET /api/health` | GET | Backend health check — reports which env-gated features are configured |
 
 ---
 
@@ -80,13 +82,19 @@ All routes live under `/api/` and run as Vercel Node.js functions.
 | `APP_ID` | World mini app ID for payment verification | World Developer Portal |
 | `VITE_WORLD_APP_ID` | Build-time app ID baked into frontend bundle | Same as APP_ID |
 | `DEV_PORTAL_API_KEY` | Authenticate with World Developer Portal API | World Developer Portal → API Keys |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob for shared admin order queue | Vercel Dashboard → Storage → Blob |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Shared order + World ID store (Upstash Redis). `KV_REST_API_URL` / `_TOKEN` accepted as aliases | Vercel → Storage → Upstash |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob — fallback store when Redis is absent | Vercel Dashboard → Storage → Blob |
+| `ADMIN_WALLET_ADDRESSES` | Comma-separated allowlist of operator wallets (the server-verified admin identity) | Your own World wallet address |
+| `ADMIN_SESSION_SECRET` | HMAC secret signing the SIWE session cookie (`SIWE_NONCE_SECRET` accepted as alias) | Any high-entropy random string |
+| `WORLD_ID_RP_SIGNING_KEY` | RP signing key for World ID high-value verification (`RP_SIGNING_KEY` alias). **Server only — never prefix `VITE_`** | Developer Portal RP key rotation |
+| `WORLD_ID_HIGH_VALUE_KES` | Optional — KES threshold that triggers World ID (default 10,000) | — |
 | `RESEND_API_KEY` | Admin email notifications via Resend | resend.com |
 | `ORDER_NOTIFICATION_EMAIL` | Admin email for new order alerts | `brianokindo2022@gmail.com` |
 | `ORDER_EMAIL_FROM` | Verified sender for Resend | `Tcash <onboarding@resend.dev>` |
-| `ADMIN_WORLD_WALLET` | Admin wallet for World push notifications | `0x6588e8765c495a9d44e93b0293aedd7ecd6167fc` |
+| `WORLD_NOTIFICATION_API_KEY` | World push notifications (`DEV_PORTAL_API_KEY` / `WORLD_API_KEY` accepted) | World Developer Portal → API Keys |
+| `ADMIN_WORLD_WALLET` | Admin wallet that receives World push notifications | `0x6588e8765c495a9d44e93b0293aedd7ecd6167fc` |
 
-All variables are set in Vercel → Project Settings → Environment Variables.
+All variables are set in Vercel → Project Settings → Environment Variables (Production). `GET /api/health` reports which env-gated features are actually live without exposing any secret.
 
 ---
 
