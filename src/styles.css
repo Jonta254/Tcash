@@ -157,13 +157,13 @@ a {
 }
 
 :root[data-theme="light"] .muted {
-  color: #5d6b83;
+  color: #6c6152;
 }
 
 :root[data-theme="light"] .brand-kicker,
 :root[data-theme="light"] .market-panel-note,
 :root[data-theme="light"] .tag {
-  color: #6c7a92;
+  color: #7a6f5d;
 }
 
 :root[data-theme="light"] .topbar h1,
@@ -174,19 +174,19 @@ a {
 :root[data-theme="light"] code,
 :root[data-theme="light"] .context-strip,
 :root[data-theme="light"] .detail-item strong {
-  color: #11203a;
+  color: #1c1712;
 }
 
 :root[data-theme="light"] .notice {
-  background: rgba(49, 94, 251, 0.08);
-  border-color: rgba(49, 94, 251, 0.16);
-  color: #274067;
+  background: rgba(168, 90, 42, 0.08);
+  border-color: rgba(168, 90, 42, 0.18);
+  color: #7a3f1d;
 }
 
 :root[data-theme="light"] .error {
-  background: rgba(211, 73, 98, 0.08);
-  border-color: rgba(211, 73, 98, 0.16);
-  color: #8e2942;
+  background: rgba(142, 64, 51, 0.08);
+  border-color: rgba(142, 64, 51, 0.18);
+  color: #8e4033;
 }
 
 button,
@@ -300,9 +300,9 @@ button {
   background:
     linear-gradient(145deg, rgba(255, 252, 247, 0.99), rgba(239, 245, 252, 0.98)),
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.12), transparent 42%),
-    radial-gradient(circle at bottom left, rgba(154, 231, 255, 0.08), transparent 42%);
+    radial-gradient(circle at bottom left, rgba(201, 160, 92, 0.08), transparent 42%);
   border-color: rgba(191, 138, 33, 0.2);
-  box-shadow: 0 14px 34px rgba(86, 100, 130, 0.12);
+  box-shadow: 0 14px 34px rgba(120, 108, 90, 0.12);
 }
 
 
@@ -313,7 +313,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-gate-copy h3 {
-  color: #152844;
+  color: #442115;
 }
 
 .auth-gate-copy p {
@@ -328,7 +328,7 @@ button {
 :root[data-theme="light"] .auth-gate-tile {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(245, 249, 255, 0.92));
-  border-color: rgba(136, 150, 182, 0.18);
+  border-color: rgba(138, 124, 102, 0.18);
 }
 
 .auth-gate-tile strong {
@@ -337,7 +337,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-gate-tile strong {
-  color: #162846;
+  color: #1c1712;
 }
 
 .auth-gate-tile span {
@@ -348,7 +348,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-gate-tile span {
-  color: #55657f;
+  color: #8a7c66;
 }
 
 
@@ -359,12 +359,12 @@ button {
   padding: 12px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(207, 214, 230, 0.12);
+  border: 1px solid rgba(203, 191, 168, 0.12);
 }
 
 :root[data-theme="light"] .auth-mini-flow div {
   background: rgba(255, 255, 255, 0.84);
-  border-color: rgba(136, 150, 182, 0.18);
+  border-color: rgba(138, 124, 102, 0.18);
 }
 
 .auth-mini-flow div.active {
@@ -378,7 +378,7 @@ button {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  background: rgba(79, 124, 255, 0.22);
+  background: rgba(201, 122, 58, 0.22);
   color: #f6faff;
   font-size: 0.78rem;
   font-weight: 800;
@@ -392,7 +392,7 @@ button {
 }
 
 :root[data-theme="light"] .auth-mini-flow strong {
-  color: #162846;
+  color: #1c1712;
 }
 
 
@@ -403,24 +403,24 @@ button {
 
 :root[data-theme="light"] .auth-benefit-chip {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(241, 246, 253, 0.9));
-  border-color: rgba(136, 150, 182, 0.18);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(247, 243, 234, 0.9));
+  border-color: rgba(138, 124, 102, 0.18);
 }
 
 .auth-benefit-chip strong {
-  color: #eef4ff;
+  color: #f6f1e7;
   font-size: 0.86rem;
   line-height: 1.2;
 }
 
 :root[data-theme="light"] .auth-benefit-chip strong {
-  color: #162846;
+  color: #1c1712;
 }
 
 :root[data-theme="light"] .auth-inline-note {
-  background: rgba(49, 94, 251, 0.08);
-  border: 1px solid rgba(49, 94, 251, 0.14);
-  color: #284163;
+  background: rgba(168, 90, 42, 0.08);
+  border: 1px solid rgba(168, 90, 42, 0.14);
+  color: #7a3f1d;
 }
 
 
@@ -468,9 +468,9 @@ button {
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(79, 124, 255, 0.18), rgba(207, 214, 230, 0.1));
-  color: #dee6fb;
-  border: 1px solid rgba(207, 214, 230, 0.12);
+  background: linear-gradient(135deg, rgba(201, 122, 58, 0.18), rgba(203, 191, 168, 0.1));
+  color: #efe4d2;
+  border: 1px solid rgba(203, 191, 168, 0.12);
   font-size: 0.88rem;
 }
 
@@ -640,8 +640,8 @@ button {
 .auth-steps div {
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(164, 152, 130, 0.08);
+  border: 1px solid rgba(164, 152, 130, 0.12);
 }
 
 .auth-steps strong {
@@ -683,7 +683,7 @@ button {
 
 .admin-access-panel summary {
   cursor: pointer;
-  color: #dbe5ff;
+  color: #efe4d2;
   font-weight: 700;
 }
 
@@ -711,8 +711,8 @@ button {
 .admin-access-panel-quiet form {
   padding: 14px;
   border-radius: 18px;
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(164, 152, 130, 0.08);
+  border: 1px solid rgba(164, 152, 130, 0.12);
 }
 
 .admin-access-panel[open] summary {
@@ -725,22 +725,22 @@ button {
 }
 
 .field label {
-  color: #dbe5ff;
+  color: #efe4d2;
   font-size: 0.94rem;
 }
 
 :root[data-theme="light"] .field label {
-  color: #60708b;
+  color: #8a7c66;
 }
 
 .field input,
 .field select,
 .field textarea {
   width: 100%;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border: 1px solid rgba(164, 152, 130, 0.22);
   border-radius: 16px;
   padding: 14px 16px;
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(21, 19, 15, 0.88);
   color: var(--text);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -749,21 +749,21 @@ button {
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: rgba(79, 124, 255, 0.8);
-  box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.12);
+  border-color: rgba(201, 122, 58, 0.8);
+  box-shadow: 0 0 0 4px rgba(201, 122, 58, 0.12);
 }
 
 :root[data-theme="light"] .field input,
 :root[data-theme="light"] .field select,
 :root[data-theme="light"] .field textarea {
-  background: linear-gradient(145deg, rgba(36, 49, 74, 0.9), rgba(53, 67, 95, 0.92));
-  border-color: rgba(96, 112, 139, 0.18);
-  color: #f6f9ff;
+  background: linear-gradient(145deg, rgba(74, 40, 36, 0.9), rgba(95, 78, 53, 0.92));
+  border-color: rgba(120, 108, 90, 0.18);
+  color: #f6f1e7;
 }
 
 :root[data-theme="light"] .field input::placeholder,
 :root[data-theme="light"] .field textarea::placeholder {
-  color: rgba(220, 230, 245, 0.74);
+  color: rgba(238, 231, 219, 0.74);
 }
 
 .button,
@@ -897,9 +897,9 @@ button:disabled {
 
 .brand-status {
   padding: 5px 10px 5px 8px;
-  background: linear-gradient(135deg, rgba(54, 211, 153, 0.14), rgba(71, 215, 172, 0.1), rgba(154, 231, 255, 0.08));
-  color: #a7f3d0;
-  border: 1px solid rgba(54, 211, 153, 0.22);
+  background: linear-gradient(135deg, rgba(127, 163, 122, 0.14), rgba(150, 180, 140, 0.1), rgba(201, 160, 92, 0.08));
+  color: #a9c7a0;
+  border: 1px solid rgba(127, 163, 122, 0.22);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -912,14 +912,14 @@ button:disabled {
   height: 6px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 0 4px rgba(54, 211, 153, 0.15);
+  box-shadow: 0 0 0 4px rgba(127, 163, 122, 0.15);
   animation: status-pulse 2.4s ease-in-out infinite;
   flex: 0 0 auto;
 }
 
 @keyframes status-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(54, 211, 153, 0.12); }
-  50% { box-shadow: 0 0 0 6px rgba(54, 211, 153, 0.06); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(127, 163, 122, 0.12); }
+  50% { box-shadow: 0 0 0 6px rgba(127, 163, 122, 0.06); }
 }
 
 .brand-block h1 {
@@ -947,14 +947,14 @@ button:disabled {
 
 
 :root[data-theme="light"] .theme-toggle-button {
-  color: #11203a;
-  border-color: rgba(136, 150, 182, 0.2);
+  color: #1c1712;
+  border-color: rgba(138, 124, 102, 0.2);
   background: linear-gradient(145deg, rgba(243, 201, 105, 0.18), rgba(255, 255, 255, 0.86));
 }
 
 :root[data-theme="light"] .profile-launch-copy strong,
 :root[data-theme="light"] .brand-status {
-  color: #11203a;
+  color: #1c1712;
 }
 
 
@@ -962,8 +962,8 @@ button:disabled {
 
 
 :root[data-theme="light"] .profile-launch-button {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(228, 237, 249, 0.86));
-  border-color: rgba(136, 150, 182, 0.2);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(240, 233, 221, 0.86));
+  border-color: rgba(138, 124, 102, 0.2);
 }
 
 
@@ -977,7 +977,7 @@ button:disabled {
 }
 
 .profile-launch-copy strong {
-  color: #f5f8ff;
+  color: #efe4d2;
   font-size: 0.92rem;
 }
 
@@ -998,9 +998,9 @@ button:disabled {
 }
 
 :root[data-theme="light"] .context-strip {
-  color: #223451;
+  color: #512b22;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(236, 242, 250, 0.88));
-  border-color: rgba(136, 150, 182, 0.2);
+  border-color: rgba(138, 124, 102, 0.2);
 }
 
 /* ═══ TENDER — bottom bar ═══
@@ -1170,15 +1170,15 @@ button:disabled {
    splash card stays dark in both themes, so it keeps the original
    colors; everywhere else gets a light-theme-appropriate variant. */
 :root[data-theme="light"] .live-badge {
-  color: #0a7a4f;
-  background: rgba(10, 122, 79, 0.1);
-  border-color: rgba(10, 122, 79, 0.28);
+  color: #4c7a4a;
+  background: rgba(76, 122, 74, 0.1);
+  border-color: rgba(76, 122, 74, 0.28);
 }
 
 :root[data-theme="light"] .auth-splash-card .live-badge {
-  color: #a7f3d0;
-  background: rgba(54, 211, 153, 0.1);
-  border-color: rgba(54, 211, 153, 0.28);
+  color: #a9c7a0;
+  background: rgba(127, 163, 122, 0.1);
+  border-color: rgba(127, 163, 122, 0.28);
 }
 
 
@@ -1213,8 +1213,8 @@ button:disabled {
   min-width: 0;
   padding: 13px 14px;
   border-radius: 18px;
-  background: linear-gradient(145deg, rgba(207, 214, 230, 0.08), rgba(243, 201, 105, 0.04));
-  border: 1px solid rgba(207, 214, 230, 0.12);
+  background: linear-gradient(145deg, rgba(203, 191, 168, 0.08), rgba(243, 201, 105, 0.04));
+  border: 1px solid rgba(203, 191, 168, 0.12);
 }
 
 .mini-metrics span,
@@ -1239,14 +1239,14 @@ button:disabled {
 :root[data-theme="light"] .mini-metrics div,
 :root[data-theme="light"] .detail-item {
   background:
-    linear-gradient(145deg, rgba(43, 57, 83, 0.96), rgba(71, 84, 111, 0.92)),
+    linear-gradient(145deg, rgba(38, 32, 25, 0.96), rgba(58, 50, 40, 0.92)),
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 40%);
-  border-color: rgba(96, 112, 139, 0.2);
+  border-color: rgba(120, 108, 90, 0.2);
 }
 
 :root[data-theme="light"] .mini-metrics span,
 :root[data-theme="light"] .detail-item span {
-  color: rgba(225, 234, 246, 0.88);
+  color: rgba(240, 233, 221, 0.88);
 }
 
 :root[data-theme="light"] .mini-metrics strong,
@@ -1274,10 +1274,10 @@ button:disabled {
 }
 
 .panel-focus-ring {
-  border-color: rgba(116, 149, 255, 0.4);
+  border-color: rgba(201, 122, 58, 0.4);
   box-shadow:
-    0 0 0 1px rgba(116, 149, 255, 0.25),
-    0 18px 40px rgba(11, 16, 28, 0.22);
+    0 0 0 1px rgba(201, 122, 58, 0.25),
+    0 18px 40px rgba(28, 13, 11, 0.22);
 }
 
 .action-card h3,
@@ -1315,13 +1315,13 @@ button:disabled {
 }
 
 .status-pill.paid {
-  background: rgba(79, 124, 255, 0.16);
-  color: #c8d8ff;
+  background: rgba(201, 122, 58, 0.16);
+  color: #efe4d2;
 }
 
 .status-pill.completed {
-  background: rgba(54, 211, 153, 0.18);
-  color: #9af3ca;
+  background: rgba(127, 163, 122, 0.18);
+  color: #a9c7a0;
 }
 
 .status-pill.rejected,
@@ -1421,22 +1421,22 @@ button:disabled {
 .info-box {
   border-radius: 18px;
   padding: 16px;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.84), rgba(23, 30, 43, 0.82));
-  border: 1px solid rgba(207, 214, 230, 0.12);
+  background: linear-gradient(145deg, rgba(21, 19, 15, 0.84), rgba(43, 25, 23, 0.82));
+  border: 1px solid rgba(203, 191, 168, 0.12);
 }
 
 .action-highlight {
-  border-color: rgba(79, 124, 255, 0.28);
-  background: linear-gradient(145deg, rgba(79, 124, 255, 0.16), rgba(15, 23, 42, 0.78));
+  border-color: rgba(201, 122, 58, 0.28);
+  background: linear-gradient(145deg, rgba(201, 122, 58, 0.16), rgba(21, 19, 15, 0.78));
 }
 
 :root[data-theme="light"] .highlight-box,
 :root[data-theme="light"] .info-box,
 :root[data-theme="light"] .action-highlight {
   background:
-    linear-gradient(145deg, rgba(43, 57, 83, 0.96), rgba(71, 84, 111, 0.92)),
+    linear-gradient(145deg, rgba(38, 32, 25, 0.96), rgba(58, 50, 40, 0.92)),
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 40%);
-  border-color: rgba(96, 112, 139, 0.2);
+  border-color: rgba(120, 108, 90, 0.2);
 }
 
 .receipt-card span {
@@ -1449,19 +1449,19 @@ button:disabled {
 :root[data-theme="light"] .info-box span,
 :root[data-theme="light"] .info-box p,
 :root[data-theme="light"] .highlight-box p {
-  color: rgba(225, 234, 246, 0.88);
+  color: rgba(240, 233, 221, 0.88);
 }
 
 /* .info-box/.highlight-box stay dark in both themes; the global light-theme
    "strong/code => dark navy" rule otherwise wins over their strong/code text. */
 :root[data-theme="light"] .info-box strong,
 :root[data-theme="light"] .highlight-box strong {
-  color: #f6f9ff;
+  color: #f6f1e7;
 }
 
 :root[data-theme="light"] .info-box code,
 :root[data-theme="light"] .highlight-box code {
-  color: #c9d7ff;
+  color: #e6d8c2;
 }
 
 .payment-card {
@@ -1470,9 +1470,9 @@ button:disabled {
   padding: 22px;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(79, 124, 255, 0.22), rgba(54, 211, 153, 0.1)),
-    rgba(15, 23, 42, 0.82);
-  border: 1px solid rgba(79, 124, 255, 0.3);
+    linear-gradient(135deg, rgba(201, 122, 58, 0.22), rgba(127, 163, 122, 0.1)),
+    rgba(21, 19, 15, 0.82);
+  border: 1px solid rgba(201, 122, 58, 0.3);
 }
 
 /* .payment-card stays dark in both themes; the global light-theme
@@ -1487,7 +1487,7 @@ button:disabled {
 }
 
 .payment-card span {
-  color: #c9d7ff;
+  color: #e6d8c2;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 0.78rem;
@@ -1503,7 +1503,7 @@ button:disabled {
 
 .payment-card p {
   margin: 0;
-  color: #dbe5ff;
+  color: #efe4d2;
   font-weight: 700;
 }
 
@@ -1528,11 +1528,11 @@ button:disabled {
   padding: 10px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(207, 214, 230, 0.1);
+  border: 1px solid rgba(203, 191, 168, 0.1);
 }
 
 .copy-detail-list span {
-  color: #c9d7ff;
+  color: #e6d8c2;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -1548,7 +1548,7 @@ button:disabled {
 
 .copy-button {
   min-height: 36px;
-  border: 1px solid rgba(207, 214, 230, 0.16);
+  border: 1px solid rgba(203, 191, 168, 0.16);
   border-radius: 999px;
   padding: 0 12px;
   background: rgba(255, 255, 255, 0.08);
@@ -1560,7 +1560,7 @@ button:disabled {
 
 .success-panel p {
   margin: 8px 0 0;
-  color: #c9f7e3;
+  color: #cfe4c4;
 }
 
 
@@ -1579,13 +1579,13 @@ button:disabled {
   height: 28px;
   border-radius: 50%;
   background: var(--primary-soft);
-  color: #dbe5ff;
+  color: #efe4d2;
   font-weight: 800;
 }
 
 .flow-list p {
   margin: 2px 0 0;
-  color: #dfe7fc;
+  color: #efe4d2;
 }
 
 .support-card,
@@ -1595,8 +1595,8 @@ button:disabled {
   gap: 12px;
   padding: 16px;
   border-radius: 20px;
-  background: linear-gradient(145deg, rgba(207, 214, 230, 0.08), rgba(243, 201, 105, 0.05));
-  border: 1px solid rgba(207, 214, 230, 0.12);
+  background: linear-gradient(145deg, rgba(203, 191, 168, 0.08), rgba(243, 201, 105, 0.05));
+  border: 1px solid rgba(203, 191, 168, 0.12);
 }
 
 .support-card p,
@@ -1657,19 +1657,19 @@ button:disabled {
 
 .support-footer-emphasis {
   background:
-    linear-gradient(145deg, rgba(16, 28, 26, 0.92), rgba(10, 17, 27, 0.96)),
-    radial-gradient(circle at top right, rgba(71, 215, 172, 0.14), transparent 38%);
-  border-color: rgba(71, 215, 172, 0.18);
+    linear-gradient(145deg, rgba(16, 28, 26, 0.92), rgba(27, 14, 10, 0.96)),
+    radial-gradient(circle at top right, rgba(150, 180, 140, 0.14), transparent 38%);
+  border-color: rgba(150, 180, 140, 0.18);
 }
 
 :root[data-theme="light"] .support-footer-emphasis {
   background:
-    linear-gradient(145deg, rgba(20, 35, 45, 0.97), rgba(15, 24, 37, 0.95)),
+    linear-gradient(145deg, rgba(45, 29, 20, 0.97), rgba(37, 20, 15, 0.95)),
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.18), transparent 42%),
-    radial-gradient(circle at bottom left, rgba(154, 231, 255, 0.14), transparent 40%);
-  border-color: rgba(111, 126, 154, 0.18);
+    radial-gradient(circle at bottom left, rgba(201, 160, 92, 0.14), transparent 40%);
+  border-color: rgba(120, 108, 90, 0.18);
   box-shadow:
-    0 18px 42px rgba(80, 98, 135, 0.14),
+    0 18px 42px rgba(120, 108, 90, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -1679,19 +1679,19 @@ button:disabled {
 }
 
 :root[data-theme="light"] .support-footer-emphasis p {
-  color: rgba(226, 235, 248, 0.86);
+  color: rgba(240, 233, 221, 0.86);
 }
 
 :root[data-theme="light"] .support-footer-emphasis .button-secondary {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(238, 243, 250, 0.92));
-  color: #132846;
-  border-color: rgba(136, 150, 182, 0.18);
+  color: #462113;
+  border-color: rgba(138, 124, 102, 0.18);
 }
 
 :root[data-theme="light"] .support-footer-emphasis .button-ghost {
   background: rgba(255, 255, 255, 0.08);
-  color: #eef4ff;
-  border-color: rgba(226, 235, 248, 0.18);
+  color: #f6f1e7;
+  border-color: rgba(240, 233, 221, 0.18);
 }
 
 .notification-prompt-overlay {
@@ -1715,7 +1715,7 @@ button:disabled {
   border: 1px solid rgba(243, 201, 105, 0.22);
   background:
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.12), transparent 38%),
-    linear-gradient(180deg, rgba(14, 21, 35, 0.98), rgba(8, 13, 23, 0.96));
+    linear-gradient(180deg, rgba(35, 17, 14, 0.98), rgba(8, 13, 23, 0.96));
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.3);
 }
 
@@ -1735,9 +1735,9 @@ button:disabled {
   width: 38px;
   height: 38px;
   border-radius: 999px;
-  border: 1px solid rgba(207, 214, 230, 0.16);
+  border: 1px solid rgba(203, 191, 168, 0.16);
   background: rgba(255, 255, 255, 0.04);
-  color: #e8eefc;
+  color: #efe7db;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1751,7 +1751,7 @@ button:disabled {
 
 
 :root[data-theme="light"] .notification-prompt-overlay {
-  background: rgba(208, 218, 232, 0.35);
+  background: rgba(224, 214, 194, 0.35);
 }
 
 :root[data-theme="light"] .notification-prompt-card {
@@ -1759,18 +1759,18 @@ button:disabled {
   background:
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.12), transparent 38%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 253, 0.96));
-  box-shadow: 0 24px 56px rgba(77, 93, 126, 0.18);
+  box-shadow: 0 24px 56px rgba(120, 108, 90, 0.18);
 }
 
 :root[data-theme="light"] .notification-prompt-card h3,
 :root[data-theme="light"] .notification-prompt-card .muted,
 :root[data-theme="light"] .notification-prompt-card .brand-kicker {
-  color: #11203a;
+  color: #1c1712;
 }
 
 :root[data-theme="light"] .notification-prompt-close {
-  color: #24344e;
-  border-color: rgba(136, 150, 182, 0.2);
+  color: #4e2b24;
+  border-color: rgba(138, 124, 102, 0.2);
   background: rgba(233, 239, 248, 0.88);
 }
 
@@ -1799,12 +1799,12 @@ button:disabled {
 :root[data-theme="light"] .compact-referral-metric {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 242, 250, 0.92)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 38%);
-  border-color: rgba(136, 150, 182, 0.16);
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.08), transparent 38%);
+  border-color: rgba(138, 124, 102, 0.16);
 }
 
 :root[data-theme="light"] .compact-referral-metric strong {
-  color: #132846;
+  color: #462113;
 }
 
 @media (min-width: 520px) {
@@ -1845,7 +1845,7 @@ button:disabled {
   margin-top: 8px;
   font-size: 0.95rem;
   word-break: break-all;
-  color: #c9d7ff;
+  color: #e6d8c2;
 }
 
 
@@ -1867,7 +1867,7 @@ button:disabled {
 }
 
 .text-link {
-  color: #b9c9ff;
+  color: #efe4d2;
 }
 
 
@@ -1888,7 +1888,7 @@ button:disabled {
   display: inline-flex;
   padding: 7px 10px;
   border-radius: 999px;
-  background: linear-gradient(145deg, rgba(243, 201, 105, 0.14), rgba(207, 214, 230, 0.1));
+  background: linear-gradient(145deg, rgba(243, 201, 105, 0.14), rgba(203, 191, 168, 0.1));
   color: #efe4be;
   text-transform: uppercase;
   font-size: 0.74rem;
@@ -1905,19 +1905,19 @@ button:disabled {
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  border: 2px solid rgba(128, 146, 189, 0.38);
-  background: rgba(26, 37, 60, 0.8);
-  box-shadow: 0 0 0 6px rgba(55, 77, 122, 0.12);
+  border: 2px solid rgba(138, 124, 102, 0.38);
+  background: rgba(21, 19, 15, 0.8);
+  box-shadow: 0 0 0 6px rgba(201, 122, 58, 0.12);
 }
 
 .order-timeline-step.active {
-  color: #eff5ff;
+  color: #efe4d2;
 }
 
 .order-timeline-step.active span {
-  border-color: rgba(87, 221, 167, 0.9);
-  background: linear-gradient(135deg, rgba(87, 221, 167, 1), rgba(56, 181, 220, 0.95));
-  box-shadow: 0 0 0 6px rgba(87, 221, 167, 0.18);
+  border-color: rgba(127, 163, 122, 0.9);
+  background: linear-gradient(135deg, rgba(127, 163, 122, 1), rgba(201, 160, 92, 0.95));
+  box-shadow: 0 0 0 6px rgba(127, 163, 122, 0.18);
 }
 
 .order-timeline-step small {
@@ -1935,17 +1935,17 @@ button:disabled {
 .notice {
   padding: 12px 14px;
   border-radius: 16px;
-  background: rgba(79, 124, 255, 0.12);
-  color: #d7e2ff;
-  border: 1px solid rgba(79, 124, 255, 0.18);
+  background: rgba(201, 122, 58, 0.12);
+  color: #f0ddc7;
+  border: 1px solid rgba(201, 122, 58, 0.22);
 }
 
 .error {
   padding: 12px 14px;
   border-radius: 16px;
-  background: rgba(255, 107, 107, 0.12);
-  color: #ffc5c5;
-  border: 1px solid rgba(255, 107, 107, 0.18);
+  background: rgba(181, 101, 79, 0.14);
+  color: #f0c9bd;
+  border: 1px solid rgba(181, 101, 79, 0.26);
 }
 
 
@@ -1957,15 +1957,15 @@ button:disabled {
 
 .story-node strong {
   font-size: 1.18rem;
-  color: #f5f8ff;
+  color: #efe4d2;
 }
 
 .story-node-kes strong {
-  color: #9bf0c8;
+  color: #a9c7a0;
 }
 
 .story-node-world strong {
-  color: #9dccff;
+  color: #e2b877;
 }
 
 
@@ -2016,27 +2016,27 @@ button:disabled {
 
 
 :root[data-theme="light"] .icon-button {
-  color: #142846;
+  color: #462114;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(236, 242, 250, 0.96)),
     rgba(255, 255, 255, 0.84);
-  border-color: rgba(136, 150, 182, 0.24);
+  border-color: rgba(138, 124, 102, 0.24);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 10px 18px rgba(94, 111, 145, 0.12);
+    0 10px 18px rgba(120, 108, 90, 0.12);
 }
 
 
 
 :root[data-theme="light"] .home-balance-card {
   background:
-    linear-gradient(145deg, rgba(28, 43, 66, 0.99), rgba(45, 61, 86, 0.96)),
+    linear-gradient(145deg, rgba(66, 35, 28, 0.99), rgba(86, 50, 45, 0.96)),
     radial-gradient(circle at top left, rgba(243, 201, 105, 0.14), transparent 30%),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.1), transparent 34%);
-  border-color: rgba(183, 191, 206, 0.26);
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.1), transparent 34%);
+  border-color: rgba(196, 186, 166, 0.26);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 18px 34px rgba(94, 111, 145, 0.14);
+    0 18px 34px rgba(120, 108, 90, 0.14);
 }
 
 
@@ -2057,7 +2057,7 @@ button:disabled {
 
 :root[data-theme="light"] .home-balance-main span,
 :root[data-theme="light"] .home-balance-main small {
-  color: rgba(231, 239, 252, 0.82);
+  color: rgba(242, 235, 223, 0.82);
 }
 
 .home-balance-main strong {
@@ -2077,22 +2077,22 @@ button:disabled {
 
 
 .balance-currency-button.active {
-  background: linear-gradient(145deg, rgba(243, 201, 105, 0.28), rgba(154, 231, 255, 0.18));
+  background: linear-gradient(145deg, rgba(243, 201, 105, 0.28), rgba(201, 160, 92, 0.18));
   color: #f9fcff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 :root[data-theme="light"] .balance-currency-toggle {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(183, 191, 206, 0.2);
+  border-color: rgba(196, 186, 166, 0.2);
 }
 
 :root[data-theme="light"] .balance-currency-button {
-  color: rgba(229, 236, 248, 0.82);
+  color: rgba(240, 233, 221, 0.82);
 }
 
 :root[data-theme="light"] .balance-currency-button.active {
-  color: #1a2f4e;
+  color: #4e271a;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(243, 201, 105, 0.35));
 }
 
@@ -2102,7 +2102,7 @@ button:disabled {
   padding: 10px 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(207, 214, 230, 0.1);
+  border: 1px solid rgba(203, 191, 168, 0.1);
 }
 
 
@@ -2113,7 +2113,7 @@ button:disabled {
 
 :root[data-theme="light"] .asset-row {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(207, 214, 230, 0.12);
+  border-color: rgba(203, 191, 168, 0.12);
 }
 
 .asset-row span {
@@ -2136,8 +2136,8 @@ button:disabled {
 :root[data-theme="light"] .rate-quote-card {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 242, 250, 0.92)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 38%);
-  border-color: rgba(136, 150, 182, 0.16);
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.08), transparent 38%);
+  border-color: rgba(138, 124, 102, 0.16);
 }
 
 
@@ -2181,7 +2181,7 @@ button:disabled {
 :root[data-theme="light"] .rate-quote-market strong,
 :root[data-theme="light"] .recent-activity-item strong,
 :root[data-theme="light"] .asset-row strong {
-  color: #132846;
+  color: #462113;
 }
 
 
@@ -2196,7 +2196,7 @@ button:disabled {
 
 .referral-link-row code {
   display: block;
-  color: #dce6ff;
+  color: #efe4d2;
   font-size: 0.83rem;
   line-height: 1.5;
   word-break: break-all;
@@ -2204,17 +2204,17 @@ button:disabled {
 
 :root[data-theme="light"] .referral-link-row {
   background: rgba(255, 255, 255, 0.84);
-  border-color: rgba(136, 150, 182, 0.18);
+  border-color: rgba(138, 124, 102, 0.18);
 }
 
 :root[data-theme="light"] .referral-link-placeholder {
   background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(136, 150, 182, 0.24);
-  color: #586983;
+  border-color: rgba(138, 124, 102, 0.24);
+  color: #8a7c66;
 }
 
 :root[data-theme="light"] .referral-link-row code {
-  color: #183052;
+  color: #522718;
 }
 
 
@@ -2258,14 +2258,14 @@ button:disabled {
 
 
 .activity-status-dot.pending { background: #fbbf24; }
-.activity-status-dot.paid    { background: #7fa4ff; }
+.activity-status-dot.paid    { background: var(--primary); }
 .activity-status-dot.completed { background: var(--success); }
 .activity-status-dot.rejected,
 .activity-status-dot.cancelled { background: var(--error); }
 
 :root[data-theme="light"] .recent-activity-item {
   background: rgba(255, 255, 255, 0.78);
-  border-color: rgba(136, 150, 182, 0.16);
+  border-color: rgba(138, 124, 102, 0.16);
 }
 
 
@@ -2290,14 +2290,14 @@ button:disabled {
 
 
 .history-tab.active {
-  color: #132846;
+  color: #462113;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(243, 201, 105, 0.82));
   border-color: rgba(243, 201, 105, 0.24);
 }
 
 :root:not([data-theme="light"]) .history-tab.active {
   color: #f6faff;
-  background: linear-gradient(145deg, rgba(79, 124, 255, 0.22), rgba(243, 201, 105, 0.22));
+  background: linear-gradient(145deg, rgba(201, 122, 58, 0.22), rgba(243, 201, 105, 0.22));
 }
 
 
@@ -2329,15 +2329,15 @@ button:disabled {
 
 :root[data-theme="light"] .home-balance-hero {
   background:
-    linear-gradient(145deg, rgba(33, 48, 70, 0.96), rgba(46, 62, 86, 0.94)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%),
-    radial-gradient(circle at bottom left, rgba(71, 215, 172, 0.1), transparent 38%);
-  border-color: rgba(61, 104, 163, 0.16);
+    linear-gradient(145deg, rgba(70, 39, 33, 0.96), rgba(86, 51, 46, 0.94)),
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.12), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(150, 180, 140, 0.1), transparent 38%);
+  border-color: rgba(201, 122, 58, 0.16);
 }
 
 :root[data-theme="light"] .home-balance-hero span,
 :root[data-theme="light"] .home-balance-hero small {
-  color: rgba(231, 239, 252, 0.82);
+  color: rgba(242, 235, 223, 0.82);
 }
 
 :root[data-theme="light"] .home-balance-hero strong {
@@ -2363,11 +2363,11 @@ button:disabled {
 
 :root[data-theme="light"] .recent-order-card {
   background: rgba(255, 255, 255, 0.74);
-  border-color: rgba(136, 150, 182, 0.16);
+  border-color: rgba(138, 124, 102, 0.16);
 }
 
 :root[data-theme="light"] .recent-order-card strong {
-  color: #152844;
+  color: #442115;
 }
 
 .recent-order-card strong {
@@ -2387,7 +2387,7 @@ button:disabled {
 :root[data-theme="light"] .trade-desk-shell {
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.99), rgba(242, 247, 253, 0.96)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 36%),
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.08), transparent 36%),
     radial-gradient(circle at bottom left, rgba(243, 201, 105, 0.08), transparent 34%);
 }
 
@@ -2410,12 +2410,12 @@ button:disabled {
   padding: 12px 14px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(207, 214, 230, 0.1);
+  border: 1px solid rgba(203, 191, 168, 0.1);
 }
 
 :root[data-theme="light"] .trade-desk-meta div {
   background: rgba(255, 255, 255, 0.74);
-  border-color: rgba(136, 150, 182, 0.16);
+  border-color: rgba(138, 124, 102, 0.16);
 }
 
 .trade-desk-meta span {
@@ -2431,7 +2431,7 @@ button:disabled {
 }
 
 :root[data-theme="light"] .trade-desk-meta strong {
-  color: #152844;
+  color: #442115;
 }
 
 
@@ -2439,14 +2439,14 @@ button:disabled {
 :root[data-theme="light"] .trade-toggle-premium {
   background:
     linear-gradient(145deg, rgba(232, 238, 248, 0.96), rgba(255, 255, 255, 0.98)),
-    radial-gradient(circle at top right, rgba(79, 124, 255, 0.06), transparent 40%);
-  border-color: rgba(136, 150, 182, 0.18);
+    radial-gradient(circle at top right, rgba(201, 122, 58, 0.06), transparent 40%);
+  border-color: rgba(138, 124, 102, 0.18);
 }
 
 
 
 .trade-toggle-button.active {
-  background: linear-gradient(145deg, rgba(79, 124, 255, 0.18), rgba(71, 215, 172, 0.14));
+  background: linear-gradient(145deg, rgba(201, 122, 58, 0.18), rgba(150, 180, 140, 0.14));
   color: #f7fbff;
 }
 
@@ -2460,18 +2460,18 @@ button:disabled {
 
 .trade-toggle-button-sell.active {
   background:
-    linear-gradient(145deg, rgba(215, 222, 235, 0.28), rgba(114, 128, 156, 0.16)),
+    linear-gradient(145deg, rgba(220, 210, 190, 0.28), rgba(120, 108, 90, 0.16)),
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 42%);
   color: #f7fbff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 :root[data-theme="light"] .trade-toggle-button {
-  color: #4f6180;
+  color: #8a7c66;
 }
 
 :root[data-theme="light"] .trade-toggle-button.active {
-  color: #142847;
+  color: #472114;
 }
 
 :root[data-theme="light"] .trade-toggle-button-buy.active {
@@ -2485,7 +2485,7 @@ button:disabled {
   background:
     linear-gradient(145deg, rgba(223, 229, 240, 0.96), rgba(255, 255, 255, 0.98)),
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.4), transparent 42%);
-  color: #223451;
+  color: #512b22;
 }
 
 
@@ -2570,15 +2570,15 @@ button:disabled {
   gap: 10px;
   padding: 6px 12px;
   border-radius: 16px;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.84), rgba(23, 30, 43, 0.82));
-  border: 1px solid rgba(207, 214, 230, 0.12);
+  background: linear-gradient(145deg, rgba(21, 19, 15, 0.84), rgba(43, 25, 23, 0.82));
+  border: 1px solid rgba(203, 191, 168, 0.12);
 }
 
 :root[data-theme="light"] .trade-dest-strip {
   background:
-    linear-gradient(145deg, rgba(43, 57, 83, 0.96), rgba(71, 84, 111, 0.92)),
+    linear-gradient(145deg, rgba(38, 32, 25, 0.96), rgba(58, 50, 40, 0.92)),
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 40%);
-  border-color: rgba(96, 112, 139, 0.2);
+  border-color: rgba(120, 108, 90, 0.2);
 }
 
 /* The global light-theme "strong/code => dark navy" rule otherwise wins here
@@ -2595,8 +2595,8 @@ button:disabled {
   height: 34px;
   border-radius: 12px;
   font-size: 1rem;
-  background: rgba(79, 124, 255, 0.14);
-  color: rgba(219, 228, 255, 0.92);
+  background: rgba(201, 122, 58, 0.14);
+  color: rgba(238, 231, 219, 0.92);
 }
 
 .tds-text {
@@ -2614,12 +2614,12 @@ button:disabled {
 }
 
 .tds-text span {
-  color: rgba(226, 232, 245, 0.68);
+  color: rgba(238, 231, 219, 0.68);
   font-size: 0.76rem;
 }
 
 .tds-text-input label {
-  color: rgba(226, 232, 245, 0.68);
+  color: rgba(238, 231, 219, 0.68);
   font-size: 0.72rem;
 }
 
@@ -2635,7 +2635,7 @@ button:disabled {
 }
 
 .tds-inline-input::placeholder {
-  color: rgba(226, 232, 245, 0.45);
+  color: rgba(238, 231, 219, 0.45);
   font-weight: 400;
 }
 
@@ -2729,7 +2729,7 @@ button:disabled {
 
 
 :root[data-theme="light"] .quick-action-card {
-  border-color: rgba(136, 150, 182, 0.16);
+  border-color: rgba(138, 124, 102, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
@@ -2738,7 +2738,7 @@ button:disabled {
 }
 
 :root[data-theme="light"] .quick-action-card span {
-  color: rgba(227, 235, 248, 0.9);
+  color: rgba(240, 233, 221, 0.9);
 }
 
 .quick-action-card strong {
@@ -2746,7 +2746,7 @@ button:disabled {
 }
 
 .quick-action-card span {
-  color: #d6def1;
+  color: #e4dccb;
 }
 
 
@@ -2767,21 +2767,21 @@ button:disabled {
 
 :root[data-theme="light"] .quick-action-card-buy {
   background:
-    linear-gradient(155deg, rgba(31, 51, 84, 0.98), rgba(18, 32, 51, 0.94)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 38%);
-  border-color: rgba(79, 124, 255, 0.18);
+    linear-gradient(155deg, rgba(84, 42, 31, 0.98), rgba(51, 26, 18, 0.94)),
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.12), transparent 38%);
+  border-color: rgba(201, 122, 58, 0.18);
 }
 
 :root[data-theme="light"] .quick-action-card-sell {
   background:
-    linear-gradient(155deg, rgba(20, 48, 43, 0.98), rgba(13, 29, 35, 0.94)),
-    radial-gradient(circle at top right, rgba(71, 215, 172, 0.12), transparent 38%);
-  border-color: rgba(71, 215, 172, 0.2);
+    linear-gradient(155deg, rgba(34, 44, 32, 0.98), rgba(35, 24, 13, 0.94)),
+    radial-gradient(circle at top right, rgba(150, 180, 140, 0.12), transparent 38%);
+  border-color: rgba(150, 180, 140, 0.2);
 }
 
 :root[data-theme="light"] .quick-action-card-orders {
   background:
-    linear-gradient(155deg, rgba(58, 45, 20, 0.98), rgba(24, 26, 38, 0.94)),
+    linear-gradient(155deg, rgba(58, 45, 20, 0.98), rgba(38, 21, 24, 0.94)),
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.16), transparent 38%);
   border-color: rgba(243, 201, 105, 0.2);
 }
@@ -2802,7 +2802,7 @@ button:disabled {
 }
 
 .crypto-balance-head small {
-  color: #c9f3ff;
+  color: #efe4d2;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -2824,7 +2824,7 @@ button:disabled {
 }
 
 .crypto-balance-token small {
-  color: #d9e9ff;
+  color: #efe4d2;
 }
 
 
@@ -2859,9 +2859,9 @@ button:disabled {
 
 :root[data-theme="light"] .market-panel {
   background:
-    linear-gradient(160deg, rgba(23, 35, 56, 0.98), rgba(16, 25, 39, 0.95)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 34%);
-  border-color: rgba(111, 126, 154, 0.18);
+    linear-gradient(160deg, rgba(56, 29, 23, 0.98), rgba(39, 20, 16, 0.95)),
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.12), transparent 34%);
+  border-color: rgba(120, 108, 90, 0.18);
 }
 
 
@@ -2870,7 +2870,7 @@ button:disabled {
 
 :root[data-theme="light"] .market-panel .brand-kicker,
 :root[data-theme="light"] .market-panel-note {
-  color: rgba(227, 235, 248, 0.82);
+  color: rgba(240, 233, 221, 0.82);
 }
 
 
@@ -2882,8 +2882,8 @@ button:disabled {
 :root[data-theme="light"] .growth-center-card {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 242, 250, 0.92)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.08), transparent 38%);
-  border-color: rgba(136, 150, 182, 0.16);
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.08), transparent 38%);
+  border-color: rgba(138, 124, 102, 0.16);
 }
 
 .market-token-card span {
@@ -2895,7 +2895,7 @@ button:disabled {
 }
 
 .market-token-card small {
-  color: #dde9ff;
+  color: #efe4d2;
 }
 
 
@@ -2917,16 +2917,16 @@ button:disabled {
 :root[data-theme="light"] .market-token-card strong,
 :root[data-theme="light"] .wallet-asset-card strong,
 :root[data-theme="light"] .growth-center-card strong {
-  color: #132846;
+  color: #462113;
 }
 
 :root[data-theme="light"] .market-token-card small,
 :root[data-theme="light"] .wallet-asset-card small {
-  color: #2f4f7a;
+  color: #8a7c66;
 }
 
 .wallet-asset-card small {
-  color: #cdefff;
+  color: #efe4d2;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -2938,7 +2938,7 @@ button:disabled {
 
 
 .growth-center-card strong {
-  color: #ecf7ff;
+  color: #f4ede0;
   font-size: 1rem;
 }
 
@@ -2948,14 +2948,14 @@ button:disabled {
 
 :root[data-theme="light"] .coming-soon-card {
   background:
-    linear-gradient(145deg, rgba(28, 45, 72, 0.98), rgba(17, 29, 47, 0.94)),
-    radial-gradient(circle at top right, rgba(154, 231, 255, 0.12), transparent 42%);
-  border-color: rgba(111, 126, 154, 0.18);
+    linear-gradient(145deg, rgba(72, 37, 28, 0.98), rgba(47, 24, 17, 0.94)),
+    radial-gradient(circle at top right, rgba(201, 160, 92, 0.12), transparent 42%);
+  border-color: rgba(120, 108, 90, 0.18);
 }
 
 :root[data-theme="light"] .coming-soon-card-gold {
   background:
-    linear-gradient(145deg, rgba(69, 54, 24, 0.98), rgba(24, 26, 40, 0.94)),
+    linear-gradient(145deg, rgba(69, 54, 24, 0.98), rgba(40, 21, 24, 0.94)),
     radial-gradient(circle at top right, rgba(243, 201, 105, 0.16), transparent 42%);
   border-color: rgba(191, 138, 33, 0.18);
 }
@@ -2976,7 +2976,7 @@ button:disabled {
 }
 
 .market-feature-list span {
-  color: #d8def1;
+  color: #e4dccb;
 }
 
 
@@ -3482,10 +3482,10 @@ input[type="number"] {
 
 :root[data-theme="light"] .hero-profile-card {
   background:
-    linear-gradient(145deg, rgba(22, 36, 58, 0.99) 0%, rgba(30, 48, 72, 0.97) 100%),
-    radial-gradient(circle at 10% 10%, rgba(71, 215, 172, 0.16), transparent 38%),
-    radial-gradient(circle at 90% 0%,  rgba(154, 231, 255, 0.14), transparent 40%);
-  border-color: rgba(150, 162, 188, 0.24);
+    linear-gradient(145deg, rgba(58, 30, 22, 0.99) 0%, rgba(72, 39, 30, 0.97) 100%),
+    radial-gradient(circle at 10% 10%, rgba(150, 180, 140, 0.16), transparent 38%),
+    radial-gradient(circle at 90% 0%,  rgba(201, 160, 92, 0.14), transparent 40%);
+  border-color: rgba(164, 152, 130, 0.24);
 }
 
 /* Decorative glow blobs */
@@ -3577,7 +3577,7 @@ input[type="number"] {
 
 
 :root[data-theme="light"] .home-greeting-name {
-  background: linear-gradient(135deg, #0f2248 0%, #264a99 50%, #1270c4 100%);
+  background: linear-gradient(135deg, #3a1e0e 0%, #8a4a20 50%, #c97a3a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -3634,7 +3634,7 @@ input[type="number"] {
 
 .rate-live-dot.live {
   background: var(--success);
-  box-shadow: 0 0 0 4px rgba(54, 211, 153, 0.12);
+  box-shadow: 0 0 0 4px rgba(127, 163, 122, 0.12);
   animation: status-pulse 2.4s ease-in-out infinite;
 }
 
@@ -3686,10 +3686,10 @@ input[type="number"] {
 
 
 
-:root[data-theme="light"] .home-action-buy   { background: linear-gradient(145deg, rgba(60, 42, 8, 0.98), rgba(22, 24, 38, 0.96)); }
-:root[data-theme="light"] .home-action-sell  { background: linear-gradient(145deg, rgba(12, 44, 32, 0.98), rgba(14, 22, 34, 0.96)); }
-:root[data-theme="light"] .home-action-receive { background: linear-gradient(145deg, rgba(18, 34, 66, 0.98), rgba(12, 20, 36, 0.96)); }
-:root[data-theme="light"] .home-action-history { background: linear-gradient(145deg, rgba(28, 30, 50, 0.98), rgba(14, 18, 32, 0.96)); }
+:root[data-theme="light"] .home-action-buy   { background: linear-gradient(145deg, rgba(60, 42, 8, 0.98), rgba(38, 20, 22, 0.96)); }
+:root[data-theme="light"] .home-action-sell  { background: linear-gradient(145deg, rgba(12, 44, 32, 0.98), rgba(34, 18, 14, 0.96)); }
+:root[data-theme="light"] .home-action-receive { background: linear-gradient(145deg, rgba(66, 28, 18, 0.98), rgba(36, 16, 12, 0.96)); }
+:root[data-theme="light"] .home-action-history { background: linear-gradient(145deg, rgba(50, 25, 28, 0.98), rgba(32, 15, 14, 0.96)); }
 
 /* ── Recent activity clickable link ──────────────────── */
 
@@ -3800,9 +3800,9 @@ input[type="number"] {
 
 :root[data-theme="light"] .dash-balance-card {
   background:
-    linear-gradient(145deg, rgba(18, 32, 56, 0.99) 0%, rgba(26, 44, 70, 0.97) 100%),
-    radial-gradient(circle at 0% 0%, rgba(71, 215, 172, 0.2), transparent 42%);
-  border-color: rgba(150, 162, 188, 0.2);
+    linear-gradient(145deg, rgba(56, 26, 18, 0.99) 0%, rgba(70, 36, 26, 0.97) 100%),
+    radial-gradient(circle at 0% 0%, rgba(150, 180, 140, 0.2), transparent 42%);
+  border-color: rgba(164, 152, 130, 0.2);
 }
 
 /* glow blobs */
@@ -4128,15 +4128,15 @@ input[type="number"] {
   gap: 12px;
   padding: 14px 16px;
   border-radius: 16px;
-  background: rgba(54, 211, 153, 0.1);
-  border: 1px solid rgba(54, 211, 153, 0.28);
+  background: rgba(127, 163, 122, 0.1);
+  border: 1px solid rgba(127, 163, 122, 0.28);
 }
 .opb-check {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(54, 211, 153, 0.2);
-  border: 1.5px solid rgba(54, 211, 153, 0.5);
+  background: rgba(127, 163, 122, 0.2);
+  border: 1.5px solid rgba(127, 163, 122, 0.5);
   color: var(--success);
   font-size: 1rem;
   font-weight: 900;
@@ -4150,8 +4150,8 @@ input[type="number"] {
   flex-direction: column;
   gap: 2px;
 }
-.opb-body strong { font-size: 0.9rem; color: #a7f3d0; }
-.opb-body span   { font-size: 0.78rem; color: rgba(167,243,208,0.7); }
+.opb-body strong { font-size: 0.9rem; color: #a9c7a0; }
+.opb-body span   { font-size: 0.78rem; color: rgba(169, 199, 160,0.7); }
 
 
 
@@ -4203,9 +4203,9 @@ input[type="number"] {
 /* ── Payment instructions card polish ─────────────────────────────
    .payment-card keeps a fixed dark-navy background in both themes,
    so these stay fixed light colors instead of var(--text)/var(--muted). */
-.pic-label  { font-size: 0.78rem; color: #c9d7ff; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.pic-label  { font-size: 0.78rem; color: #e6d8c2; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .pic-amount { font-size: 1.6rem; font-weight: 900; color: #ffffff; letter-spacing: -0.02em; display: block; margin: 4px 0 10px; }
-.pic-note   { font-size: 0.82rem; color: #dbe5ff; margin: 10px 0 0; }
+.pic-note   { font-size: 0.82rem; color: #efe4d2; margin: 10px 0 0; }
 
 /* ── Orders page: header panel ─────────────────────────────────── */
 .orders-header-panel { gap: 14px; }
@@ -4257,7 +4257,7 @@ input[type="number"] {
 .orders-tab:hover { background: var(--silver-soft); color: var(--text); }
 .orders-tab.active {
   background: var(--primary-soft);
-  border-color: rgba(79, 124, 255, 0.3);
+  border-color: rgba(201, 122, 58, 0.3);
   color: var(--primary);
 }
 .orders-tab-count {
@@ -4273,7 +4273,7 @@ input[type="number"] {
   padding: 0 5px;
 }
 .orders-tab-count.active {
-  background: rgba(79, 124, 255, 0.2);
+  background: rgba(201, 122, 58, 0.2);
   color: var(--primary);
 }
 
@@ -4338,12 +4338,12 @@ input[type="number"] {
 
 .oc-step.done .oc-step-dot {
   border-color: var(--success);
-  background: rgba(54,211,153,0.15);
+  background: rgba(127, 163, 122,0.15);
 }
 .oc-step.active .oc-step-dot {
   border-color: var(--primary);
   background: var(--primary-soft);
-  box-shadow: 0 0 0 3px rgba(79,124,255,0.15);
+  box-shadow: 0 0 0 3px rgba(201, 122, 58,0.15);
 }
 
 .oc-step small { font-size: 0.65rem; color: var(--muted); text-align: center; font-weight: 600; }
@@ -4377,16 +4377,16 @@ input[type="number"] {
 
 /* ── Light theme overrides ──────────────────────────────────────── */
 :root[data-theme="light"] .order-placed-banner {
-  background: rgba(22, 165, 111, 0.08);
-  border-color: rgba(22, 165, 111, 0.25);
+  background: rgba(76, 122, 74, 0.08);
+  border-color: rgba(76, 122, 74, 0.25);
 }
-:root[data-theme="light"] .opb-body strong { color: #0d7a50; }
-:root[data-theme="light"] .opb-body span   { color: rgba(13,122,80,0.7); }
+:root[data-theme="light"] .opb-body strong { color: #4c7a4a; }
+:root[data-theme="light"] .opb-body span   { color: rgba(76, 122, 74,0.7); }
 :root[data-theme="light"] .opb-preview     { color: var(--success); }
-:root[data-theme="light"] .oss-ring        { background: rgba(22,165,111,0.1); border-color: rgba(22,165,111,0.3); }
-:root[data-theme="light"] .oc-type-buy     { background: rgba(22,165,111,0.08); color: var(--success); border-color: rgba(22,165,111,0.2); }
+:root[data-theme="light"] .oss-ring        { background: rgba(76, 122, 74,0.1); border-color: rgba(76, 122, 74,0.3); }
+:root[data-theme="light"] .oc-type-buy     { background: rgba(76, 122, 74,0.08); color: var(--success); border-color: rgba(76, 122, 74,0.2); }
 :root[data-theme="light"] .oc-type-sell    { background: rgba(191,138,33,0.08); color: var(--gold); border-color: rgba(191,138,33,0.2); }
-:root[data-theme="light"] .orders-total-badge { background: rgba(49,94,251,0.1); color: var(--primary); }
+:root[data-theme="light"] .orders-total-badge { background: rgba(168, 90, 42,0.1); color: var(--primary); }
 
 /* ═══════════════════════════════════════════════════════════════
    PREMIUM HOME — compact, no-scroll layout for World App
@@ -4503,7 +4503,7 @@ input[type="number"] {
 
 /* ── LIGHT THEME ───────────────────────────────────────────────── */
 :root[data-theme="light"] .home-hero {
-  background: linear-gradient(160deg, rgba(18,32,56,0.99) 0%, rgba(26,44,70,0.97) 100%);
+  background: linear-gradient(160deg, rgba(56, 26, 18,0.99) 0%, rgba(70, 36, 26,0.97) 100%);
 }
 :root[data-theme="light"] .hh-balance-num { color: #f0f8ff; }
 
