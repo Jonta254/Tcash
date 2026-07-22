@@ -64,10 +64,34 @@ function isFreshTimestamp(unixSeconds) {
   return ageMs >= 0 && ageMs <= 1000 * 60 * 20;
 }
 
-function buildWorldRates(payload) {
+/**
+ * World's price feed returns fixed-point money objects, not plain numbers:
+ *   "KES": { asset: "KES", amount: "50444262334490", decimals: 12 }
+ * which is 50.444262334490 KES. This was previously read as
+ * Number({...}) === NaN, so World's own feed — the most authoritative
+ * source available to a World mini app, and the only one of the four that
+ * isn't geo-blocked or rate-limited from Vercel — silently never produced
+ * a rate and the endpoint fell through to a 502.
+ */
+export function parseWorldMoney(entry) {
+  const amount = Number(entry?.amount);
+  const decimals = Number(entry?.decimals);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return 0;
+  }
+
+  if (!Number.isFinite(decimals) || decimals < 0 || decimals > 30) {
+    return 0;
+  }
+
+  return amount / 10 ** decimals;
+}
+
+export function buildWorldRates(payload) {
   const worldPrices = payload?.result?.prices || {};
-  const worldWldKes = parsePositiveNumber(worldPrices?.WLD?.KES);
-  const worldUsdcKes = parsePositiveNumber(worldPrices?.USDC?.KES);
+  const worldWldKes = parseWorldMoney(worldPrices?.WLD?.KES);
+  const worldUsdcKes = parseWorldMoney(worldPrices?.USDC?.KES);
 
   if (worldWldKes <= 1 || worldUsdcKes <= 1) {
     return null;
@@ -156,7 +180,12 @@ export default async function handler(req, res) {
           )
         : null;
 
-    const selectedRates = binanceRates || worldRates || freshCoinGeckoRates;
+    // World's feed first: it is quoted directly in KES (no USD cross-rate to
+    // compound error), it is World's own number for a World mini app, and it
+    // is reachable from Vercel — Binance answers 451 from US regions, and
+    // CoinGecko's `worldcoin` entry has been serving a months-stale price
+    // (caught by isFreshTimestamp, which is why it isn't simply trusted).
+    const selectedRates = worldRates || binanceRates || freshCoinGeckoRates;
 
     if (!selectedRates) {
       sendJson(res, 502, {
@@ -172,10 +201,10 @@ export default async function handler(req, res) {
         WLD: selectedRates.WLD,
         USDC: selectedRates.USDC,
       },
-      source: binanceRates
-        ? "binance-wld-usdt-plus-usd-kes"
-        : worldRates
-          ? "world-public-prices"
+      source: worldRates
+        ? "world-public-prices"
+        : binanceRates
+          ? "binance-wld-usdt-plus-usd-kes"
           : "coingecko-market-fallback",
       fetchedAt: new Date().toISOString(),
     });
