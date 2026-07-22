@@ -182,12 +182,13 @@ export default function DashboardPage() {
     return "0";
   }, [user?.walletAddress, walletLoading]);
 
-  // One row per asset: what you hold, what one coin is worth right now, and
-  // what your holding is worth in KES. The three used to be spread across a
-  // three-column "bridge" (balance | unlabelled dot | the word KES) where the
-  // rate read as if it were the holding's value, and "Settles as KES" only
-  // repeated what the hero figure above already says. These per-asset values
-  // sum to that hero figure, so the two now visibly agree.
+  // Two labelled columns, one row per asset: "Holdings" on the left (what you
+  // own, and what it's worth), "Live rates" on the right (what one coin costs
+  // right now). The old three-column "bridge" put the rate directly under the
+  // balance with no separation, so "@ KES 50.29" read as the holding's value,
+  // and its right column ("Settles as KES") only repeated the hero figure's
+  // own "Portfolio in KES". Splitting your-money from market-price by column
+  // is what makes the two unmistakable. The ≈ values sum to the hero figure.
   const holdings = useMemo(
     () =>
       [
@@ -200,8 +201,9 @@ export default function DashboardPage() {
         return {
           symbol,
           amountLabel: `${assetAmt(entry)} ${symbol}`,
-          rateLabel: hasRate ? `${formatKES(kes)} each` : "Rate unavailable",
-          valueLabel: hasRate && entry ? formatKES(balance * kes) : "—",
+          valueLabel: hasRate && entry ? `≈ ${formatKES(balance * kes)}` : "≈ —",
+          rateLabel: hasRate ? formatKES(kes) : "—",
+          perLabel: `per ${symbol}`,
         };
       }),
     [assetAmt, mktRates, walletBoard.usdc, walletBoard.wld],
@@ -267,11 +269,11 @@ export default function DashboardPage() {
           <div className="tdr-hold-row" key={holding.symbol}>
             <div className="tdr-hold-cell">
               <span className="tdr-hold-amt">{holding.amountLabel}</span>
-              <span className="tdr-hold-rate">{holding.rateLabel}</span>
+              <span className="tdr-hold-sub">{holding.valueLabel}</span>
             </div>
             <div className="tdr-hold-cell tdr-hold-cell-end">
-              <span className="tdr-hold-value">{holding.valueLabel}</span>
-              <span className="tdr-hold-cap">Value</span>
+              <span className="tdr-hold-rate">{holding.rateLabel}</span>
+              <span className="tdr-hold-sub">{holding.perLabel}</span>
             </div>
           </div>
         ))}
@@ -279,20 +281,36 @@ export default function DashboardPage() {
 
       {/* ── the one thing you came here to do ────────────────────── */}
       <div>
-        <nav className="tdr-trade-split tdr-trade-split-cta" aria-label="Trade">
-          <Link to="/trade?tab=buy" className="tdr-trade-half">
-            <span className="tdr-trade-half-label">
-              <Icon name="arrowUp" size={14} strokeWidth={2.2} />
-              Buy
+        {/* Two full-width paths rather than two words in a thin bordered
+            strip: each states the direction money moves, so a first-time
+            user picks the right one without having to infer what "Pay KES"
+            vs "Receive KES" implies. Copper for cash-out-of-pocket (buy),
+            sage for money-coming-back (sell) — the same semantic pair the
+            rest of the app already uses for spend vs. settle. */}
+        <nav className="tdr-act" aria-label="Trade">
+          <Link to="/trade?tab=buy" className="tdr-act-card tdr-act-buy">
+            <span className="tdr-act-icon">
+              <Icon name="arrowUp" size={17} strokeWidth={2.2} />
             </span>
-            <span className="tdr-trade-half-sub">Pay KES</span>
+            <span className="tdr-act-text">
+              <strong>Buy crypto</strong>
+              <span>Pay with M-Pesa, receive WLD or USDC</span>
+            </span>
+            <span className="tdr-act-go" aria-hidden="true">
+              <Icon name="arrowRight" size={15} strokeWidth={2.2} />
+            </span>
           </Link>
-          <Link to="/trade?tab=sell" className="tdr-trade-half">
-            <span className="tdr-trade-half-label">
-              <Icon name="arrowDown" size={14} strokeWidth={2.2} />
-              Sell
+          <Link to="/trade?tab=sell" className="tdr-act-card tdr-act-sell">
+            <span className="tdr-act-icon">
+              <Icon name="arrowDown" size={17} strokeWidth={2.2} />
             </span>
-            <span className="tdr-trade-half-sub">Receive KES</span>
+            <span className="tdr-act-text">
+              <strong>Sell crypto</strong>
+              <span>Send WLD or USDC, cash out to M-Pesa</span>
+            </span>
+            <span className="tdr-act-go" aria-hidden="true">
+              <Icon name="arrowRight" size={15} strokeWidth={2.2} />
+            </span>
           </Link>
         </nav>
         <div className="tdr-home-util-row" style={{ marginTop: 14 }}>

@@ -4722,24 +4722,19 @@ input[type="number"] {
   color: var(--text);
 }
 
-.tdr-hold-rate,
-.tdr-hold-cap {
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-.tdr-hold-cap {
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.tdr-hold-value {
+/* Right column is the market price, so it gets the same ledger treatment as
+   the balance opposite it — the two columns read as a pair (what you hold /
+   what one coin costs) rather than one being subordinate to the other. */
+.tdr-hold-rate {
   font-family: var(--font-ledger);
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+}
+
+.tdr-hold-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 .tdr-bridge-label {
@@ -4807,12 +4802,81 @@ input[type="number"] {
    plain text color, no accent, no icon. Scoped to this one nav so
    Trade's toggle semantics (copper = which side is active) stay exactly
    as they were. */
-.tdr-trade-split-cta .tdr-trade-half-label {
+/* ── Home's Buy / Sell paths ────────────────────────────────────
+   Deliberately not the .tdr-trade-split control the Trade page uses for
+   its toggle: on Home these are the primary destinations, not a segmented
+   switch, so they get full-width rows with an explicit description of
+   which way money moves. */
+.tdr-act {
+  display: grid;
+  gap: 10px;
+}
+
+.tdr-act-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 66px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  transition: border-color var(--t-fast) var(--ease-tender),
+    background var(--t-fast) var(--ease-tender);
+}
+
+.tdr-act-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+.tdr-act-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tdr-act-text strong {
+  font-size: 0.97rem;
+  color: var(--text);
+}
+
+.tdr-act-text span {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.tdr-act-go {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+/* Buy spends money (copper, the app's spend accent); sell brings it back
+   (sage, the same green used for settled/completed everywhere else). */
+.tdr-act-buy .tdr-act-icon {
+  background: var(--primary-soft);
   color: var(--primary);
 }
 
-.tdr-trade-split-cta .tdr-trade-half-label svg {
-  flex-shrink: 0;
+.tdr-act-buy:active {
+  background: var(--primary-soft);
+  border-color: rgba(201, 122, 58, 0.32);
+}
+
+.tdr-act-sell .tdr-act-icon {
+  background: rgba(127, 163, 122, 0.16);
+  color: var(--success);
+}
+
+.tdr-act-sell:active {
+  background: rgba(127, 163, 122, 0.1);
+  border-color: rgba(127, 163, 122, 0.32);
 }
 
 .tdr-trade-half-sub {
