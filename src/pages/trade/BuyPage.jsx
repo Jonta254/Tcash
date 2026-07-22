@@ -6,6 +6,7 @@ import HoldToConfirm from "../../components/interaction/HoldToConfirm";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
+import { useHighValueVerification } from "../../hooks/useHighValueVerification";
 import { formatCryptoAmount, formatKES, getCurrentUser, haptic, tenderHaptics } from "../../services";
 
 function BuyPage() {
@@ -32,16 +33,28 @@ function BuyPage() {
     supportedAssets,
   } = useOrderFlow("buy");
 
+  const {
+    ensureVerified,
+    starting: verifyStarting,
+    error: verifyError,
+    widget: worldIdWidget,
+  } = useHighValueVerification({ wallet: currentUser?.walletAddress || walletAddress });
+
   const handleCreateBuyOrder = async () => {
-    if (orderCreating) return;
+    if (orderCreating || verifyStarting) return;
     haptic("medium");
-    setOrderCreating(true);
-    const order = await placeOrder();
-    if (order) {
-      tenderHaptics.commit();
-      setOrderJustPlaced(true);
-    }
-    setOrderCreating(false);
+    // High-value orders must clear a one-time World ID check before the
+    // payment step — ensureVerified runs the order creation only once the
+    // wallet is verified (or immediately when no check is needed).
+    await ensureVerified(kesAmount, async () => {
+      setOrderCreating(true);
+      const order = await placeOrder();
+      if (order) {
+        tenderHaptics.commit();
+        setOrderJustPlaced(true);
+      }
+      setOrderCreating(false);
+    });
   };
 
   const resetFlow = () => {
@@ -72,6 +85,8 @@ function BuyPage() {
       <div className="content-grid">
         <section className="panel stack task-panel trade-panel-compact">
           {error && <div className="error">{error}</div>}
+          {verifyError && <div className="error">{verifyError}</div>}
+          {worldIdWidget}
 
           {(currentUser?.walletAddress || currentUser?.username) && (
             <div className="trade-dest-strip">
@@ -136,9 +151,9 @@ function BuyPage() {
             type="button"
             className="button"
             onClick={handleCreateBuyOrder}
-            disabled={orderCreating || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
+            disabled={orderCreating || verifyStarting || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
           >
-            {orderCreating ? "Placing order…" : "Confirm buy order"}
+            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Confirm buy order"}
           </button>
         </section>
       </div>

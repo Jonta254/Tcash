@@ -6,6 +6,11 @@ import { isTrustedOrigin } from "./_lib/csrf.js";
 import { logAdminAction, logEvent, logSecurityEvent } from "./_lib/log.js";
 import { getRequestAdminWallet, requestIsRecognizedAdmin } from "./_lib/adminAuth.js";
 import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./_lib/userSession.js";
+import {
+  HIGH_VALUE_KES_THRESHOLD,
+  isWalletVerified,
+  worldIdVerificationAvailable,
+} from "./_lib/worldId.js";
 
 // The two status transitions that finalize a trade — completed releases
 // crypto/KES, rejected closes it out. Both are operator-only in the
@@ -247,9 +252,9 @@ function buildOrderEmail(order) {
   return {
     subject: `Tcash ${order.type?.toUpperCase()} order - ${order.cryptoAmount} ${order.asset}`,
     html: `
-      <div style="font-family:Arial,sans-serif;background:#0b0f1a;color:#f5f7ff;padding:24px">
-        <div style="max-width:620px;margin:0 auto;background:#111827;border:1px solid #273348;border-radius:18px;padding:22px">
-          <p style="color:#9fb1d1;margin:0 0 8px">Tcash admin notification</p>
+      <div style="font-family:Arial,sans-serif;background:#15130f;color:#f6f1e7;padding:24px">
+        <div style="max-width:620px;margin:0 auto;background:#1e1b15;border:1px solid #3a3228;border-radius:18px;padding:22px">
+          <p style="color:#a79c87;margin:0 0 8px">Tcash admin notification</p>
           <h1 style="font-size:22px;line-height:1.25;margin:0 0 18px">
             ${escapeHtml(isSell ? "New sell order needs M-Pesa payout" : "New buy order needs confirmation")}
           </h1>
@@ -258,14 +263,14 @@ function buildOrderEmail(order) {
               .map(
                 ([label, value]) => `
                   <tr>
-                    <td style="padding:10px;border-top:1px solid #273348;color:#9fb1d1">${escapeHtml(label)}</td>
-                    <td style="padding:10px;border-top:1px solid #273348;text-align:right;color:#ffffff">${escapeHtml(value)}</td>
+                    <td style="padding:10px;border-top:1px solid #3a3228;color:#a79c87">${escapeHtml(label)}</td>
+                    <td style="padding:10px;border-top:1px solid #3a3228;text-align:right;color:#f6f1e7">${escapeHtml(value)}</td>
                   </tr>
                 `,
               )
               .join("")}
           </table>
-          <p style="color:#9fb1d1;margin:18px 0 0">Open Tcash admin to pay and mark this order completed.</p>
+          <p style="color:#a79c87;margin:18px 0 0">Open Tcash admin to pay and mark this order completed.</p>
         </div>
       </div>
     `,
@@ -593,6 +598,38 @@ export default async function handler(req, res) {
         });
         sendJson(res, 403, { ok: false, error: "This order does not belong to your wallet." });
         return;
+      }
+
+      // World ID gate for high-value orders. Only enforced once the feature
+      // is actually configured (signing key + store present) — before that
+      // this is a no-op and orders flow exactly as before. Verification is
+      // one-time per wallet: a wallet that has ever passed proof-of-human
+      // for this action clears the gate for all subsequent high-value
+      // orders. Admin writes never reach here (the desk manages every
+      // user's orders by design).
+      if (worldIdVerificationAvailable()) {
+        const hasHighValueOrder = orders.some(
+          (order) => Number(order.kesAmount) >= HIGH_VALUE_KES_THRESHOLD,
+        );
+
+        if (hasHighValueOrder) {
+          const verified = await isWalletVerified(callerWallet).catch(() => false);
+
+          if (!verified) {
+            logSecurityEvent("orders.high_value_unverified", {
+              callerWallet,
+              orderIds: orders
+                .filter((order) => Number(order.kesAmount) >= HIGH_VALUE_KES_THRESHOLD)
+                .map((order) => order.id),
+            });
+            sendJson(res, 403, {
+              ok: false,
+              requiresWorldId: true,
+              error: "Verify with World ID to place high-value orders.",
+            });
+            return;
+          }
+        }
       }
     }
 

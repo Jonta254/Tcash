@@ -133,6 +133,51 @@ export async function syncAdminOrders(orders, options = {}) {
   return readJsonResponse(response);
 }
 
+// World ID high-value verification. Status tells the client whether the
+// feature is switched on and whether this wallet already verified (so a
+// returning user is never asked twice). Sign mints a fresh RP-signed
+// context for IDKit; submit forwards the resulting proof for the server to
+// verify with World and record. The real gate lives in api/orders.js — these
+// calls only drive the pre-order UX.
+export async function fetchWorldIdStatus() {
+  const response = await fetchWithTimeout("/api/world-id-status", {
+    cache: "no-store",
+    credentials: "include",
+  }).catch(() => {
+    throw new Error("Tcash could not check World ID verification status.");
+  });
+
+  return readJsonResponse(response);
+}
+
+export async function requestWorldIdSignedContext() {
+  const response = await fetchWithTimeout("/api/world-id-sign", {
+    method: "POST",
+    cache: "no-store",
+    credentials: "include",
+  }).catch(() => {
+    throw new Error("Tcash could not start World ID verification. Please try again.");
+  });
+
+  return readJsonResponse(response);
+}
+
+export async function submitWorldIdProof(result) {
+  const response = await fetchWithTimeout("/api/world-id-verify", {
+    method: "POST",
+    cache: "no-store",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ result }),
+  }).catch(() => {
+    throw new Error("Tcash could not submit your World ID proof. Please try again.");
+  });
+
+  return readJsonResponse(response);
+}
+
 export async function fetchSharedSettings() {
   const response = await fetchWithTimeout("/api/settings", {
     cache: "no-store",

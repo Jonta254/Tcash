@@ -6,6 +6,7 @@ import HoldToConfirm from "../../components/interaction/HoldToConfirm";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
+import { useHighValueVerification } from "../../hooks/useHighValueVerification";
 import {
   APP_CONFIG,
   canUseWorldPay,
@@ -51,6 +52,13 @@ function SellPage() {
     placeOrder, markAsPaid,
     supportedAssets,
   } = useOrderFlow("sell");
+
+  const {
+    ensureVerified,
+    starting: verifyStarting,
+    error: verifyError,
+    widget: worldIdWidget,
+  } = useHighValueVerification({ wallet: currentUser?.walletAddress });
 
   const canSendInsideMiniApp =
     worldApp.isInstalled &&
@@ -118,7 +126,7 @@ function SellPage() {
   };
 
   const handleCreateSellOrder = async () => {
-    if (orderCreating) return;
+    if (orderCreating || verifyStarting) return;
 
     // Real balance check, not just the min-amount check useOrderFlow does —
     // this is the one place a user can request more than they actually
@@ -134,13 +142,17 @@ function SellPage() {
     }
 
     haptic("medium");
-    setOrderCreating(true);
-    const order = await placeOrder();
-    if (order) {
-      tenderHaptics.commit();
-      setOrderJustPlaced(true);
-    }
-    setOrderCreating(false);
+    // High-value sells clear the same one-time World ID check before the
+    // send step, so a user is never asked to verify after moving crypto.
+    await ensureVerified(kesAmount, async () => {
+      setOrderCreating(true);
+      const order = await placeOrder();
+      if (order) {
+        tenderHaptics.commit();
+        setOrderJustPlaced(true);
+      }
+      setOrderCreating(false);
+    });
   };
 
   const resetFlow = () => {
@@ -155,6 +167,8 @@ function SellPage() {
       <div className="content-grid">
         <section className="panel stack task-panel trade-panel-compact">
           {error && <div className="error">{error}</div>}
+          {verifyError && <div className="error">{verifyError}</div>}
+          {worldIdWidget}
 
           <div className="trade-dest-strip trade-dest-strip-input">
             <span className="tds-icon" aria-hidden="true"><Icon name="phone" size={16} strokeWidth={2} /></span>
@@ -231,9 +245,9 @@ function SellPage() {
             type="button"
             className="button"
             onClick={handleCreateSellOrder}
-            disabled={orderCreating || !cryptoAmount || grossKesAmount < sellMinKesEquivalent}
+            disabled={orderCreating || verifyStarting || !cryptoAmount || grossKesAmount < sellMinKesEquivalent}
           >
-            {orderCreating ? "Placing order…" : "Confirm sell order"}
+            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Confirm sell order"}
           </button>
         </section>
       </div>

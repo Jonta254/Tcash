@@ -36,7 +36,15 @@ export const APP_CONFIG = {
     buyKesMin: 600,
     buyKesMax: 20000,
     sellMinUsdcEquivalent: 1,
+    // KES value at or above which an order needs a one-time World ID
+    // proof-of-human. UX hint only — api/orders.js holds the real gate
+    // (see api/_lib/worldId.js HIGH_VALUE_KES_THRESHOLD); keep the two in
+    // sync if this changes.
+    highValueKesThreshold: 10000,
   },
+  // The World ID action registered on the Developer Portal for the
+  // high-value gate. Used to build the IDKit request client-side.
+  worldIdHighValueAction: "high-value-order-check",
   defaultSettings: {
     ratesKes: {
       WLD: 120,
