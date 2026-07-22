@@ -4644,27 +4644,103 @@ input[type="number"] {
 .tdr-home-balance-meta a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
 
 /* ── the Bridge strip (signature graphic, echoes Login) ──────────── */
-.tdr-bridge {
-  display: grid;
-  /* not an even 1fr/1fr split — the crypto side carries two full rows
-     (amount + symbol + rate, twice); the KES side is a label and one
-     word. Equal columns left the KES side visibly emptier than its
-     content needed; this gives space in proportion to what's actually
-     there instead of forcing balance onto unequal content. */
-  grid-template-columns: 1.15fr auto 0.85fr;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 0;
+/* ── Holdings ───────────────────────────────────────────────────
+   Replaces the old three-column "bridge" (balances | unlabelled dot |
+   the word KES). That layout put the live unit price directly under the
+   balance with nothing to separate them, so "@ KES 50.29" read as if it
+   were the holding's worth, and the whole right-hand column ("Settles
+   as KES") only repeated the hero figure's own "Portfolio in KES".
+   Now each asset gets one row: what you hold and what one coin costs on
+   the left, what that holding is worth on the right — and those values
+   sum to the hero figure, so the two agree on screen. */
+.tdr-hold {
+  padding: 14px 0 6px;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
 
-.tdr-bridge-col {
-  display: grid;
-  gap: 6px;
+.tdr-hold-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.tdr-bridge-col-right { justify-items: end; text-align: right; }
+/* Names the live signal instead of relying on a bare pulsing dot, and is
+   itself the rates refresh. Padding-only sizing keeps the 44px tap target
+   without widening the row (the mistake that shrank this control before). */
+.tdr-hold-live {
+  appearance: none;
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 0 0 10px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tdr-hold-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: tdr-bridge-pulse 2.6s var(--ease-tender) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tdr-hold-dot { animation: none; }
+}
+
+.tdr-hold-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+}
+
+.tdr-hold-row + .tdr-hold-row { border-top: 1px solid var(--border); }
+
+.tdr-hold-cell {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tdr-hold-cell-end { justify-items: end; text-align: right; }
+
+.tdr-hold-amt {
+  font-family: var(--font-ledger);
+  font-size: 1.12rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.tdr-hold-rate,
+.tdr-hold-cap {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.tdr-hold-cap {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tdr-hold-value {
+  font-family: var(--font-ledger);
+  font-size: 1.02rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
 
 .tdr-bridge-label {
   font-size: 0.68rem;
@@ -4672,90 +4748,6 @@ input[type="number"] {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
-}
-
-.tdr-bridge-asset-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.tdr-bridge-col-right .tdr-bridge-asset-row { flex-direction: row-reverse; }
-
-.tdr-bridge-asset-amt {
-  font-family: var(--font-ledger);
-  font-size: 1.06rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
-.tdr-bridge-asset-sym {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.tdr-bridge-asset-rate {
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-/* The grid's actual center-column item — the button plus its caption,
-   so the caption can restore the missing "this is live, not static"
-   signal without ever touching the button's own box model (that's
-   what shrank the tap target last time this text existed). */
-.tdr-bridge-core-wrap {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-}
-
-.tdr-bridge-core {
-  display: grid;
-  justify-items: center;
-  align-items: center;
-  /* This is a <button>, and it never had its native chrome reset —
-     confirmed from a real device screenshot, it was rendering as an
-     opaque gray box with an outset 3D border (the browser's default
-     button appearance) sitting in the middle of an otherwise fully
-     custom "Bridge" section, not the near-invisible hairline+dot it
-     was designed to be. Every other custom button in this file resets
-     this implicitly by declaring its own background/border; this one
-     declared neither. */
-  appearance: none;
-  background: none;
-  border: none;
-  padding: 0;
-  /* The visible mark (line + dot) alone is only a few px tall —
-     min-height/min-width give the button real invisible padding so
-     the tap target still clears the 44px WCAG minimum regardless of
-     what does or doesn't render beneath it. */
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.tdr-bridge-core .tdr-bridge-line { width: 34px; }
-
-/* A pulsing dot with no text is only legible as "live" to someone who
-   already knows the convention — invisible in a static screenshot,
-   and something a first-time user has no way to learn on their own.
-   This names it once, outside the button's own hit area, without
-   touching the amount/rate pairing's typography (see DESIGN_SYSTEM.md
-   "Exchange rate typography" — that rule is about not labeling the
-   number pairing itself, not about leaving the refresh control
-   unlabeled). */
-.tdr-bridge-core-caption {
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.tdr-bridge-kes-figure {
-  font-family: var(--font-ledger);
-  font-size: 1.06rem;
-  color: var(--text);
 }
 
 /* ── Buy / Sell split action ───────────────────────────────────── */

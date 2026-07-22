@@ -182,6 +182,31 @@ export default function DashboardPage() {
     return "0";
   }, [user?.walletAddress, walletLoading]);
 
+  // One row per asset: what you hold, what one coin is worth right now, and
+  // what your holding is worth in KES. The three used to be spread across a
+  // three-column "bridge" (balance | unlabelled dot | the word KES) where the
+  // rate read as if it were the holding's value, and "Settles as KES" only
+  // repeated what the hero figure above already says. These per-asset values
+  // sum to that hero figure, so the two now visibly agree.
+  const holdings = useMemo(
+    () =>
+      [
+        { symbol: "WLD", entry: walletBoard.wld, kes: mktRates[0].kes },
+        { symbol: "USDC", entry: walletBoard.usdc, kes: mktRates[1].kes },
+      ].map(({ symbol, entry, kes }) => {
+        const hasRate = kes > 1;
+        const balance = Number(entry?.formattedBalance || 0);
+
+        return {
+          symbol,
+          amountLabel: `${assetAmt(entry)} ${symbol}`,
+          rateLabel: hasRate ? `${formatKES(kes)} each` : "Rate unavailable",
+          valueLabel: hasRate && entry ? formatKES(balance * kes) : "—",
+        };
+      }),
+    [assetAmt, mktRates, walletBoard.usdc, walletBoard.wld],
+  );
+
   const greeting    = getGreeting();
   const displayName = user?.username ? `@${user.username}` : user?.fullName || null;
   const hasWorld    = Boolean(user?.username);
@@ -220,34 +245,37 @@ export default function DashboardPage() {
         {walletError && !hasBalances && <p className="tdr-login-error" style={{ marginTop: 6 }}>{walletError}</p>}
       </div>
 
-      {/* ── the Bridge — what this app actually does, drawn once ─ */}
-      <div className="tdr-bridge">
-        <div className="tdr-bridge-col">
-          <span className="tdr-bridge-label">Crypto</span>
-          <div className="tdr-bridge-asset-row">
-            <span className="tdr-bridge-asset-amt">{assetAmt(walletBoard.wld)}</span>
-            <span className="tdr-bridge-asset-sym">WLD</span>
-          </div>
-          {mktRates[0].kes > 1 && <span className="tdr-bridge-asset-rate">@ {formatKES(mktRates[0].kes)}</span>}
-          <div className="tdr-bridge-asset-row">
-            <span className="tdr-bridge-asset-amt">{assetAmt(walletBoard.usdc)}</span>
-            <span className="tdr-bridge-asset-sym">USDC</span>
-          </div>
-          {mktRates[1].kes > 1 && <span className="tdr-bridge-asset-rate">@ {formatKES(mktRates[1].kes)}</span>}
-        </div>
-
-        <div className="tdr-bridge-core-wrap">
-          <button type="button" className="tdr-bridge-core" onClick={handleRefreshRates} aria-label="Refresh rates">
-            <span className="tdr-bridge-line"><span className={mktRefreshing ? "" : "tdr-bridge-dot"} /></span>
+      {/* ── holdings: balance, live unit price, and KES value per asset ── */}
+      <section className="tdr-hold" aria-label="Your holdings">
+        <div className="tdr-hold-head">
+          <span className="tdr-bridge-label">Holdings</span>
+          <button
+            type="button"
+            className="tdr-hold-live"
+            onClick={handleRefreshRates}
+            aria-label="Refresh live rates"
+          >
+            <span className={mktRefreshing ? "" : "tdr-hold-dot"} />
+            {mktRefreshing ? "Updating" : "Live rates"}
+            <span className={mktRefreshing ? "spin" : ""}>
+              <Icon name="refresh" size={12} strokeWidth={2} />
+            </span>
           </button>
-          <span className="tdr-bridge-core-caption">Live rate</span>
         </div>
 
-        <div className="tdr-bridge-col tdr-bridge-col-right">
-          <span className="tdr-bridge-label">Settles as</span>
-          <span className="tdr-bridge-kes-figure">KES</span>
-        </div>
-      </div>
+        {holdings.map((holding) => (
+          <div className="tdr-hold-row" key={holding.symbol}>
+            <div className="tdr-hold-cell">
+              <span className="tdr-hold-amt">{holding.amountLabel}</span>
+              <span className="tdr-hold-rate">{holding.rateLabel}</span>
+            </div>
+            <div className="tdr-hold-cell tdr-hold-cell-end">
+              <span className="tdr-hold-value">{holding.valueLabel}</span>
+              <span className="tdr-hold-cap">Value</span>
+            </div>
+          </div>
+        ))}
+      </section>
 
       {/* ── the one thing you came here to do ────────────────────── */}
       <div>

@@ -14,6 +14,7 @@ import {
   getAllOrders,
   markAdminAlertRead,
   getFeePerCoin,
+  haptic,
   openOrderSupportEmail,
   syncOrderToAdminQueue,
   tenderHaptics,
@@ -33,6 +34,12 @@ function AdminPage() {
       return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
     }),
   );
+  // The console used to render every section — alerts, rates, mini-app
+  // settings, payout queue, claims and the full order list — in one column,
+  // which on a phone is five-plus screens of scrolling to reach the orders
+  // an operator actually opens this page for. One section at a time, orders
+  // first, using the same pill tabs as the Orders page.
+  const [adminTab, setAdminTab] = useState("orders");
   const [adminAlerts, setAdminAlerts] = useState(getAdminAlerts());
   const [referralClaims, setReferralClaims] = useState(getAllReferralClaims());
   const [feeInputs, setFeeInputs] = useState(() => ({
@@ -68,6 +75,14 @@ function AdminPage() {
     () => adminAlerts.filter((alert) => !alert.read),
     [adminAlerts],
   );
+  // Surfaced as tab badges so a collapsed section can still say it needs
+  // attention — the whole point of hiding sections is that nothing hidden
+  // goes unnoticed.
+  const pendingOrderCount = useMemo(
+    () => orders.filter((order) => order.status === "pending" || order.status === "paid").length,
+    [orders],
+  );
+  const pendingClaimCount = referralQueue.length;
 
   useEffect(() => {
     // Nothing here runs until the server has confirmed this session is
@@ -320,8 +335,8 @@ function AdminPage() {
             </div>
             <div>
               <span>Pending</span>
-              <strong style={{ color: orders.filter(o => o.status === "pending" || o.status === "paid").length ? "var(--warning)" : "inherit" }}>
-                {orders.filter(o => o.status === "pending" || o.status === "paid").length}
+              <strong style={{ color: pendingOrderCount ? "var(--warning)" : "inherit" }}>
+                {pendingOrderCount}
               </strong>
             </div>
             <div>
@@ -332,9 +347,34 @@ function AdminPage() {
         </div>
         {orderQueueError ? <div className="error">{orderQueueError}</div> : null}
         {orderQueueMessage ? <div className="notice">{orderQueueMessage}</div> : null}
+
+        <div className="orders-tab-row" role="tablist" aria-label="Admin sections">
+          {[
+            { id: "orders", label: "Orders", count: pendingOrderCount },
+            { id: "alerts", label: "Alerts", count: unreadAlerts.length },
+            { id: "claims", label: "Claims", count: pendingClaimCount },
+            { id: "settings", label: "Settings", count: 0 },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={adminTab === tab.id}
+              className={`orders-tab${adminTab === tab.id ? " active" : ""}`}
+              onClick={() => { setAdminTab(tab.id); haptic("light"); }}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span className={`orders-tab-count${adminTab === tab.id ? " active" : ""}`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </section>
 
-      {adminAlerts.length ? (
+      {adminTab === "alerts" && adminAlerts.length ? (
         <section className="panel stack task-panel">
           <div className="split">
             <div>
@@ -373,6 +413,8 @@ function AdminPage() {
         </section>
       ) : null}
 
+      {adminTab === "settings" && (
+        <>
       <section className="panel stack task-panel">
         <div className="split">
           <div>
@@ -536,8 +578,10 @@ function AdminPage() {
           {settingsSaving ? "Saving…" : "Save Mini App Settings"}
         </button>
       </section>
+        </>
+      )}
 
-      {payoutQueue.length ? (
+      {adminTab === "orders" && payoutQueue.length ? (
         <section className="panel stack task-panel">
           <div>
             <span className="brand-kicker">Payout Queue</span>
@@ -560,7 +604,7 @@ function AdminPage() {
         </section>
       ) : null}
 
-      {referralQueue.length ? (
+      {adminTab === "claims" && referralQueue.length ? (
         <section className="panel stack task-panel">
           <div>
             <span className="brand-kicker">Referral claims</span>
@@ -609,7 +653,7 @@ function AdminPage() {
         </section>
       ) : null}
 
-      {orders.length ? (
+      {adminTab === "orders" && (orders.length ? (
         <section className="order-grid">
           {orders.map((order) => (
             <OrderCard key={order.id} order={order}>
@@ -657,7 +701,21 @@ function AdminPage() {
         <section className="panel empty-state">
           <h3>No orders to review</h3>
         </section>
-      )}
+      ))}
+
+      {adminTab === "alerts" && !adminAlerts.length ? (
+        <section className="panel empty-state">
+          <h3>No alerts yet</h3>
+          <p className="muted">Order and referral notifications will appear here.</p>
+        </section>
+      ) : null}
+
+      {adminTab === "claims" && !referralQueue.length ? (
+        <section className="panel empty-state">
+          <h3>No referral claims waiting</h3>
+          <p className="muted">Claims ready for M-Pesa payout will appear here.</p>
+        </section>
+      ) : null}
     </div>
   );
 }
