@@ -31,10 +31,14 @@ function persistAdminAlert(alert) {
 }
 
 async function postJson(url, body) {
-  const notificationKey =
-    url === "/api/send-world-notification"
-      ? `${body.walletAddress}:${body.title}:${body.miniAppPath || "/orders"}`
-      : "";
+  // Dedupe applies only to World push notifications. Identified by payload
+  // shape rather than URL: pushes and admin emails now share /api/notify-admin
+  // (merged to stay under Vercel's Hobby 12-function limit), so a URL check
+  // would silently match everything or nothing.
+  const isWorldPush = Boolean(body?.walletAddress && body?.title && body?.message);
+  const notificationKey = isWorldPush
+    ? `${body.walletAddress}:${body.title}:${body.miniAppPath || "/orders"}`
+    : "";
 
   if (notificationKey) {
     const lastSentAt = sentNotificationKeys.get(notificationKey) || 0;
@@ -74,7 +78,7 @@ async function notifyAdminWorldOrderCreated(order) {
     return { sent: false, skipped: true, reason: "No admin World wallet configured." };
   }
 
-  return postJson("/api/send-world-notification", {
+  return postJson("/api/notify-admin", {
     walletAddress,
     title: "New Tcash order",
     message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
@@ -147,7 +151,7 @@ export async function notifyWorldUserOrderCreated(order) {
   const username = getOrderUserLabel(order);
 
   try {
-    return await postJson("/api/send-world-notification", {
+    return await postJson("/api/notify-admin", {
       walletAddress: order.userWalletAddress,
       title: "Tcash order received",
       message:
@@ -195,7 +199,7 @@ export async function notifyWorldUserOrderStatus(order, status) {
   }
 
   try {
-    return await postJson("/api/send-world-notification", {
+    return await postJson("/api/notify-admin", {
       walletAddress: order.userWalletAddress,
       title: copy.title,
       message: copy.message,

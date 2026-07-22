@@ -139,8 +139,11 @@ export async function syncAdminOrders(orders, options = {}) {
 // context for IDKit; submit forwards the resulting proof for the server to
 // verify with World and record. The real gate lives in api/orders.js — these
 // calls only drive the pre-order UX.
+// One endpoint for all three operations (GET = status, POST action=sign |
+// verify) because api/ files each become their own serverless function and
+// this project is at the Hobby plan's 12-function ceiling.
 export async function fetchWorldIdStatus() {
-  const response = await fetchWithTimeout("/api/world-id-status", {
+  const response = await fetchWithTimeout("/api/world-id", {
     cache: "no-store",
     credentials: "include",
   }).catch(() => {
@@ -151,10 +154,14 @@ export async function fetchWorldIdStatus() {
 }
 
 export async function requestWorldIdSignedContext() {
-  const response = await fetchWithTimeout("/api/world-id-sign", {
+  const response = await fetchWithTimeout("/api/world-id", {
     method: "POST",
     cache: "no-store",
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action: "sign" }),
   }).catch(() => {
     throw new Error("Tcash could not start World ID verification. Please try again.");
   });
@@ -163,14 +170,14 @@ export async function requestWorldIdSignedContext() {
 }
 
 export async function submitWorldIdProof(result) {
-  const response = await fetchWithTimeout("/api/world-id-verify", {
+  const response = await fetchWithTimeout("/api/world-id", {
     method: "POST",
     cache: "no-store",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ result }),
+    body: JSON.stringify({ action: "verify", result }),
   }).catch(() => {
     throw new Error("Tcash could not submit your World ID proof. Please try again.");
   });

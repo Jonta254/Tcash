@@ -12,6 +12,132 @@ import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 const ADMIN_EMAIL = "brianokindo2022@gmail.com";
 const FROM_EMAIL = "Tcash <onboarding@resend.dev>";
 
+// World App push notifications used to live in their own endpoint
+// (api/send-world-notification.js). Folded in here for the same reason
+// notify-order/notify-referral were merged in the first place: every
+// top-level api/ file is its own serverless function and the Hobby plan
+// caps a deployment at 12. Dispatched by payload shape like the others —
+// a push carries walletAddress/title/message, an email payload doesn't.
+const FALLBACK_APP_ID = "app_02bd6decc052cfd1dfa2948744af6c6f";
+const WORLD_NOTIFICATIONS_URL = "https://developer.worldcoin.org/api/v2/minikit/send-notification";
+const recentNotifications = new Map();
+const duplicateWindowMs = 1000 * 60;
+const walletWindowMs = 1000 * 60;
+const walletLimitPerWindow = 3;
+
+function pruneRecentNotifications(now = Date.now()) {
+  for (const [key, value] of recentNotifications.entries()) {
+    if (value.expiresAt <= now) {
+      recentNotifications.delete(key);
+    }
+  }
+}
+
+function getNotificationRateLimit({ walletAddress, title, miniAppPath }) {
+  const now = Date.now();
+  pruneRecentNotifications(now);
+
+  const wallet = String(walletAddress || "").toLowerCase();
+  const duplicateKey = `duplicate:${wallet}:${title}:${miniAppPath || "/orders"}`;
+  const walletKey = `wallet:${wallet}`;
+
+  if (recentNotifications.get(duplicateKey)) {
+    return { limited: true, reason: "Duplicate notification skipped." };
+  }
+
+  const walletBucket = recentNotifications.get(walletKey) || {
+    count: 0,
+    expiresAt: now + walletWindowMs,
+  };
+
+  if (walletBucket.count >= walletLimitPerWindow) {
+    return { limited: true, reason: "Notification rate limit reached for this wallet." };
+  }
+
+  recentNotifications.set(duplicateKey, { count: 1, expiresAt: now + duplicateWindowMs });
+  recentNotifications.set(walletKey, {
+    count: walletBucket.count + 1,
+    expiresAt: walletBucket.expiresAt,
+  });
+
+  return { limited: false };
+}
+
+function buildMiniAppPath(appId, miniAppPath = "/orders") {
+  if (!miniAppPath) {
+    return `worldapp://mini-app?app_id=${encodeURIComponent(appId)}&path=%2Forders`;
+  }
+
+  if (miniAppPath.startsWith("worldapp://")) {
+    return miniAppPath;
+  }
+
+  const normalizedPath = miniAppPath.startsWith("/") ? miniAppPath : `/${miniAppPath}`;
+  return `worldapp://mini-app?app_id=${encodeURIComponent(appId)}&path=${encodeURIComponent(normalizedPath)}`;
+}
+
+function buildNotificationPayload({ walletAddress, title, message, miniAppPath = "/orders" }) {
+  const appId = process.env.APP_ID || process.env.VITE_WORLD_APP_ID || FALLBACK_APP_ID;
+  return {
+    app_id: appId,
+    wallet_addresses: [walletAddress],
+    localisations: [
+      {
+        language: "en",
+        title: String(title || "").slice(0, 64),
+        message: String(message || "").slice(0, 180),
+      },
+    ],
+    mini_app_path: buildMiniAppPath(appId, miniAppPath),
+  };
+}
+
+async function sendWorldNotification(res, { walletAddress, title, message, miniAppPath }) {
+  const apiKey =
+    process.env.WORLD_NOTIFICATION_API_KEY ||
+    process.env.DEV_PORTAL_API_KEY ||
+    process.env.WORLD_API_KEY;
+
+  if (!apiKey) {
+    sendJson(res, 200, {
+      sent: false,
+      skipped: true,
+      reason: "WORLD notification API key is not configured.",
+    });
+    return;
+  }
+
+  const rateLimit = getNotificationRateLimit({ walletAddress, title, miniAppPath });
+
+  if (rateLimit.limited) {
+    sendJson(res, 200, { sent: false, skipped: true, reason: rateLimit.reason });
+    return;
+  }
+
+  const response = await fetch(WORLD_NOTIFICATIONS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(
+      buildNotificationPayload({ walletAddress, title, message, miniAppPath }),
+    ),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    sendJson(res, response.status, {
+      sent: false,
+      error: payload?.message || payload?.error || "Unable to send World notification.",
+    });
+    return;
+  }
+
+  sendJson(res, 200, { sent: true, result: payload });
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -23,9 +149,9 @@ function escapeHtml(value) {
 
 function renderEmail({ kicker, title, rows }) {
   return `
-    <div style="font-family:Arial,sans-serif;background:#0b0f1a;color:#f5f7ff;padding:24px">
-      <div style="max-width:620px;margin:0 auto;background:#111827;border:1px solid #273348;border-radius:18px;padding:22px">
-        <p style="color:#9fb1d1;margin:0 0 8px">${escapeHtml(kicker)}</p>
+    <div style="font-family:Arial,sans-serif;background:#15130f;color:#f6f1e7;padding:24px">
+      <div style="max-width:620px;margin:0 auto;background:#1e1b15;border:1px solid #3a3228;border-radius:18px;padding:22px">
+        <p style="color:#a79c87;margin:0 0 8px">${escapeHtml(kicker)}</p>
         <h1 style="font-size:22px;line-height:1.25;margin:0 0 18px">${escapeHtml(title)}</h1>
         <table style="width:100%;border-collapse:collapse">
           ${rows
@@ -33,8 +159,8 @@ function renderEmail({ kicker, title, rows }) {
             .map(
               ([label, value]) => `
                 <tr>
-                  <td style="padding:10px;border-top:1px solid #273348;color:#9fb1d1">${escapeHtml(label)}</td>
-                  <td style="padding:10px;border-top:1px solid #273348;text-align:right;color:#ffffff">${escapeHtml(value)}</td>
+                  <td style="padding:10px;border-top:1px solid #3a3228;color:#a79c87">${escapeHtml(label)}</td>
+                  <td style="padding:10px;border-top:1px solid #3a3228;text-align:right;color:#f6f1e7">${escapeHtml(value)}</td>
                 </tr>
               `,
             )
@@ -119,6 +245,14 @@ export default async function handler(req, res) {
 
   try {
     const payload = await readJsonBody(req);
+
+    // World App push notification — handled entirely separately from the
+    // Resend email paths below (different upstream, different response shape).
+    if (payload?.walletAddress && payload?.title && payload?.message) {
+      await sendWorldNotification(res, payload);
+      return;
+    }
+
     let email;
     let errorMessage;
 
