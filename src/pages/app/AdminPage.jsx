@@ -5,6 +5,7 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import { useExchangeRates } from "../../hooks/useExchangeRate";
 import {
   backfillExistingOrdersToAdminQueue,
+  formatKES,
   getAdminAlertsUpdatedEventName,
   getAdminAlerts,
   fetchSharedAdminOrders,
@@ -382,8 +383,8 @@ function AdminPage() {
             </p>
           </div>
           <div className="stack">
-            <div className="tag">WLD live: KES {liveRates.WLD}</div>
-            <div className="tag">USDC live: KES {liveRates.USDC}</div>
+            <div className="tag">WLD live: {formatKES(liveRates.WLD)}</div>
+            <div className="tag">USDC live: {formatKES(liveRates.USDC)}</div>
           </div>
         </div>
 

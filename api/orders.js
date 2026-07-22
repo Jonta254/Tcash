@@ -232,13 +232,25 @@ async function fetchWithTimeout(url, options, timeoutMs = ADMIN_NOTIFY_TIMEOUT_M
   }
 }
 
+// Raw order.cryptoAmount is a float that routinely carries full binary
+// precision (e.g. 21.070209563997295 WLD). The UI has always formatted it;
+// the admin email/push copy did not, so operators saw the raw value. Mirrors
+// api/notify-admin.js's helper rather than importing the client's, since api/
+// functions don't pull from src/.
+function formatCryptoAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount)
+    ? amount.toLocaleString(undefined, { maximumFractionDigits: 6 })
+    : value;
+}
+
 function buildOrderEmail(order) {
   const isSell = order.type === "sell";
   const rows = [
     ["Order ID", order.id],
     ["Type", order.type?.toUpperCase()],
     ["Asset", order.asset],
-    ["Crypto Amount", order.cryptoAmount],
+    ["Crypto Amount", `${formatCryptoAmount(order.cryptoAmount)} ${order.asset}`],
     [isSell ? "KES Payout" : "KES To Pay", `KES ${Number(order.kesAmount || 0).toLocaleString()}`],
     ["Status", order.status],
     ["User", getOrderUserLabel(order)],
@@ -250,7 +262,7 @@ function buildOrderEmail(order) {
   ].filter(([, value]) => value);
 
   return {
-    subject: `Tcash ${order.type?.toUpperCase()} order - ${order.cryptoAmount} ${order.asset}`,
+    subject: `Tcash ${order.type?.toUpperCase()} order - ${formatCryptoAmount(order.cryptoAmount)} ${order.asset}`,
     html: `
       <div style="font-family:Arial,sans-serif;background:#15130f;color:#f6f1e7;padding:24px">
         <div style="max-width:620px;margin:0 auto;background:#1e1b15;border:1px solid #3a3228;border-radius:18px;padding:22px">
@@ -331,7 +343,7 @@ async function notifyAdminWorld(order) {
         {
           language: "en",
           title: "New Tcash order",
-          message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
+          message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${formatCryptoAmount(order.cryptoAmount)} ${order.asset}.`,
         },
       ],
       mini_app_path: buildMiniAppPath(appId, "/tmpesa-admin"),

@@ -1,4 +1,5 @@
 import { getSettings } from "./settingsService";
+import { formatCryptoAmount, formatKES } from "./pricingService";
 
 function encodeQueryValue(value) {
   return encodeURIComponent(value).replace(/%20/g, "%20");
@@ -67,8 +68,8 @@ export function openOrderSupportEmail(order, mode = "support") {
     `Order ID: ${order.id}`,
     `Order Type: ${order.type}`,
     `Asset: ${order.asset}`,
-    `Crypto Amount: ${order.cryptoAmount}`,
-    `KES Amount: ${order.kesAmount}`,
+    `Crypto Amount: ${formatCryptoAmount(order.cryptoAmount)} ${order.asset}`,
+    `KES Amount: ${formatKES(order.kesAmount)}`,
     `Status: ${order.status}`,
     order.paymentReference ? `Reference: ${order.paymentReference}` : null,
     "",
@@ -87,8 +88,8 @@ export function openOrderSupportEmail(order, mode = "support") {
         `Order ID: ${order.id}`,
         `Order Type: ${order.type}`,
         `Asset: ${order.asset}`,
-        `Crypto Amount: ${order.cryptoAmount}`,
-        `KES Amount: ${order.kesAmount}`,
+        `Crypto Amount: ${formatCryptoAmount(order.cryptoAmount)} ${order.asset}`,
+        `KES Amount: ${formatKES(order.kesAmount)}`,
         `Status: ${order.status}`,
         order.paymentReference ? `Reference: ${order.paymentReference}` : null,
       ]

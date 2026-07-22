@@ -1,5 +1,6 @@
 import { APP_CONFIG, STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
+import { formatCryptoAmount } from "./pricingService";
 
 const ADMIN_ALERTS_UPDATED_EVENT = "tmpesa-admin-alerts-updated";
 const sentNotificationKeys = new Map();
@@ -81,7 +82,7 @@ async function notifyAdminWorldOrderCreated(order) {
   return postJson("/api/notify-admin", {
     walletAddress,
     title: "New Tcash order",
-    message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${order.cryptoAmount} ${order.asset}.`,
+    message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${formatCryptoAmount(order.cryptoAmount)} ${order.asset}.`,
     miniAppPath: "/tmpesa-admin",
   });
 }
@@ -114,8 +115,8 @@ export async function notifyAdminOrderCreated(order) {
     order.type === "sell" ? "New sell order received" : "New buy order received";
   const message =
     order.type === "sell"
-      ? `${getOrderUserLabel(order)} wants to sell ${order.cryptoAmount} ${order.asset} for ${Number(order.kesAmount || 0).toLocaleString()} KES.`
-      : `${getOrderUserLabel(order)} wants to buy ${order.cryptoAmount} ${order.asset} for ${Number(order.kesAmount || 0).toLocaleString()} KES.`;
+      ? `${getOrderUserLabel(order)} wants to sell ${formatCryptoAmount(order.cryptoAmount)} ${order.asset} for ${Number(order.kesAmount || 0).toLocaleString()} KES.`
+      : `${getOrderUserLabel(order)} wants to buy ${formatCryptoAmount(order.cryptoAmount)} ${order.asset} for ${Number(order.kesAmount || 0).toLocaleString()} KES.`;
 
   const alert = persistAdminAlert(
     buildAdminAlert("order-created", title, message, {
