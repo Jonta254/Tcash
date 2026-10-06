@@ -1,5 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { buildWorldRates, parseWorldMoney } from "./world-prices.js";
+import { buildCoinGeckoRates, buildUsdKesRate, buildWorldRates, parseWorldMoney } from "./world-prices.js";
+
+describe("market cross rates", () => {
+  const now = () => Math.floor(Date.now() / 1000);
+  it("uses the WLD identifier and actual USDC dollar value when KES is absent", () => {
+    const rates = buildCoinGeckoRates({
+      "worldcoin-wld": { usd: 0.55, last_updated_at: now() },
+      "usd-coin": { usd: 0.999, last_updated_at: now() },
+      worldcoin: { usd: 0.0026, last_updated_at: now() },
+    }, 130);
+    expect(rates.WLD).toBeCloseTo(71.5);
+    expect(rates.USDC).toBeCloseTo(129.87);
+  });
+  it("rejects stale crypto prices and the unrelated worldcoin token", () => {
+    expect(buildCoinGeckoRates({ worldcoin: { usd: 0.55, last_updated_at: now() } }, 130)).toBeNull();
+    expect(buildCoinGeckoRates({
+      "worldcoin-wld": { usd: 0.55, last_updated_at: now() - 1201 },
+      "usd-coin": { usd: 1, last_updated_at: now() },
+    }, 130)).toBeNull();
+  });
+  it("accepts a daily dollar exchange rate but refuses stale or wrong-base rates", () => {
+    const payload = { result: "success", base_code: "USD", rates: { KES: 130 }, time_last_update_unix: now() - 86400 };
+    expect(buildUsdKesRate(payload)).toBe(130);
+    expect(buildUsdKesRate({ ...payload, base_code: "EUR" })).toBe(0);
+    expect(buildUsdKesRate({ ...payload, time_last_update_unix: now() - 172801 })).toBe(0);
+  });
+});
 
 // The exact shape World's public miniapp price feed returns. Captured from a
 // live response — the previous code read `prices.WLD.KES` as a number, which
