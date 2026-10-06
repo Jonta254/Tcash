@@ -30,8 +30,9 @@ export default async function handler(req, res) {
     }
 
     if (!hasWorldPortalConfig()) {
-      sendJson(res, 200, {
+      sendJson(res, 503, {
         verified: false,
+        error: "Payment verification is unavailable. Contact Tcash support before sending funds.",
         transactionStatus: "verification_unconfigured",
         reference: payload.reference,
         transactionId,
@@ -73,12 +74,13 @@ export default async function handler(req, res) {
     // "pending" / "unknown" = submitted but not yet indexed — still a valid payment
     // anything else (e.g. "failed", "reverted") = genuinely failed
     const status = transaction?.transaction_status || "unknown";
-    const submitted = ["mined", "pending", "unknown"].includes(status);
+    const submitted = ["mined", "pending"].includes(status);
 
     logEvent("payment.confirmed", { transactionId, status, verified: submitted });
 
     sendJson(res, 200, {
-      verified: submitted,
+      verified: status === "mined",
+      submitted,
       transactionStatus: status,
       reference: payload.reference,
       transactionId,

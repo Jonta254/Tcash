@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import OrderCard from "../../components/orders/OrderCard";
 import {
+  fetchSharedAdminOrders,
+  commitPaidOrder,
   getCurrentUser,
   getOrdersForCurrentUser,
   openWhatsAppSupport,
@@ -24,6 +26,24 @@ function OrdersPage() {
   const [paymentCodes, setPaymentCodes] = useState({});
   const [message,      setMessage]      = useState("");
   const user = getCurrentUser();
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const result = await fetchSharedAdminOrders();
+      if (!result?.ok) throw new Error(result?.message || "Unable to refresh orders.");
+      setOrders(getOrdersForCurrentUser());
+      setMessage("");
+    } catch (error) { setMessage(error.message || "Showing saved history. Reconnect to refresh."); }
+    finally { setRefreshing(false); }
+  }, []);
+  useEffect(() => {
+    void refresh();
+    const foreground = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", foreground);
+    window.addEventListener("online", foreground);
+    return () => { document.removeEventListener("visibilitychange", foreground); window.removeEventListener("online", foreground); };
+  }, [refresh]);
 
   const handlePaymentCodeChange = (id, val) =>
     setPaymentCodes((p) => ({ ...p, [id]: val }));
@@ -31,9 +51,10 @@ function OrdersPage() {
   const handleMarkBuyPaid = async (orderId) => {
     const code = (paymentCodes[orderId] || "").trim().toUpperCase();
     if (!code) { setMessage("Enter the M-Pesa code before marking as paid."); return; }
-    const updated = updateOrder(orderId, { paymentReference: code, status: "paid" }, null, { sync: false });
+    if (!/^[A-Z0-9]{10}$/.test(code)) { setMessage("Enter the 10-character code from your M-Pesa confirmation SMS."); return; }
+    const draft = orders.find(order => order.id === orderId);
     try {
-      await syncOrderToAdminQueue(updated);
+      await commitPaidOrder(draft, { paymentReference: code, status: "paid" });
     } catch (err) {
       setOrders(getOrdersForCurrentUser());
       setMessage(err instanceof Error ? err.message : "Saved locally — could not notify admin.");
@@ -78,7 +99,11 @@ function OrdersPage() {
           </div>
         </div>
 
-        {message && <div className="notice">{message}</div>}
+        <div className="tcash-history-refresh">
+          <span className="muted">Payment submitted is not settlement.</span>
+          <button type="button" className="button-ghost" disabled={refreshing} onClick={refresh}>{refreshing ? "Refreshing…" : "Refresh"}</button>
+        </div>
+        {message && <div className="notice" role="status">{message}</div>}
 
         {/* Tab filter */}
         <div className="orders-tab-row">
@@ -127,6 +152,7 @@ function OrdersPage() {
                 </div>
               )}
 
+              {order.status === "pending" && <Link className="button-secondary" to={`/trade?tab=${order.type}&order=${encodeURIComponent(order.id)}`}>Continue payment</Link>}
               <div className="order-card-actions">
                 <button
                   type="button"

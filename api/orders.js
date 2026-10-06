@@ -1,5 +1,6 @@
+import { getFreshMarketQuote } from "./world-prices.js";
+import { priceOrder } from "./_lib/quote.js";
 import { randomUUID } from "node:crypto";
-import { del, list, put } from "@vercel/blob";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { parseCookies } from "./_lib/cookies.js";
 import { isTrustedOrigin } from "./_lib/csrf.js";
@@ -49,9 +50,7 @@ export function orderBelongsToWallet(order, wallet) {
   return owned.includes(callerWallet);
 }
 
-const ORDER_PREFIX = "tmpesa/orders/";
-// Upstash Redis via Vercel Marketplace — preferred order store (free tier is
-// ample). Falls back to Vercel Blob when Redis is not connected yet.
+// Personal order records must stay in private Redis storage.
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 const REDIS_ORDERS_KEY = "tmpesa:orders";
@@ -74,6 +73,7 @@ async function redisCommand(command) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(command),
+    signal: AbortSignal.timeout(8000),
   });
   const payload = await response.json().catch(() => ({}));
 
@@ -104,37 +104,44 @@ async function readRedisOrders() {
   return (values || []).map(parseStoredOrder).filter(Boolean);
 }
 
-async function writeRedisOrders(orders, syncedAt) {
-  // Stale-write guard: a device backfilling old local copies must not clobber
-  // a newer status the admin already set.
-  const existingValues = await redisCommand([
-    "HMGET",
-    REDIS_ORDERS_KEY,
-    ...orders.map((order) => order.id),
-  ]);
-  const hsetArgs = ["HSET", REDIS_ORDERS_KEY];
-
-  orders.forEach((order, index) => {
-    const existing = existingValues?.[index] ? parseStoredOrder(existingValues[index]) : null;
-
-    if (existing && sortOrders(order, existing) > 0) {
-      return;
-    }
-
-    hsetArgs.push(order.id, JSON.stringify({ order, syncedAt }));
-  });
-
-  if (hsetArgs.length > 2) {
-    await redisCommand(hsetArgs);
-  }
-}
-
-function sanitizeOrderId(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 90);
+export const ATOMIC_ORDER_WRITE = `
+local incoming = cjson.decode(ARGV[1])
+local syncedAt = ARGV[2]
+local wallet = ARGV[3]
+local admin = ARGV[4] == 'true'
+local all = redis.call('HVALS', KEYS[1])
+local refs = {}
+for _, raw in ipairs(all) do
+  local decoded = cjson.decode(raw)
+  local saved = decoded.order or decoded
+  if saved.paymentReference and saved.paymentReference ~= '' then refs[string.upper(saved.paymentReference)] = saved.id end
+end
+for _, order in ipairs(incoming) do
+  local raw = redis.call('HGET', KEYS[1], order.id)
+  if raw then
+    local decoded = cjson.decode(raw)
+    local saved = decoded.order or decoded
+    if not admin and string.lower(saved.userWalletAddress or saved.walletAddress or '') ~= wallet then return redis.error_reply('Order ownership conflict') end
+    for _, field in ipairs({'type','asset','cryptoAmount','kesAmount','grossKesAmount','feeKesAmount','feePerCoinKes','walletAddress','userWalletAddress','payoutPhoneNumber','createdAt','sellWalletAddress','mpesaPaybillNumber','mpesaAccountNumber','mpesaTillName'}) do
+      if saved[field] ~= order[field] then return redis.error_reply('Order details cannot change') end
+    end
+    if (saved.status == 'completed' or saved.status == 'rejected' or saved.status == 'cancelled') and order.status ~= saved.status then return redis.error_reply('Closed order cannot reopen') end
+    if not admin and saved.status == 'paid' and order.status ~= 'paid' then return redis.error_reply('Submitted payment cannot reset') end
+    if saved.paymentReference and saved.paymentReference ~= '' and saved.paymentReference ~= order.paymentReference then return redis.error_reply('Payment reference cannot change') end
+  end
+  if order.paymentReference and order.paymentReference ~= '' then
+    local ref = string.upper(order.paymentReference)
+    if refs[ref] and refs[ref] ~= order.id then return redis.error_reply('Payment reference already used') end
+    refs[ref] = order.id
+  end
+end
+for index, order in ipairs(incoming) do
+  redis.call('HSET', KEYS[1], order.id, ARGV[4 + index])
+end
+return #incoming
+`;
+async function writeRedisOrders(orders, syncedAt, wallet, isAdmin) {
+  await redisCommand(["EVAL", ATOMIC_ORDER_WRITE, 1, REDIS_ORDERS_KEY, JSON.stringify(orders), syncedAt, wallet || "", String(isAdmin), ...orders.map(order => JSON.stringify({ order, syncedAt }))]);
 }
 
 // Bounds are generous relative to real usage (a bureau-de-change trade
@@ -177,8 +184,8 @@ export function isOrderRecord(value) {
     value.id.length > 0 &&
     value.id.length <= 90 &&
     ["buy", "sell"].includes(value.type) &&
-    typeof value.asset === "string" &&
-    value.asset.length <= 16 &&
+    ["WLD", "USDC"].includes(value.asset) &&
+    (!value.status || ["pending", "paid", "completed", "rejected", "cancelled"].includes(value.status)) &&
     isSaneAmount(value.cryptoAmount) &&
     isSaneAmount(value.kesAmount) &&
     stringFields.every((field) => isBoundedString(value[field]))
@@ -375,74 +382,26 @@ async function notifyAdminForOrder(order) {
   };
 }
 
-async function readOrderBlob(blob) {
-  try {
-    const response = await fetch(blob.url, { cache: "no-store" });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = await response.json();
-    const order = payload?.order || payload;
-
-    if (!isOrderRecord(order)) {
-      return null;
-    }
-
-    return {
-      ...order,
-      adminQueueUrl: blob.url,
-      adminSyncedAt: payload.syncedAt || String(blob.uploadedAt || ""),
-    };
-  } catch {
-    return null;
-  }
-}
-
-// Payment replay / duplicate-submission guard: a paymentReference is
-// either a self-reported M-Pesa code (buy) or a MiniKit World Pay
-// transactionId (sell) — both are the one piece of evidence that money
-// actually moved. Nothing previously stopped the *same* reference from
-// being attached to a second, different order id, which would let one
-// real payment be claimed as proof for multiple payouts. This checks
-// the reference against every other stored order before a paid/
-// completed write is accepted.
 async function findOrderByPaymentReference(reference, excludeOrderId) {
-  if (!reference) {
-    return null;
-  }
-
-  const orders = redisConfigured() ? await readRedisOrders() : await readAllBlobOrders();
-  return orders.find((order) => order.paymentReference === reference && order.id !== excludeOrderId) || null;
+  if (!reference) return null;
+  const orders = await readRedisOrders();
+  return orders.find(order => String(order.paymentReference || "").toUpperCase() === String(reference).toUpperCase() && order.id !== excludeOrderId) || null;
 }
 
-async function readAllBlobOrders() {
-  const blobs = await listOrderBlobs();
-  const snapshots = await Promise.all(blobs.map(readOrderBlob));
-  return snapshots.filter(Boolean);
-}
-
-async function listOrderBlobs() {
-  const blobs = [];
-  let cursor;
-
-  do {
-    const result = await list({
-      limit: 1000,
-      prefix: ORDER_PREFIX,
-      cursor,
-    });
-
-    blobs.push(...result.blobs);
-    cursor = result.cursor;
-
-    if (!result.hasMore) {
-      break;
-    }
-  } while (cursor);
-
-  return blobs;
+export function assertOrderUpdate(existing, incoming, callerWallet, isAdmin) {
+  if (!isAdmin && !orderBelongsToWallet(incoming, callerWallet)) throw new Error("This order does not belong to your wallet.");
+  if (Number(incoming.cryptoAmount) <= 0 || Number(incoming.kesAmount) <= 0) throw new Error("Enter a positive trade amount.");
+  if (incoming.type === "buy" && (Number(incoming.kesAmount) < 600 || Number(incoming.kesAmount) > 20000)) throw new Error("Buy orders must be between KES 600 and KES 20,000.");
+  if (incoming.type === "sell" && !/^0[17]\d{8}$/.test(incoming.payoutPhoneNumber || "")) throw new Error("Enter a valid Kenyan payout number.");
+  if (["paid", "completed"].includes(incoming.status) && !incoming.paymentReference) throw new Error("A submitted payment requires a reference.");
+  if (incoming.type === "buy" && incoming.paymentReference && !/^[A-Z0-9]{10}$/.test(incoming.paymentReference)) throw new Error("Enter a valid M-Pesa code.");
+  if (!existing) return;
+  if (!isAdmin && !orderBelongsToWallet(existing, callerWallet)) throw new Error("This order does not belong to your wallet.");
+  const immutable = ["type", "asset", "cryptoAmount", "kesAmount", "grossKesAmount", "feeKesAmount", "feePerCoinKes", "walletAddress", "userWalletAddress", "payoutPhoneNumber", "createdAt", "sellWalletAddress", "mpesaPaybillNumber", "mpesaAccountNumber", "mpesaTillName"];
+  if (immutable.some(field => existing[field] !== incoming[field])) throw new Error("Order amounts and destinations cannot change after creation.");
+  if (["completed", "rejected", "cancelled"].includes(existing.status) && incoming.status !== existing.status) throw new Error("A closed order cannot be reopened.");
+  if (existing.paymentReference && incoming.paymentReference !== existing.paymentReference) throw new Error("A submitted payment reference cannot be replaced.");
+  if (!isAdmin && existing.status === "paid" && incoming.status !== "paid") throw new Error("A submitted payment cannot be reset.");
 }
 
 export default async function handler(req, res) {
@@ -450,13 +409,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!redisConfigured() && !process.env.BLOB_READ_WRITE_TOKEN) {
-    sendJson(res, 200, {
+  if (!redisConfigured()) {
+    sendJson(res, 503, {
       ok: false,
       pendingSetup: true,
       orders: [],
       message:
-        "Connect Upstash Redis (or set BLOB_READ_WRITE_TOKEN) so Tcash can share orders with admin.",
+        "The order desk is unavailable. Please contact Tcash support before paying.",
     });
     return;
   }
@@ -493,54 +452,12 @@ export default async function handler(req, res) {
       return;
     }
 
-    try {
-      const blobs = await listOrderBlobs();
-      const snapshots = await Promise.all(blobs.map(readOrderBlob));
-      const latestById = new Map();
-
-      for (const order of snapshots.filter(Boolean)) {
-        const current = latestById.get(order.id);
-
-        if (!current || sortOrders(order, current) < 0) {
-          latestById.set(order.id, order);
-        }
-      }
-
-      // Purge superseded/legacy timestamped blobs so the store stays at one
-      // blob per order instead of growing forever (capped per request).
-      // Only when at least one blob read succeeded — if every read failed the
-      // problem is transient (CDN/suspension), not stale data, so keep it all.
-      if (latestById.size > 0) {
-        const keepUrls = new Set(
-          Array.from(latestById.values()).map((order) => order.adminQueueUrl),
-        );
-        const staleUrls = blobs
-          .map((blob) => blob.url)
-          .filter((url) => !keepUrls.has(url))
-          .slice(0, 500);
-
-        if (staleUrls.length) {
-          await del(staleUrls).catch(() => null);
-        }
-      }
-
-      sendJson(res, 200, {
-        ok: true,
-        orders: scopeToCaller(Array.from(latestById.values())).sort(sortOrders),
-      });
-    } catch (error) {
-      sendJson(res, 502, {
-        ok: false,
-        orders: [],
-        error: error instanceof Error ? error.message : "Unable to load admin orders.",
-      });
-    }
     return;
   }
 
   try {
     const payload = await readJsonBody(req);
-    const orders = normalizeOrders(payload);
+    let orders = normalizeOrders(payload);
 
     if (!orders.length) {
       sendJson(res, 400, {
@@ -550,6 +467,10 @@ export default async function handler(req, res) {
       return;
     }
 
+    if (!isTrustedOrigin(req)) {
+      sendJson(res, 403, { ok: false, error: "Request origin could not be verified." });
+      return;
+    }
     const attemptsAdminStatus = orders.some((order) => ADMIN_ONLY_STATUSES.has(order.status));
     const isAdmin = requestIsRecognizedAdmin(req);
     const adminWallet = isAdmin ? getRequestAdminWallet(req) : null;
@@ -645,12 +566,35 @@ export default async function handler(req, res) {
       }
     }
 
+    const stored = await readRedisOrders();
+    const fresh = orders.filter(order => !stored.some(saved => saved.id === order.id));
+    if (fresh.some(order => order.status !== "pending" || order.paymentReference)) {
+      sendJson(res, 409, { ok: false, error: "Start and save an order before paying. Contact support for an existing payment." }); return;
+    }
+    if (fresh.length) {
+      const [market, settingsRaw] = await Promise.all([getFreshMarketQuote(), redisCommand(["GET", "tmpesa:settings"])]);
+      const settings = settingsRaw ? JSON.parse(settingsRaw) : {};
+      const now = new Date().toISOString();
+      orders = orders.map(order => fresh.includes(order) ? priceOrder({ ...order, createdAt: now, updatedAt: now }, market, settings) : order);
+    }
+    if (!isAdmin && orders.some(order => Number(order.kesAmount) >= HIGH_VALUE_KES_THRESHOLD)) {
+      if (!worldIdVerificationAvailable()) { sendJson(res, 503, { ok: false, error: "High-value trades are unavailable until identity verification is configured. Contact support." }); return; }
+      if (!await isWalletVerified(requestUserWallet(req))) { sendJson(res, 403, { ok: false, requiresWorldId: true, error: "Verify with World ID before placing a high-value trade." }); return; }
+    }
+    for (const order of orders) {
+      assertOrderUpdate(stored.find(existing => existing.id === order.id), order, requestUserWallet(req), isAdmin);
+    }
+    const batchReferences = orders.map(order => String(order.paymentReference || "").toUpperCase()).filter(Boolean);
+    if (new Set(batchReferences).size !== batchReferences.length) {
+      sendJson(res, 409, { ok: false, error: "A payment reference can only be used once." });
+      return;
+    }
     for (const order of orders) {
       if (!order.paymentReference) {
         continue;
       }
 
-      const conflict = await findOrderByPaymentReference(order.paymentReference, order.id).catch(() => null);
+      const conflict = await findOrderByPaymentReference(order.paymentReference, order.id);
 
       if (conflict) {
         logSecurityEvent("order.payment_reference_replay_blocked", {
@@ -692,27 +636,7 @@ export default async function handler(req, res) {
     const syncedAt = new Date().toISOString();
 
     try {
-      if (redisConfigured()) {
-        await writeRedisOrders(orders, syncedAt);
-      } else {
-        await Promise.all(
-          orders.map((order) => {
-            const orderId = sanitizeOrderId(order.id);
-
-            // One canonical blob per order, overwritten in place — appending a
-            // timestamped blob per sync is what blew the store's free quota.
-            return put(
-              `${ORDER_PREFIX}${orderId}.json`,
-              JSON.stringify({ order, syncedAt }, null, 2),
-              {
-                access: "public",
-                allowOverwrite: true,
-                contentType: "application/json",
-              },
-            );
-          }),
-        );
-      }
+      await writeRedisOrders(orders, syncedAt, requestUserWallet(req), isAdmin);
     } catch (writeError) {
       for (const order of adminActionOrders) {
         logAdminAction({
@@ -749,6 +673,7 @@ export default async function handler(req, res) {
     sendJson(res, 200, {
       ok: true,
       count: orders.length,
+      orders,
       syncedAt,
       adminNotifications,
     });

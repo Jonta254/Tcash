@@ -2,14 +2,14 @@ import { STORAGE_KEYS } from "../config/appConfig";
 import { readStorage, writeStorage } from "./localStorage";
 
 const THEME_UPDATED_EVENT = "worldtmpesa:theme-updated";
-const DEFAULT_THEME = "dark";
+const DEFAULT_THEME = "light";
 
 function emitTheme(theme) {
   window.dispatchEvent(new CustomEvent(THEME_UPDATED_EVENT, { detail: theme }));
 }
 
 function normalizeTheme(theme) {
-  return theme === "light" ? "light" : DEFAULT_THEME;
+  return ["dark", "light"].includes(theme) ? theme : DEFAULT_THEME;
 }
 
 export function getTheme() {

@@ -5555,3 +5555,33 @@ input[type="number"] {
   flex-shrink: 0;
   padding-bottom: 4px;
 }
+
+/* Tcash finishing details: plain paper, readable money, quiet hierarchy. */
+:root, :root[data-theme="light"] { background: var(--bg); }
+.tcash-entry-details { margin: 26px 0; border-top: 1px solid var(--border); }
+.tcash-entry-details > div { display: flex; align-items: baseline; gap: 16px; border-bottom: 1px solid var(--border); padding: 12px 0; }
+.tcash-entry-details > div > span { color: var(--primary); font: 0.85rem var(--font-ledger); }
+.tcash-entry-details p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.tcash-consent { display: flex; gap: 12px; align-items: flex-start; font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+.tcash-consent input { flex: 0 0 20px; width: 20px; height: 20px; margin: 3px 0 0; accent-color: var(--primary); }
+.tcash-consent a { color: var(--primary); text-decoration: underline; }
+.tcash-entry-note { font-size: 0.78rem; color: var(--muted); margin-top: 24px; }
+.tdr-receipt-ref-value, .tdr-receipt-line strong { overflow-wrap: anywhere; }
+.tcash-desk-note { border-left: 2px solid var(--primary); padding: 0 0 0 14px; margin: 4px 0; }
+.tcash-desk-note p { margin: 3px 0; color: var(--muted); font-size: 0.82rem; }
+.tcash-history-refresh { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
+
+.tdr-login { padding-top: 24px; padding-bottom: 24px; }
+.tdr-login-mark { margin-top: 20px; margin-bottom: 16px; }
+.tdr-login-word { margin-bottom: 18px; }
+.tcash-entry-details { margin: 18px 0; }
+.tcash-entry-note { margin-top: 18px; }
+@media (max-width: 380px) { .tdr-login-word { font-size: 3.4rem; } .tcash-entry-details > div { padding: 9px 0; } }
+
+.tdr-login { gap: 16px; }
+.tdr-login-word { margin-bottom: 0; }
+.tdr-login-mark { margin-top: 6px; margin-bottom: 6px; }
+
+.tcash-auth-page { padding: 24px 18px; }
+.tcash-auth-page .tdr-login { min-height: calc(100dvh - 48px); padding: 0; }

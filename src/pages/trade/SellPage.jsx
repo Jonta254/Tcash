@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
+import QuoteDetails from "../../components/orders/QuoteDetails";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
@@ -11,6 +12,7 @@ import {
   APP_CONFIG,
   canUseWorldPay,
   commitPaidOrder,
+  mergeAdminOrders,
   formatCryptoAmount,
   formatKES,
   getCachedWorldWalletPortfolio,
@@ -46,6 +48,7 @@ function SellPage() {
     currentOrder,
     error, setError,
     kesAmount,
+    feeKesAmount, exchangeRate,
     grossKesAmount,
     sellMinKesEquivalent,
     sellMinAssetAmount,
@@ -92,24 +95,34 @@ function SellPage() {
     if (!currentOrder) return;
     setError(""); setSendLoading(true);
     try {
+      if (currentOrder.paymentReference) {
+        const updated = await commitPaidOrder(currentOrder, { status: "paid" });
+        setCurrentOrder(updated); setStep(3); return;
+      }
       const payment = await requestWorldPayment({
         amount:      currentOrder.cryptoAmount,
         asset:       currentOrder.asset,
         description: `Tcash sell order ${currentOrder.id}`,
-        to:          settings.sellWalletAddress,
+        to:          currentOrder.sellWalletAddress || settings.sellWalletAddress,
+        onSubmitted: payload => {
+          const saved = { ...currentOrder, paymentReference: payload.transactionId, paymentMethod: "world-pay", paymentVerificationStatus: "verification_pending" };
+          setCurrentOrder(saved); mergeAdminOrders([saved]);
+        },
       });
       // Only block if the payment definitively failed (not just pending/unindexed)
-      const failedStatuses = ["failed", "reverted", "rejected"];
-      if (failedStatuses.includes(payment.transactionStatus)) {
+      const failedStatuses = ["failed", "reverted", "rejected", "verification_unconfigured"];
+      if (!payment.submitted || failedStatuses.includes(payment.transactionStatus)) {
         throw new Error(`World payment ${payment.transactionStatus}. Please contact support.`);
       }
-      // Crypto has now left the user's wallet — this is the moment the order
-      // becomes real: stored locally + pushed to admin + admin notified.
-      // commitPaidOrder is tolerant of a sync hiccup (backfill re-syncs).
+      const submittedOrder = { ...currentOrder, paymentReference: payment.transactionId,
+        paymentMethod: "world-pay", paymentVerificationStatus: payment.transactionStatus };
+      setCurrentOrder(submittedOrder);
+      mergeAdminOrders([submittedOrder]);
+      // Retain the command result while waiting for durable acceptance.
       const updated = await commitPaidOrder(currentOrder, {
         paymentMethod:             "world-pay",
         paymentReference:          payment.transactionId,
-        paymentSummary:            `World Pay verified (${payment.transactionStatus})`,
+        paymentSummary:            `World Pay submitted (${payment.transactionStatus})`,
         paymentVerificationStatus: payment.transactionStatus,
         status:                    "paid",
       });
@@ -219,17 +232,9 @@ function SellPage() {
             )}
           </div>
 
-          <div className="trade-summary-box trade-summary-compact">
-            <div className="tsb-row">
-              <span>You send</span>
-              <strong>{cryptoAmount || "0"} {asset}</strong>
-            </div>
-            <div className="tsb-row tsb-row-receive">
-              <span>You receive</span>
-              <strong>{formatKES(kesAmount)}</strong>
-            </div>
-            <p className="tsb-note">Tcash fee included · Manual review required</p>
-          </div>
+          <QuoteDetails type="sell" asset={asset}
+            amount={Number(cryptoAmount) || 0}
+            gross={grossKesAmount} fee={feeKesAmount} total={kesAmount} rate={exchangeRate} />
 
           {walletError  && <div className="error">{walletError}</div>}
           {walletLoading && <div className="notice">Loading wallet balance…</div>}
@@ -264,7 +269,7 @@ function SellPage() {
           amountLabel="KES payout"
           amountValue={formatKES(currentOrder.kesAmount)}
           reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
-          shareText={`Tcash receipt — sold ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
+          shareText={`Tcash order — submitted a sell of ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
           onNewTrade={resetFlow}
           lines={[
             { label: "Order type", value: `Sell ${currentOrder.asset}` },
@@ -288,7 +293,7 @@ function SellPage() {
             <div className="opb-body">
               <strong>One step left</strong>
               <span>
-                Send your {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} below to confirm — the order is saved only once you do.
+                Send your {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} below to confirm — your order is already saved so you can return to it in History.
               </span>
             </div>
           </div>
@@ -311,7 +316,7 @@ function SellPage() {
           <div className="trade-summary-box trade-summary-compact">
             <div className="tsb-row">
               <span>You send</span>
-              <strong>{currentOrder.cryptoAmount} {currentOrder.asset}</strong>
+              <strong>{formatCryptoAmount(currentOrder.cryptoAmount, 6)} {currentOrder.asset}</strong>
             </div>
             <div className="tsb-row tsb-row-receive">
               <span>You receive</span>
@@ -336,7 +341,7 @@ function SellPage() {
                 </p>
               </div>
               <HoldToConfirm
-                label={`Hold to send ${currentOrder.cryptoAmount} ${currentOrder.asset}`}
+                label={currentOrder.paymentReference ? "Hold to retry order submission" : `Hold to send ${formatCryptoAmount(currentOrder.cryptoAmount, 6)} ${currentOrder.asset}`}
                 holdingLabel="Keep holding…"
                 disabled={sendLoading}
                 onConfirm={handleMiniAppSend}
@@ -364,7 +369,7 @@ function SellPage() {
                 label="Hold to submit transaction"
                 holdingLabel="Keep holding…"
                 disabled={!paymentReference.trim()}
-                onConfirm={() => { tenderHaptics.send(); markAsPaid(paymentReference); }}
+                onConfirm={async () => { tenderHaptics.send(); await markAsPaid(paymentReference); }}
               />
             </>
           )}

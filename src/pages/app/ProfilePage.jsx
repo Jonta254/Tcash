@@ -288,7 +288,7 @@ function ProfilePage() {
             {isWorldVerified && (
               <span className="tdr-trust-verified tdr-trust-verified-stamp">
                 <Icon name="check" size={11} strokeWidth={2.1} />
-                World verified
+                Wallet connected
               </span>
             )}
             <span className="tdr-trust-verified" data-connected={isWalletConnected}>

@@ -222,8 +222,8 @@ async function fetchDirectMarketRates() {
 function rememberRates(rates) {
   try {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(LAST_LIVE_RATES_SESSION_KEY, JSON.stringify(rates));
-      window.localStorage.setItem(LAST_LIVE_RATES_STORAGE_KEY, JSON.stringify(rates));
+      window.sessionStorage.setItem(LAST_LIVE_RATES_SESSION_KEY, JSON.stringify({ ...rates, fetchedAt: Date.now() }));
+      window.localStorage.setItem(LAST_LIVE_RATES_STORAGE_KEY, JSON.stringify({ ...rates, fetchedAt: Date.now() }));
     }
   } catch {
     // Ignore session persistence issues.
@@ -247,7 +247,7 @@ export function getLastLiveMarketRates() {
       const wldRate = Number(parsed?.WLD || 0);
       const usdcRate = Number(parsed?.USDC || 0);
 
-      if (wldRate > 0 && usdcRate > 0) {
+      if (wldRate > 0 && usdcRate > 0 && Date.now() - Number(parsed.fetchedAt || 0) < 300000 && Number(parsed.fetchedAt) <= Date.now()) {
         return {
           WLD: wldRate,
           USDC: usdcRate,

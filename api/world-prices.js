@@ -125,6 +125,7 @@ async function fetchJson(url) {
     headers: {
       Accept: "application/json",
     },
+    signal: AbortSignal.timeout(7000),
   });
 
   return {
@@ -133,14 +134,7 @@ async function fetchJson(url) {
   };
 }
 
-export default async function handler(req, res) {
-  if (!allowMethods(req, res, ["GET"])) {
-    return;
-  }
-
-  try {
-    res.setHeader("Cache-Control", "no-store, max-age=0");
-
+export async function getFreshMarketQuote() {
     const [worldResult, coinGeckoResult, binanceResult, usdKesResult] = await Promise.allSettled([
       fetchJson(WORLD_PRICES_URL),
       fetchJson(COINGECKO_PRICES_URL),
@@ -187,31 +181,12 @@ export default async function handler(req, res) {
     // (caught by isFreshTimestamp, which is why it isn't simply trusted).
     const selectedRates = worldRates || binanceRates || freshCoinGeckoRates;
 
-    if (!selectedRates) {
-      sendJson(res, 502, {
-        success: false,
-        error: "Unable to load a fresh live market quote right now.",
-      });
-      return;
-    }
-
-    sendJson(res, 200, {
-      success: true,
-      prices: {
-        WLD: selectedRates.WLD,
-        USDC: selectedRates.USDC,
-      },
-      source: worldRates
-        ? "world-public-prices"
-        : binanceRates
-          ? "binance-wld-usdt-plus-usd-kes"
-          : "coingecko-market-fallback",
-      fetchedAt: new Date().toISOString(),
-    });
-  } catch (error) {
-    sendJson(res, 500, {
-      success: false,
-      error: error instanceof Error ? error.message : "Unable to load live prices.",
-    });
-  }
+  if (!selectedRates) throw new Error("Unable to load a fresh market quote. Try again before paying.");
+  return { prices: { WLD: selectedRates.WLD, USDC: selectedRates.USDC }, source: worldRates ? "world-public-prices" : binanceRates ? "binance-wld-usdt-plus-usd-kes" : "coingecko-market-fallback", fetchedAt: new Date().toISOString() };
+}
+export default async function handler(req, res) {
+  if (!allowMethods(req, res, ["GET"])) return;
+  res.setHeader("Cache-Control", "no-store, max-age=0");
+  try { sendJson(res, 200, { success: true, ...await getFreshMarketQuote() }); }
+  catch (error) { sendJson(res, 502, { success: false, error: error.message || "Unable to load live prices." }); }
 }

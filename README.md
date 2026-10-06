@@ -1,152 +1,39 @@
-# WorldTMpesa
+# Tcash
 
-This repository contains `TMpesa`, a React + Vite World mini app for manually exchanging WLD/USDC and Kenyan Shillings through M-Pesa. It includes Vercel API functions for backend nonce generation, SIWE verification, World payment verification, order notifications, and a shared admin order queue.
+Tcash is an independently operated World App mini app for buying and selling WLD or USDC with M-Pesa settlement in Kenya. Payments are reviewed and settled by an operator.
 
-## Features
+## Product
 
-- Local signup and login
-- World App wallet-auth entry path
-- Dashboard with quick actions
-- Sell flow: crypto to KES with in-mini-app WLD send
-- Buy flow: M-Pesa to crypto
-- Orders page with status tracking
-- Admin page for manual confirmation and M-Pesa payout tracking
-- Admin-editable rates, receiver wallet, M-Pesa details, and support email
-- Gmail support and payment-delay actions for users
-- Vercel API backend for nonce generation, SIWE verification, World payment confirmation, and shared admin orders
+The interface uses a warm paper background, copper controls, serif money figures, and a readable order ledger. It shows fees before payment, explains manual settlement, provides direct support, and avoids implying World endorsement or identity verification based on a username.
 
-## Product Context
+## Trade lifecycle
 
-- Built to run as a World App mini app with MiniKit integration
-- Keeps a browser preview mode so the UI can still be tested outside World App
-- Uses World App wallet auth as the preferred entry path, with local login only as a fallback for development
-- Uses World `Pay` for the WLD sell flow inside the mini app when opened in World App
-- Includes repo assets in `public/` for favicon, icon, manifest, and content-card placeholder
-- World wallet auth now uses a backend nonce and server-side SIWE verification
-- WLD sell payments now call a backend confirmation endpoint before the app records the send
-- User profiles and settings still use localStorage, while orders are synced to a shared Vercel Blob admin queue
+1. Sign in with World App Wallet Auth after reviewing the terms and data consent. The server verifies SIWE and issues an HTTP-only session.
+2. Enter an amount and settlement destination. A server quote calculates quantities, fees, and payout from fresh market data and the shared operator settings.
+3. The server saves the pending order in private Redis before showing payment instructions. Amounts and destinations are immutable after creation.
+4. Submit an M-Pesa code, or approve World Pay. A successful command result is cached before verification so a lost connection can be recovered without another payment.
+5. The app acknowledges payment only after the server accepts the update. Acknowledgment is not settlement. The operator checks payment evidence and makes the payout before marking the order completed.
+6. History reloads server records on entry and when the app returns to the foreground. Saved pending orders can be resumed.
 
-## Important Prototype Note
+## Development and checks
 
-- Before production payouts, whitelist the receiver wallet in the World Developer Portal
-- Set up Vercel Blob through `BLOB_READ_WRITE_TOKEN` before accepting live orders, so every user order appears in admin across devices
-- World recommends Wallet Auth as the primary login flow for mini apps and backend verification for the returned payloads, which this project now implements through Vercel API routes
-
-## Review-Safe Naming
-
-- The repository remains `WorldTMpesa` for continuity
-- The in-app display name is `TMpesa` because World's review guidelines say mini app names should not use `World`
-
-## Source Structure
-
-- `src/config`: app-level constants and storage keys
-- `src/services`: auth, orders, local storage, and World App integration
-- `src/hooks`: shared UI logic such as the order flow state machine
-- `src/routes`: top-level route definitions
-- `src/components/auth`: auth-only reusable UI
-- `src/components/layout`: shell and route protection
-- `src/components/orders`: order cards and status display
-- `src/pages/auth`: login and signup screens
-- `src/pages/app`: dashboard, orders, and admin screens
-- `src/pages/trade`: buy and sell transaction flows
-
-## Local Storage Notes
-
-- Users are stored locally in the browser
-- Orders are synced to Vercel Blob and cached locally in the current browser
-- Rates and app settings are stored locally in the browser
-- Orders are cached locally for the current browser and synced through `/api/orders` for the admin desk
-- Orders created before the shared queue existed are backfilled when the affected user opens TMpesa again
-
-## Backend Routes
-
-- `GET /api/nonce`: create a backend nonce for SIWE
-- `POST /api/complete-siwe`: verify the World wallet auth payload on the server
-- `POST /api/payment-reference`: issue a backend payment reference before WLD send
-- `POST /api/confirm-payment`: confirm a World payment with the Developer Portal API
-- `GET /api/orders`: load orders (admin sees all; a user sees only their own)
-- `POST /api/orders`: save a new or updated order (ownership + admin-status + World ID high-value gate enforced)
-- `GET /api/admin-session`: report whether the session wallet is a recognised operator
-- `POST /api/notify-admin`: admin email (order/referral) or World push, dispatched by payload shape
-- `GET|POST /api/settings`: live fee/operational settings (public read, admin-only write)
-- `GET|POST /api/referral-claims`: referral payout queue (admin read, ownership-checked write)
-- `GET|POST /api/world-id`: World ID high-value verification (status, sign, verify)
-- `GET /api/world-prices`: live WLD/USDC/KES rates (World public feed, Binance/CoinGecko fallback)
-- `GET /api/health`: quick backend health/config check
-
-## Environment Variables
-
-Create env vars from [.env.example](C:/Users/ADMIN/Documents/New%20project/WorldTMpesa/.env.example):
-
-- `APP_ID`: your World mini app id, used for payment verification
-- `DEV_PORTAL_API_KEY`: World Developer Portal API key, used to confirm World payments
-- `BLOB_READ_WRITE_TOKEN`: required Vercel Blob token for the shared admin order queue
-- `RESEND_API_KEY`: optional Resend key for sending admin order notification emails
-- `ORDER_NOTIFICATION_EMAIL`: optional admin email override, defaults to `brianokindo2022@gmail.com`
-- `ORDER_EMAIL_FROM`: optional verified sender, defaults to Resend test sender
-
-## Admin Identity
-
-There is no admin login form, username, or password anywhere in this
-app. Admin access follows the same World App sign-in every user goes
-through — Connect Wallet → World ID → SIWE — and the server
-(`api/_lib/adminAuth.js`) checks the verified session's wallet address
-against `ADMIN_WALLET_ADDRESSES`, a comma-separated allowlist set only
-in Vercel → Project Settings → Environment Variables. An approved
-operator sees the Admin Console appear automatically in Profile after
-signing in normally; everyone else never sees it. `api/orders.js`
-re-checks this same server-side allowlist before accepting a
-"completed" or "rejected" status write — the client never asserts its
-own admin status for anything privileged.
-
-## Run Locally
-
-1. Install dependencies with `npm install`
-2. For frontend-only preview, start the app with `npm run dev`
-3. For full backend testing, run through Vercel so `/api/*` routes are available
-4. Open the deployed URL inside World App when you want to test MiniKit behavior
-
-## GitHub Ready
-
-This folder is prepared to be pushed to GitHub.
-
-- `node_modules` and build output are ignored in [.gitignore](C:/Users/ADMIN/Documents/Codex/2026-04-19-i-need-to-star-a-new/.gitignore)
-- The project root is already cleanly structured for a repo
-- You can initialize git and push as soon as `git` is installed on your machine
-
-### Quick Start With Git
-
-If `git` is available on your machine, run:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit for WorldTMpesa"
-git branch -M main
-git remote add origin <your-github-repo-url>
-git push -u origin main
+```sh
+npm ci
+npm run dev
+npm test
+npm run build
 ```
 
-### Open In Editor
+Vite serves the frontend. Use the connected Vercel project for `/api/*` routes. Opening a local browser does not verify MiniKit commands; those require World App.
 
-If VS Code is installed, you can open the project with:
+## Required deployment configuration
 
-```bash
-code .
-```
+See `.env.example`. Configure the World App ID, Developer Portal API key, a session signing secret, the operator wallet allowlist, and private Upstash Redis credentials. Configure the World ID RP signing key and matching Developer Portal action for high-value trades. High-value orders fail closed if this feature is unavailable.
 
-### GitHub Desktop Option
+Order and World ID records no longer fall back to public Vercel Blob files. Existing public files need an operator-controlled migration and removal; changing this code does not make previously published files private. Redis credentials must be configured before deploying this release.
 
-If you prefer GitHub Desktop:
+Optional operator email and World notification credentials enable delivery of notifications. Notification failure does not mean an order failed to save.
 
-1. Add this folder as an existing repository after running `git init`
-2. Publish the repository to GitHub from GitHub Desktop
-3. Continue syncing changes visually
+## Release status
 
-## Stack
-
-- React
-- React Router
-- Vite
-- MiniKit
-- localStorage
+Code improvements and local checks do not establish World App approval. See `WORLD_MINI_APP_CHECKLIST.md` for configuration, real-device testing, migration, and submission requirements. Production fulfillment and World ID proof generation must be tested with the actual operator setup before release.

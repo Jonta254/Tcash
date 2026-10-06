@@ -1,4 +1,3 @@
-import { list, put } from "@vercel/blob";
 import { signRequest } from "@worldcoin/idkit-core/signing";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -22,16 +21,13 @@ const RP_ID = process.env.WORLD_ID_RP_ID || "rp_db305722e6cdf990";
 const WORLD_VERIFY_URL = `https://developer.world.org/api/v4/verify/${RP_ID}`;
 const WORLD_VERIFY_TIMEOUT_MS = 8000;
 
-// Order store already standardises on Upstash Redis (preferred) with a
-// Vercel Blob fallback — the World ID records use exactly the same two
-// backends so nothing new has to be provisioned.
+// World ID records use the same private Redis store as orders.
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 // hash field `${action}:${nullifier}` -> the wallet that first claimed it.
 const NULLIFIER_KEY = "tmpesa:worldid:nullifiers";
 // hash field wallet -> JSON { nullifier, verifiedAt }.
 const VERIFIED_KEY = "tmpesa:worldid:verified";
-const BLOB_PREFIX = "tmpesa/worldid/";
 
 function getSigningKey() {
   return process.env.WORLD_ID_RP_SIGNING_KEY || process.env.RP_SIGNING_KEY || "";
@@ -46,15 +42,10 @@ function redisConfigured() {
 }
 
 function storeConfigured() {
-  return redisConfigured() || Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return redisConfigured();
 }
 
-// The gate in api/orders.js only activates when this is true. Until the
-// signing key and a store are both configured, high-value orders behave
-// exactly as they did before this feature existed (no gate) — so setting
-// the WORLD_ID_RP_SIGNING_KEY env var is the single switch that turns
-// verification on in production, with no code change or redeploy risk to
-// the existing order flow before then.
+// High-value trades require both a signing key and private record storage.
 export function worldIdVerificationAvailable() {
   return worldIdSigningConfigured() && storeConfigured();
 }
@@ -129,10 +120,6 @@ function normalizeNullifier(nullifier) {
 
 function nullifierField(nullifier) {
   return `${HIGH_VALUE_ACTION}:${normalizeNullifier(nullifier)}`;
-}
-
-function blobSafe(value) {
-  return String(value || "").replace(/[^a-z0-9]+/gi, "").toLowerCase();
 }
 
 /**
@@ -214,35 +201,7 @@ export async function claimNullifierForWallet(nullifier, wallet) {
     return existing === walletId ? { ok: true, idempotent: true } : { ok: false, conflict: true };
   }
 
-  // Blob fallback: put with allowOverwrite:false is our closest primitive to
-  // an atomic insert. On conflict we read the existing record to decide
-  // idempotent-vs-sybil. (Production uses Redis, which is genuinely atomic.)
-  const path = `${BLOB_PREFIX}nullifier-${blobSafe(normalizeNullifier(nullifier))}.json`;
-  const record = JSON.stringify({ wallet: walletId, action: HIGH_VALUE_ACTION });
-
-  try {
-    await put(path, record, {
-      access: "public",
-      allowOverwrite: false,
-      contentType: "application/json",
-    });
-    return { ok: true };
-  } catch {
-    try {
-      const found = await list({ prefix: path, limit: 1 });
-      const blob = found.blobs[0];
-
-      if (blob) {
-        const existing = await fetch(blob.url, { cache: "no-store" }).then((r) => r.json());
-        if (normalizeWallet(existing?.wallet) === walletId) {
-          return { ok: true, idempotent: true };
-        }
-      }
-    } catch {
-      // fall through to conflict
-    }
-    return { ok: false, conflict: true };
-  }
+  throw new Error("Private verification storage is unavailable.");
 }
 
 export async function markWalletVerified(wallet, nullifier) {
@@ -257,11 +216,7 @@ export async function markWalletVerified(wallet, nullifier) {
     return;
   }
 
-  await put(`${BLOB_PREFIX}verified-${blobSafe(walletId)}.json`, record, {
-    access: "public",
-    allowOverwrite: true,
-    contentType: "application/json",
-  });
+  throw new Error("Private verification storage is unavailable.");
 }
 
 export async function isWalletVerified(wallet) {
@@ -276,12 +231,7 @@ export async function isWalletVerified(wallet) {
     return Boolean(value);
   }
 
-  try {
-    const found = await list({ prefix: `${BLOB_PREFIX}verified-${blobSafe(walletId)}.json`, limit: 1 });
-    return found.blobs.length > 0;
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 /**

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
+import QuoteDetails from "../../components/orders/QuoteDetails";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
@@ -28,6 +29,8 @@ function BuyPage() {
     currentOrder,
     error, setError,
     kesAmount,
+    feeKesAmount, exchangeRate,
+    grossKesAmount,
     buyKesMin, buyKesMax,
     placeOrder, markAsPaid,
     supportedAssets,
@@ -129,17 +132,9 @@ function BuyPage() {
             </div>
           )}
 
-          <div className="trade-summary-box trade-summary-compact">
-            <div className="tsb-row">
-              <span>You pay</span>
-              <strong>{formatKES(kesAmount)}</strong>
-            </div>
-            <div className="tsb-row tsb-row-receive">
-              <span>You receive</span>
-              <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
-            </div>
-            <p className="tsb-note">Tcash fee included · Manual review required</p>
-          </div>
+          <QuoteDetails type="buy" asset={asset}
+            amount={quotedCryptoAmount}
+            gross={grossKesAmount} fee={feeKesAmount} total={kesAmount} rate={exchangeRate} />
 
           {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput && (
             <div className="notice">
@@ -153,7 +148,7 @@ function BuyPage() {
             onClick={handleCreateBuyOrder}
             disabled={orderCreating || verifyStarting || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
           >
-            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Confirm buy order"}
+            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Review buy order"}
           </button>
         </section>
       </div>
@@ -170,7 +165,7 @@ function BuyPage() {
           amountLabel="You paid"
           amountValue={formatKES(currentOrder.kesAmount)}
           reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
-          shareText={`Tcash receipt — bought ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
+          shareText={`Tcash order — submitted a buy of ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
           onNewTrade={resetFlow}
           lines={[
             { label: "Order type", value: `Buy ${currentOrder.asset}` },
@@ -196,7 +191,7 @@ function BuyPage() {
             <div className="opb-body">
               <strong>One step left</strong>
               <span>
-                Pay via M-Pesa below and submit the code to confirm — the order is saved only once you do.
+                Pay via M-Pesa below and submit the code to confirm — your order is already saved so you can return to it in History.
               </span>
             </div>
           </div>
@@ -211,6 +206,9 @@ function BuyPage() {
           </div>
         </div>
 
+        <QuoteDetails type="buy" asset={currentOrder.asset} amount={currentOrder.cryptoAmount}
+          gross={currentOrder.grossKesAmount} fee={currentOrder.feeKesAmount} total={currentOrder.kesAmount}
+          rate={currentOrder.grossKesAmount / currentOrder.cryptoAmount} />
         <div className="stack">
           <div className="payment-card payment-instructions-card">
             <span className="pic-label">Pay via M-Pesa PayBill</span>
@@ -218,9 +216,9 @@ function BuyPage() {
 
             <div className="copy-detail-list">
               {[
-                { label: "PayBill", value: settings.mpesaPaybillNumber },
-                { label: "Account", value: settings.mpesaAccountNumber },
-                { label: "Name",    value: settings.mpesaTillName },
+                { label: "PayBill", value: currentOrder.mpesaPaybillNumber || settings.mpesaPaybillNumber },
+                { label: "Account", value: currentOrder.mpesaAccountNumber || settings.mpesaAccountNumber },
+                { label: "Name",    value: currentOrder.mpesaTillName || settings.mpesaTillName },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <span>{label}</span>
@@ -262,7 +260,7 @@ function BuyPage() {
             label="Hold to submit payment"
             holdingLabel="Keep holding…"
             disabled={!paymentReference.trim()}
-            onConfirm={() => { tenderHaptics.send(); markAsPaid(paymentReference); }}
+            onConfirm={async () => { tenderHaptics.send(); await markAsPaid(paymentReference); }}
           />
         </div>
       </section>

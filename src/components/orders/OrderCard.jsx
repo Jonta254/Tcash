@@ -77,6 +77,7 @@ function OrderCard({ order, children }) {
               <span>{order.type === "sell" ? "KES payout" : "KES to pay"}</span>
               <strong>{formatKES(order.kesAmount)}</strong>
             </div>
+            <div className="tdr-receipt-line"><span>Tcash fee</span><strong>{formatKES(order.feeKesAmount)}</strong></div>
             <div className="tdr-receipt-line">
               <span>Asset</span>
               <strong>{formatCryptoAmount(order.cryptoAmount)} {order.asset}</strong>

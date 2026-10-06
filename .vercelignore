@@ -5,3 +5,4 @@
 # 12-function-per-deployment ceiling (this is exactly what broke the
 # deploy that added api/settings.test.js and api/referral-claims.test.js).
 **/*.test.js
+.test-temp/

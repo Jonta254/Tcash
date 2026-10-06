@@ -21,6 +21,7 @@ function LoginPage() {
   const searchParams = new URLSearchParams(location.search);
   const settings = useAppSettings();
   const worldApp = getWorldAppContext();
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [worldLoading, setWorldLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState("");
@@ -70,6 +71,7 @@ function LoginPage() {
   }, [navigate, targetPath]);
 
   const handleWorldAppLogin = async () => {
+    if (!consent || worldLoading) return;
     setError("");
     setWorldLoading(true);
     setAuthStage("wallet");
@@ -121,7 +123,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="page-bg">
+    <div className="page-bg tcash-auth-page">
       <div className="tdr-login page-enter">
         <span className="tdr-login-kicker">World mini app</span>
 
@@ -135,24 +137,33 @@ function LoginPage() {
 
         <h1 className="tdr-login-word">Tcash</h1>
         <p className="tdr-login-copy">
-          The bridge between your World wallet and M-Pesa. One tap, a human review, your money.
+          Buy WLD or USDC with M-Pesa. Sell to receive Kenyan shillings. Every payment is reviewed by an operator.
         </p>
 
         {error ? <p className="tdr-login-error">{error}</p> : null}
         {authStatus ? <p className="tdr-login-status">{authStatus}</p> : null}
 
+        <div className="tcash-entry-details" aria-label="How Tcash works">
+          <div><span>01</span><p>See the amount and fee before paying.</p></div>
+          <div><span>02</span><p>Approve crypto payments in World App.</p></div>
+          <div><span>03</span><p>Follow your order through to settlement.</p></div>
+        </div>
+        <label className="tcash-consent">
+          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />
+          <span>I am 18 or older, accept the <a href="/terms.html" target="_blank" rel="noreferrer">terms</a>, and agree to Tcash storing my wallet details and order information as described in the <a href="/privacy.html" target="_blank" rel="noreferrer">privacy policy</a>.</span>
+        </label>
         <div className="tdr-login-actions">
           <button
             type="button"
             className="tdr-login-cta"
             onClick={handleWorldAppLogin}
-            disabled={!worldApp.isInstalled || worldLoading}
+            disabled={!consent || !worldApp.isInstalled || worldLoading}
           >
             {worldLoading ? "Opening World approval…" : "Continue with World App"}
           </button>
 
           {worldApp.isInstalled ? (
-            <span className="tdr-login-hint">Tcash opens your wallet session automatically.</span>
+            <span className="tdr-login-hint">Approve wallet sign-in to continue. Tcash never asks for your PIN or recovery phrase.</span>
           ) : settings.worldAppId ? (
             <a
               className="tdr-login-fallback"
@@ -166,6 +177,8 @@ function LoginPage() {
             <span className="tdr-login-hint">Wallet Auth only works inside World App.</span>
           )}
         </div>
+        <p className="tcash-entry-note">Available for M-Pesa settlement in Kenya. Tcash is independently operated.</p>
+        <a className="tdr-login-fallback" href="mailto:brianokindo2022@gmail.com">Contact Tcash support</a>
       </div>
     </div>
   );

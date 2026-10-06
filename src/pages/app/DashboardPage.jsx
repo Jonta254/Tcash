@@ -181,7 +181,7 @@ export default function DashboardPage() {
     if (!user?.walletAddress)                             return "Connect World wallet";
     if (wltRefreshing || (walletLoading && !hasBalances)) return "Syncing…";
     if (walletError && !hasBalances)                      return "Sync failed · tap ↻";
-    return "Portfolio in KES";
+    return "Estimated wallet value · not a cash balance";
   }, [hasBalances, user?.walletAddress, walletError, walletLoading, wltRefreshing]);
 
   const assetAmt = useCallback(entry => {
@@ -192,7 +192,7 @@ export default function DashboardPage() {
   }, [user?.walletAddress, walletLoading]);
 
   // Two labelled columns, one row per asset: "Holdings" on the left (what you
-  // own, and what it's worth), "Live rates" on the right (what one coin costs
+  // own, and what it's worth), "Market rates" on the right (what one coin costs
   // right now). The old three-column "bridge" put the rate directly under the
   // balance with no separation, so "@ KES 50.29" read as the holding's value,
   // and its right column ("Settles as KES") only repeated the hero figure's
@@ -235,7 +235,7 @@ export default function DashboardPage() {
           {hasWorld && (
             <span className="tdr-trust-verified tdr-trust-verified-stamp">
               <Icon name="check" size={11} strokeWidth={2.1} />
-              World verified
+              Wallet connected
             </span>
           )}
         </div>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
             aria-label="Refresh live rates"
           >
             <span className={mktRefreshing ? "" : "tdr-hold-dot"} />
-            {mktRefreshing ? "Updating" : "Live rates"}
+            {mktRefreshing ? "Updating" : "Market rates"}
             <span className={mktRefreshing ? "spin" : ""}>
               <Icon name="refresh" size={12} strokeWidth={2} />
             </span>
@@ -346,6 +346,12 @@ export default function DashboardPage() {
           <Link to="/orders" className="tdr-home-util-link">History</Link>
         </div>
       </div>
+
+      <aside className="tcash-desk-note">
+        <strong>From your wallet to everyday money.</strong>
+        <p>Kenya · M-Pesa settlement · Operator reviewed</p>
+        <Link to="/support">How settlement works →</Link>
+      </aside>
 
       {/* ── setup nudge (only when M-Pesa number missing) ────────── */}
       {!user?.isAdmin && !user?.mpesaPhoneNumber && (

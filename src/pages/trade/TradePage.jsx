@@ -16,6 +16,7 @@ function TradePage() {
     tenderHaptics.select();
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", tab);
+    nextParams.delete("order");
     setSearchParams(nextParams, { replace: true });
   };
 
@@ -42,7 +43,7 @@ function TradePage() {
         </button>
       </nav>
 
-      {activeTab === "buy" ? <BuyPage /> : <SellPage />}
+      {activeTab === "buy" ? <BuyPage key={searchParams.get("order") || "new-buy"} /> : <SellPage key={searchParams.get("order") || "new-sell"} />}
     </div>
   );
 }

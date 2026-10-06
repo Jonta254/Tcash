@@ -212,28 +212,13 @@ function AdminPage() {
       });
 
     setOrderQueueError("");
-    // Optimistic update: the admin sees the new status immediately...
-    const updated = updateOrder(order.id, { status }, order, { sync: false });
-    setOrders(resort(getAllOrders()));
-
+    const updated = { ...order, status, updatedAt: new Date().toISOString() };
     try {
-      // Admin is doing this update — no need to re-notify admin; user gets
-      // notified via notifyWorldUserOrderStatus inside updateOrder above.
       await syncOrderToAdminQueue(updated, { notifyAdmin: false });
+      updateOrder(order.id, { status }, order, { sync: false });
     } catch (error) {
-      // ...but if the server rejected it (expired session, network failure,
-      // a replay conflict), the optimistic write above must not stand —
-      // showing "Completed" locally while the shared record still says
-      // "Paid" is exactly the kind of silent lie a financial admin tool
-      // can't afford. Roll the local copy back to what it was before this
-      // action, and say plainly that nothing actually happened.
-      updateOrder(order.id, { status: order.status }, order, { sync: false });
       tenderHaptics.fail();
-      setOrderQueueError(
-        (error instanceof Error ? error.message : "Tcash could not save this status.") +
-          " Nothing was changed — sign in again if your session expired, then retry.",
-      );
-      setOrders(resort(getAllOrders()));
+      setOrderQueueError((error instanceof Error ? error.message : "Tcash could not save this status.") + " Refresh the queue before retrying.");
       return;
     }
 
