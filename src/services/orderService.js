@@ -58,7 +58,17 @@ function mergeOrders(orders) {
 }
 
 export function mergeAdminOrders(remoteOrders = []) {
-  const merged = mergeOrders([...getAllOrders(), ...remoteOrders]);
+  const byId = new Map(getAllOrders().map(order => [order.id, order]));
+  for (const remote of remoteOrders) {
+    const local = byId.get(remote.id);
+    // Remote status and quote are authoritative. Preserve only an unsynced
+    // command result so a lost response cannot make the user pay twice.
+    const recovery = remote.status === "pending" && !remote.paymentReference && local?.status === "pending" && local.paymentReference
+      ? { paymentReference: local.paymentReference, paymentMethod: local.paymentMethod, paymentVerificationStatus: local.paymentVerificationStatus }
+      : {};
+    byId.set(remote.id, { ...remote, ...recovery });
+  }
+  const merged = Array.from(byId.values()).sort((first, second) => getOrderTime(second) - getOrderTime(first));
   writeStorage(STORAGE_KEYS.orders, merged);
   return merged;
 }
@@ -119,6 +129,7 @@ export async function backfillExistingOrdersToAdminQueue() {
   }
 
   const result = await syncAdminOrders(pendingOrders, { notifyAdmin: false });
+  if (!result?.ok) return result;
   writeStorage(ORDER_BACKFILL_STATE_KEY, {
     signature,
     syncedAt: Date.now(),
@@ -135,11 +146,9 @@ export function getOrdersForCurrentUser() {
     return [];
   }
 
-  if (currentUser.isAdmin) {
-    return orders;
-  }
-
-  return orders.filter((order) => order.userId === currentUser.id);
+  return orders.filter(order => currentUser.walletAddress
+    ? String(order.userWalletAddress || "").toLowerCase() === currentUser.walletAddress.toLowerCase()
+    : order.userId === currentUser.id);
 }
 
 // Build an in-memory draft order. Nothing is persisted, synced, or notified
@@ -189,30 +198,12 @@ export async function commitPaidOrder(draftOrder, changes = {}) {
     updatedAt: new Date().toISOString(),
   };
 
+  // Wait for durable acceptance. Keep the same draft ID on retry so a
+  // dropped response cannot create a second payment or a second order.
+  await syncOrderToAdminQueue(committed, { notifyAdmin: false });
+  const accepted = { ...committed, syncState: "synced" };
   const orders = getAllOrders();
-  const exists = orders.some((order) => order.id === committed.id);
-  writeStorage(
-    STORAGE_KEYS.orders,
-    exists
-      ? orders.map((order) => (order.id === committed.id ? committed : order))
-      : [committed, ...orders],
-  );
-
-  // Push to the shared admin queue (notifyAdmin:false — notifyAdminOrderCreated
-  // below is the single admin notification path). Tolerant of a *transient*
-  // failure (network drop, server hiccup) — the boot-time backfill re-syncs
-  // those. NOT tolerant of a server-explicit rejection (409 = this payment
-  // reference is already used on a different order; 403 = blocked) — those
-  // will never succeed on retry, and silently swallowing one would show the
-  // user a success receipt for an order the admin will never actually see.
-  try {
-    await syncOrderToAdminQueue(committed, { notifyAdmin: false });
-  } catch (error) {
-    if (error?.status === 409 || error?.status === 403) {
-      throw error;
-    }
-    // Transient — saved locally, backfill retries on next app open.
-  }
+  writeStorage(STORAGE_KEYS.orders, [accepted, ...orders.filter(order => order.id !== accepted.id)]);
   void notifyAdminOrderCreated(committed).catch(() => null);
   void notifyWorldUserOrderCreated(committed).catch(() => null);
   return committed;

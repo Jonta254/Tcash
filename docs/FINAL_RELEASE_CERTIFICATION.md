@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Final Release Certification
 
 This is the closing pass before release. It does not re-derive what

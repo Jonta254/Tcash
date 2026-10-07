@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Validation Report
 
 **Read this line before any other:** this report does not contain

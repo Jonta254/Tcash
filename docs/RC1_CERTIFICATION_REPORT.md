@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Release Candidate 1 (RC1) Certification Report
 
 This is a certification pass, not a redesign pass. Nothing in the

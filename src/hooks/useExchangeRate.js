@@ -35,7 +35,7 @@ function useLiveRateState() {
               };
             }
 
-            return current;
+            return {};
           });
         }
       }

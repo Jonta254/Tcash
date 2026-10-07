@@ -1,20 +1,14 @@
 {
   "name": "Tcash",
   "short_name": "Tcash",
-  "description": "Buy and sell WLD or USDC and cash out to mobile money fast, with every order reviewed by a real person.",
+  "description": "Buy and sell WLD or USDC with M-Pesa in Kenya. Every payment is reviewed by an operator.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#15130f",
-  "theme_color": "#15130f",
+  "background_color": "#f7f3ea",
+  "theme_color": "#f7f3ea",
   "icons": [
     {
       "src": "/tcash-logo.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/tcash-card.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"

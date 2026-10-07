@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Experience Completion Report
 
 This builds on, and doesn't repeat, the prior reports in this folder —

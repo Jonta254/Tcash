@@ -130,7 +130,9 @@ export async function syncAdminOrders(orders, options = {}) {
     throw new Error("Tcash could not sync orders to admin.");
   });
 
-  return readJsonResponse(response);
+  const payload = await readJsonResponse(response);
+  if (!payload?.ok) throw new Error(payload?.message || payload?.error || "The order desk is unavailable. Contact support before paying.");
+  return payload;
 }
 
 // World ID high-value verification. Status tells the client whether the

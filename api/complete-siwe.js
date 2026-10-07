@@ -1,5 +1,5 @@
 import { verifySiweMessage } from "@worldcoin/minikit-js";
-import { parseCookies, serializeCookie } from "./_lib/cookies.js";
+import { serializeCookie } from "./_lib/cookies.js";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { logEvent, logSecurityEvent } from "./_lib/log.js";
 import {
@@ -7,16 +7,27 @@ import {
   USER_SESSION_COOKIE,
   USER_SESSION_MAX_AGE,
 } from "./_lib/userSession.js";
-import { isValidSignedServerNonce } from "./_lib/world.js";
+import { claimSiweNonce, isValidSignedServerNonce } from "./_lib/world.js";
+import { isTrustedOrigin } from "./_lib/csrf.js";
 
 export default async function handler(req, res) {
-  if (!allowMethods(req, res, ["POST"])) {
+  if (!allowMethods(req, res, ["POST", "DELETE"])) {
+    return;
+  }
+  if (req.method === "DELETE") {
+    if (!isTrustedOrigin(req)) {
+      sendJson(res, 403, { ok: false, error: "Request origin could not be verified." });
+      return;
+    }
+    res.setHeader("Set-Cookie", [USER_SESSION_COOKIE, "tmpesa_siwe", "tmpesa_payment_reference"].map(name =>
+      serializeCookie(name, "", { maxAge: 0, sameSite: "None", secure: true }),
+    ));
+    sendJson(res, 200, { ok: true });
     return;
   }
 
   try {
     const { payload, nonce, nonceSignature } = await readJsonBody(req);
-    const cookies = parseCookies(req);
 
     if (!payload?.signature || !payload?.message) {
       sendJson(res, 400, {
@@ -26,10 +37,9 @@ export default async function handler(req, res) {
       return;
     }
 
-    const cookieMatches = nonce && nonce === cookies.tmpesa_siwe;
     const signedNonceMatches = isValidSignedServerNonce(nonce, nonceSignature);
 
-    if (!cookieMatches && !signedNonceMatches) {
+    if (!signedNonceMatches) {
       logSecurityEvent("siwe.nonce_mismatch", {});
       sendJson(res, 400, {
         isValid: false,
@@ -58,6 +68,10 @@ export default async function handler(req, res) {
     // existence for a regular user — every other endpoint that needs to
     // know "who is this" reads the signed cookie set here, never a
     // client-supplied walletAddress/userId field.
+    if (!(await claimSiweNonce(nonce))) {
+      sendJson(res, 400, { isValid: false, error: "This sign-in request was already used. Start sign-in again." });
+      return;
+    }
     const sessionToken = createUserSessionToken(verifiedAddress);
     const setUserSessionCookie = serializeCookie(USER_SESSION_COOKIE, sessionToken, {
       maxAge: USER_SESSION_MAX_AGE,

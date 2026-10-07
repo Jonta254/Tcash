@@ -25,11 +25,11 @@ function Receipt({ title, leadCopy, amountLabel, amountValue, lines, reference, 
     <div className="tdr-receipt">
       <div className="tdr-receipt-head">
         <span className="tdr-receipt-mark">Tcash</span>
-        <span className="tdr-receipt-kicker">Settlement receipt</span>
+        <span className="tdr-receipt-kicker">Awaiting settlement</span>
       </div>
 
       <div className="tdr-receipt-stamp" aria-hidden="true">
-        <Icon name="check" size={34} strokeWidth={1.7} />
+        <Icon name="history" size={34} strokeWidth={1.7} />
       </div>
 
       <h2 className="tdr-receipt-title">{title}</h2>
@@ -63,7 +63,7 @@ function Receipt({ title, leadCopy, amountLabel, amountValue, lines, reference, 
 
       <div className="tdr-receipt-actions">
         <button type="button" className="button-secondary" onClick={handleShare}>
-          Share receipt
+          Share order details
         </button>
         <Link to="/orders" className="button">
           View in History

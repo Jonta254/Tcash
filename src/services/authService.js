@@ -159,8 +159,8 @@ export function loginUser({ phone, password }) {
 
 export function loginWithWorldApp(profile, changes = {}) {
   const users = getUsers();
-  const existingUser = findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
-  const isWorldAdmin = isConfiguredWorldAdmin(profile) || existingUser?.isAdmin;
+  const existingUser = findUserByWalletAddress(profile.walletAddress);
+  const isWorldAdmin = isConfiguredWorldAdmin(profile);
   const user = {
     id: existingUser?.id || crypto.randomUUID(),
     fullName: profile.fullName || profile.username || "World App user",
@@ -206,6 +206,10 @@ export function updateCurrentUserProfile(changes) {
   return nextUser;
 }
 
-export function logoutUser() {
+export async function logoutUser() {
+  const response = await fetch("/api/complete-siwe", {
+    method: "DELETE", credentials: "include", signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error("Could not end your session. Reconnect and try signing out again.");
   removeStorage(STORAGE_KEYS.currentUser);
 }

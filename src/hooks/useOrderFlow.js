@@ -1,3 +1,4 @@
+import { normalizeKenyanPhone, validMpesaCode } from "../services/tradeValidation";
 import { useMemo, useState } from "react";
 import {
   APP_CONFIG,
@@ -7,6 +8,9 @@ import {
   commitPaidOrder,
   getCurrentUser,
   updateCurrentUserProfile,
+  syncOrderToAdminQueue,
+  mergeAdminOrders,
+  getOrdersForCurrentUser,
 } from "../services";
 import { useAppSettings } from "./useAppSettings";
 import { useExchangeRate } from "./useExchangeRate";
@@ -14,7 +18,9 @@ import { useExchangeRate } from "./useExchangeRate";
 export function useOrderFlow(type, initialAsset = "WLD") {
   const currentUser = getCurrentUser();
   const settings = useAppSettings();
-  const [asset, setAsset] = useState(initialAsset);
+  const resumeId = new URLSearchParams(window.location.search).get("order");
+  const resumed = getOrdersForCurrentUser().find(order => order.id === resumeId && order.type === type && ["pending", "paid"].includes(order.status));
+  const [asset, setAsset] = useState(resumed?.asset || initialAsset);
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [buyKesInput, setBuyKesInput] = useState("");
   const [walletAddress, setWalletAddress] = useState(() => currentUser?.walletAddress || "");
@@ -22,8 +28,8 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     () => currentUser?.mpesaPhoneNumber || currentUser?.phone || "",
   );
   const [paymentReference, setPaymentReference] = useState("");
-  const [step, setStep] = useState(1);
-  const [currentOrder, setCurrentOrder] = useState(null);
+  const [step, setStep] = useState(resumed ? (resumed.status === "paid" ? 3 : 2) : 1);
+  const [currentOrder, setCurrentOrder] = useState(resumed || null);
   const [error, setError] = useState("");
   const exchangeRate = useExchangeRate(asset);
   const usdcExchangeRate = useExchangeRate("USDC");
@@ -113,6 +119,14 @@ export function useOrderFlow(type, initialAsset = "WLD") {
   const placeOrder = async () => {
     setError("");
 
+    if (!Number.isFinite(exchangeRate) || exchangeRate <= 0 || !Number.isFinite(quotedCryptoAmount) || !Number.isFinite(kesAmount) || kesAmount <= 0) {
+      setError("A valid market quote is unavailable. Refresh the rates before continuing.");
+      return null;
+    }
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setError("Reconnect to the internet before starting a payment.");
+      return null;
+    }
     if (type === "buy" && (!buyKesInput || parsedBuyKesAmount <= 0)) {
       setError("Enter a valid KES amount before placing your order.");
       return null;
@@ -141,8 +155,8 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       return null;
     }
 
-    if (type === "sell" && !payoutPhoneNumber.trim()) {
-      setError("Enter the M-Pesa phone number that should receive your KES payout.");
+    if (type === "sell" && !normalizeKenyanPhone(payoutPhoneNumber)) {
+      setError("Enter a Kenyan M-Pesa number, such as 0712345678 or +254712345678.");
       return null;
     }
 
@@ -151,8 +165,7 @@ export function useOrderFlow(type, initialAsset = "WLD") {
     }
 
     try {
-      // Draft only — not saved or sent to admin until the user completes
-      // payment (markAsPaid / World Pay send). Abandoning here saves nothing.
+      // Reserve a server-priced pending order before revealing payment details.
       const order = buildDraftOrder({
         type,
         asset,
@@ -162,13 +175,17 @@ export function useOrderFlow(type, initialAsset = "WLD") {
         feeKesAmount,
         feePerCoinKes,
         walletAddress: walletAddress.trim(),
-        payoutPhoneNumber: payoutPhoneNumber.trim(),
+        payoutPhoneNumber: normalizeKenyanPhone(payoutPhoneNumber) || "",
         destinationUsername: currentUser?.username || "",
       });
 
-      setCurrentOrder(order);
+      const result = await syncOrderToAdminQueue(order, { notifyAdmin: false });
+      const saved = result.orders?.find(entry => entry.id === order.id);
+      if (!saved) throw new Error("The order desk did not return a saved quote. Try again before paying.");
+      mergeAdminOrders([saved]);
+      setCurrentOrder(saved);
       setStep(2);
-      return order;
+      return saved;
     } catch (nextError) {
       setError(
         nextError instanceof Error
@@ -196,15 +213,18 @@ export function useOrderFlow(type, initialAsset = "WLD") {
       return null;
     }
 
+    if (type === "buy" && !validMpesaCode(nextReference)) {
+      setError("Enter the 10-character transaction code from your M-Pesa confirmation SMS.");
+      return null;
+    }
+    if (type === "sell" && !/^0x[a-fA-F0-9]{64}$/.test(nextReference.trim())) {
+      setError("Enter the complete blockchain transaction hash (0x followed by 64 characters).");
+      return null;
+    }
     const formattedReference =
       type === "buy" ? nextReference.trim().toUpperCase() : nextReference.trim();
 
-    // Order is complete now — this is the first time it's stored and admin is
-    // notified. commitPaidOrder is tolerant of a transient sync failure
-    // (backfill re-syncs on next app open) but throws on a server-explicit
-    // rejection (duplicate payment reference, blocked request) — that must
-    // never advance to the success receipt, since the admin will never
-    // actually see this order.
+    // Acknowledge only after durable server acceptance. Keep this same order on retry.
     let updated;
     try {
       updated = await commitPaidOrder(currentOrder, {

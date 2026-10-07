@@ -1,3 +1,4 @@
+import { normalizeKenyanPhone } from "../../services/tradeValidation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
@@ -12,10 +13,10 @@ import {
   formatKES,
   getCurrentUser,
   getOrdersForCurrentUser,
-  getReferralSummary,
+  buildWorldAppDeeplink,
+  fetchSharedAdminOrders,
   getWorldWalletPortfolio,
   haptic,
-  markReferralShared,
   shareMiniAppInvite,
   tenderHaptics,
   updateCurrentUserProfile,
@@ -55,19 +56,21 @@ export default function DashboardPage() {
   const [walletError,     setWalletError]     = useState("");
   const [mktRefreshing,   setMktRefreshing]   = useState(false);
   const [wltRefreshing,   setWltRefreshing]   = useState(false);
-  const [referralSummary, setReferralSummary] = useState(() => getReferralSummary(initialUser));
-  const [referralMsg,     setReferralMsg]     = useState("");
+  const [recentOrders, setRecentOrders] = useState(() => getOrdersForCurrentUser().slice(0, 2));
+  const [rateError, setRateError] = useState("");
+  const [historyError, setHistoryError] = useState("");
+  const [shareMessage,     setShareMessage]     = useState("");
   const liveRates = useExchangeRates();
 
-  // max 2 orders — keeps home compact
-  const recentOrders = useMemo(
-    () => getOrdersForCurrentUser()
-      .slice()
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 2),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user],
-  );
+  useEffect(() => {
+    let active = true;
+    fetchSharedAdminOrders().then((payload) => {
+      if (!active) return;
+      setRecentOrders(getOrdersForCurrentUser().slice(0, 2));
+      if (!payload?.ok) setHistoryError("History could not refresh. Open History to try again.");
+    }).catch(() => { if (active) setHistoryError("History could not refresh. Open History to try again."); });
+    return () => { active = false; };
+  }, []);
 
   const mktRates = useMemo(() => [
     { asset: "WLD",  kes: Number(liveRates?.WLD)  || 0 },
@@ -105,28 +108,20 @@ export default function DashboardPage() {
       setWalletPortfolio(await getWorldWalletPortfolio(user.walletAddress));
     } catch (e) {
       const cached = getCachedWorldWalletPortfolio(user.walletAddress);
-      if (cached.assets.length) setWalletPortfolio(cached);
+      if (cached.assets.length) { setWalletPortfolio(cached); setWalletError("Showing saved balances. Refresh to try again."); }
       else {
         setWalletPortfolio({ walletAddress: user.walletAddress, assets: [], supported: true });
-        if (showErrors) setWalletError(e instanceof Error ? e.message : "Unable to refresh.");
+        setWalletError("Wallet balances are unavailable. Refresh to try again.");
       }
     } finally { setWalletLoading(false); }
   }, [user?.walletAddress]);
 
   useEffect(() => { loadPortfolio().catch(() => null); }, [loadPortfolio]);
 
-  const normalizePhone = raw => {
-    const c = raw.replace(/[\s-]/g, "");
-    if (/^\+254[17]\d{8}$/.test(c)) return c.slice(1);
-    if (/^254[17]\d{8}$/.test(c))   return `0${c.slice(3)}`;
-    if (/^0[17]\d{8}$/.test(c))     return c;
-    return null;
-  };
-
   const handleSavePhone = () => {
     setProfileErr(""); setProfileMsg("");
     if (!profilePhone.trim()) { setProfileErr("Enter your M-Pesa number."); return; }
-    const n = normalizePhone(profilePhone.trim());
+    const n = normalizeKenyanPhone(profilePhone.trim());
     if (!n) { setProfileErr("Use format 0712345678"); return; }
     setProfilePhone(n);
     setUser(updateCurrentUserProfile({ mpesaPhoneNumber: n }));
@@ -141,12 +136,12 @@ export default function DashboardPage() {
   };
 
   const handleRefreshRates = async () => {
-    setMktRefreshing(true); haptic("light");
+    setMktRefreshing(true); setRateError(""); haptic("light");
     try {
       await fetchWorldMarketRates();
       tenderHaptics.bridgeComplete();
     }
-    catch { /* silent — rates stay cached */ }
+    catch { setRateError("Rates could not refresh. Try again before trading."); }
     finally { setMktRefreshing(false); }
   };
 
@@ -155,13 +150,12 @@ export default function DashboardPage() {
     try {
       await shareMiniAppInvite({
         title: "Join Tcash",
-        text:  `Use code ${referralSummary.code} to trade WLD & USDC with M-Pesa in World App.`,
-        url:   referralSummary.appLink,
+        text: "Buy and sell WLD or USDC with M-Pesa in Kenya.",
+        url: buildWorldAppDeeplink("/login"),
       });
-      setReferralSummary(markReferralShared(user));
-      setReferralMsg("Shared!");
-      setTimeout(() => setReferralMsg(""), 2500);
-    } catch { /* silent */ }
+      setShareMessage("Shared!");
+      setTimeout(() => setShareMessage(""), 2500);
+    } catch { setShareMessage("Sharing did not open. Try again."); }
   };
 
   // The hero figure is a real number only once we have a wallet and
@@ -170,7 +164,7 @@ export default function DashboardPage() {
   // render) and show it only in the real branch — the first meaningful
   // value snaps, later refreshes roll (see useAnimatedNumber).
   const showBalanceFigure =
-    Boolean(user?.walletAddress) && (hasLiveRates || hasBalances);
+    Boolean(user?.walletAddress) && hasLiveRates && walletPortfolio.assets.length > 0;
   const animatedTotal = useAnimatedNumber(showBalanceFigure ? walletBoard.totalKes : 0, {
     countUpOnFirst: true,
     duration: 700,
@@ -181,18 +175,17 @@ export default function DashboardPage() {
     if (!user?.walletAddress)                             return "Connect World wallet";
     if (wltRefreshing || (walletLoading && !hasBalances)) return "Syncing…";
     if (walletError && !hasBalances)                      return "Sync failed · tap ↻";
-    return "Portfolio in KES";
+    return "Estimated wallet value · not a cash balance";
   }, [hasBalances, user?.walletAddress, walletError, walletLoading, wltRefreshing]);
 
   const assetAmt = useCallback(entry => {
     // 2 dp on the home chip so the balance never clips beside the live rate.
     if (entry) return formatCryptoAmount(entry.formattedBalance, 2);
-    if (!user?.walletAddress || walletLoading) return "—";
-    return "0";
+    return "—";
   }, [user?.walletAddress, walletLoading]);
 
   // Two labelled columns, one row per asset: "Holdings" on the left (what you
-  // own, and what it's worth), "Live rates" on the right (what one coin costs
+  // own, and what it's worth), "Market rates" on the right (what one coin costs
   // right now). The old three-column "bridge" put the rate directly under the
   // balance with no separation, so "@ KES 50.29" read as the holding's value,
   // and its right column ("Settles as KES") only repeated the hero figure's
@@ -227,6 +220,7 @@ export default function DashboardPage() {
 
   return (
     <div className="tdr-home page-enter">
+      <h1 className="sr-only">Tcash home</h1>
 
       {/* ── identity ─────────────────────────────────────────── */}
       <div className="tdr-home-topline">
@@ -235,7 +229,7 @@ export default function DashboardPage() {
           {hasWorld && (
             <span className="tdr-trust-verified tdr-trust-verified-stamp">
               <Icon name="check" size={11} strokeWidth={2.1} />
-              World verified
+              Wallet connected
             </span>
           )}
         </div>
@@ -247,7 +241,7 @@ export default function DashboardPage() {
         <p className="tdr-home-greeting">{greeting}{displayName ? `, ${displayName}` : ""}</p>
         <div className="tdr-home-balance-row">
           <strong className="tdr-home-balance-num">{balanceLabel}</strong>
-          <button type="button" className="tdr-home-refresh" onClick={handleRefreshWallet} aria-label="Refresh balance">
+          <button type="button" className="tdr-home-refresh" onClick={handleRefreshWallet} aria-label="Refresh balance" disabled={wltRefreshing}>
             <span className={wltRefreshing ? "spin" : ""}><Icon name="refresh" size={13} strokeWidth={2} /></span>
           </button>
         </div>
@@ -255,7 +249,7 @@ export default function DashboardPage() {
           <span>{balanceSub}</span>
           <Link to="/wallet">Wallet →</Link>
         </div>
-        {walletError && !hasBalances && <p className="tdr-login-error" style={{ marginTop: 6 }}>{walletError}</p>}
+        {walletError && <p className="tdr-login-error" style={{ marginTop: 6 }}>{walletError}</p>}
       </div>
 
       {/* ── holdings: balance, live unit price, and KES value per asset ── */}
@@ -267,9 +261,10 @@ export default function DashboardPage() {
             className="tdr-hold-live"
             onClick={handleRefreshRates}
             aria-label="Refresh live rates"
+            disabled={mktRefreshing}
           >
             <span className={mktRefreshing ? "" : "tdr-hold-dot"} />
-            {mktRefreshing ? "Updating" : "Live rates"}
+            {mktRefreshing ? "Updating" : hasLiveRates ? "Market rates" : "Rates unavailable"}
             <span className={mktRefreshing ? "spin" : ""}>
               <Icon name="refresh" size={12} strokeWidth={2} />
             </span>
@@ -347,6 +342,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <aside className="tcash-desk-note">
+        <strong>A local desk, with a record of every trade.</strong>
+        <p>Kenya · M-Pesa settlement · Operator reviewed</p>
+        <Link to="/support">How settlement works →</Link>
+      </aside>
+
       {/* ── setup nudge (only when M-Pesa number missing) ────────── */}
       {!user?.isAdmin && !user?.mpesaPhoneNumber && (
         <section className="tdr-home-nudge">
@@ -400,17 +401,17 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <p className="tdr-home-empty">No orders yet. Buy or sell to start your history.</p>
+          <p className="tdr-home-empty">{historyError || "No orders yet. Buy or sell to start your history."}</p>
         )}
       </section>
 
       {/* ── invite — one quiet line, not a competing card ────────── */}
       <div className="tdr-home-invite">
         <span className="tdr-home-invite-copy">
-          Invite a friend · code <span className="tdr-home-invite-code">{referralSummary.code}</span>
+          Know someone who uses M-Pesa?
         </span>
-        {referralMsg
-          ? <span className="tdr-home-invite-copy" style={{ color: "var(--success)" }}>{referralMsg}</span>
+        {shareMessage
+          ? <span className="tdr-home-invite-copy" style={{ color: "var(--success)" }}>{shareMessage}</span>
           : <button type="button" className="tdr-home-invite-action" onClick={handleShare}>Share</button>}
       </div>
 

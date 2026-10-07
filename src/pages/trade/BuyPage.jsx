@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
+import QuoteDetails from "../../components/orders/QuoteDetails";
 import Receipt from "../../components/receipt/Receipt";
 import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
@@ -12,10 +12,8 @@ import { formatCryptoAmount, formatKES, getCurrentUser, haptic, tenderHaptics } 
 function BuyPage() {
   const settings     = useAppSettings();
   const currentUser  = getCurrentUser();
-  const navigate     = useNavigate();
   const [copiedValue,    setCopiedValue]    = useState("");
   const [orderCreating,  setOrderCreating]  = useState(false);
-  const [orderJustPlaced, setOrderJustPlaced] = useState(false);
 
   const {
     asset, setAsset,
@@ -28,6 +26,8 @@ function BuyPage() {
     currentOrder,
     error, setError,
     kesAmount,
+    feeKesAmount, exchangeRate,
+    grossKesAmount,
     buyKesMin, buyKesMax,
     placeOrder, markAsPaid,
     supportedAssets,
@@ -51,7 +51,6 @@ function BuyPage() {
       const order = await placeOrder();
       if (order) {
         tenderHaptics.commit();
-        setOrderJustPlaced(true);
       }
       setOrderCreating(false);
     });
@@ -60,7 +59,7 @@ function BuyPage() {
   const resetFlow = () => {
     setStep(1);
     setCurrentOrder(null);
-    setOrderJustPlaced(false);
+
     setError("");
     setBuyKesInput("");
     setPaymentReference("");
@@ -84,16 +83,16 @@ function BuyPage() {
     return (
       <div className="content-grid">
         <section className="panel stack task-panel trade-panel-compact">
-          {error && <div className="error">{error}</div>}
+          {error && <div className="error" role="alert">{error}</div>}
           {verifyError && <div className="error">{verifyError}</div>}
           {worldIdWidget}
 
           {(currentUser?.walletAddress || currentUser?.username) && (
-            <div className="trade-dest-strip">
+          <div className="trade-dest-strip">
               <span className="tds-icon" aria-hidden="true"><Icon name="arrowDown" size={16} strokeWidth={2.1} /></span>
               <div className="tds-text">
                 <strong>{currentUser?.username ? `@${currentUser.username}` : "Wallet connected"}</strong>
-                <span>Crypto delivered here after admin review</span>
+                <span>Crypto delivered here after operator review</span>
               </div>
             </div>
           )}
@@ -129,17 +128,9 @@ function BuyPage() {
             </div>
           )}
 
-          <div className="trade-summary-box trade-summary-compact">
-            <div className="tsb-row">
-              <span>You pay</span>
-              <strong>{formatKES(kesAmount)}</strong>
-            </div>
-            <div className="tsb-row tsb-row-receive">
-              <span>You receive</span>
-              <strong>{quotedCryptoAmount ? `${formatCryptoAmount(quotedCryptoAmount)} ${asset}` : `0 ${asset}`}</strong>
-            </div>
-            <p className="tsb-note">Tcash fee included · Manual review required</p>
-          </div>
+          <QuoteDetails type="buy" asset={asset}
+            amount={quotedCryptoAmount}
+            gross={grossKesAmount} fee={feeKesAmount} total={kesAmount} rate={exchangeRate} />
 
           {(kesAmount < buyKesMin || kesAmount > buyKesMax) && buyKesInput && (
             <div className="notice">
@@ -151,9 +142,9 @@ function BuyPage() {
             type="button"
             className="button"
             onClick={handleCreateBuyOrder}
-            disabled={orderCreating || verifyStarting || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
+            disabled={orderCreating || verifyStarting || exchangeRate <= 0 || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
           >
-            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Confirm buy order"}
+            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Review buy order"}
           </button>
         </section>
       </div>
@@ -166,11 +157,11 @@ function BuyPage() {
       <div className="content-grid">
         <Receipt
           title="Payment submitted"
-          leadCopy={`Admin will verify your M-Pesa payment and release ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} to your wallet.`}
-          amountLabel="You paid"
+          leadCopy={`An operator will verify your M-Pesa payment and release ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} to your wallet.`}
+          amountLabel="Amount submitted"
           amountValue={formatKES(currentOrder.kesAmount)}
           reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
-          shareText={`Tcash receipt — bought ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
+          shareText={`Tcash order — submitted a buy of ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
           onNewTrade={resetFlow}
           lines={[
             { label: "Order type", value: `Buy ${currentOrder.asset}` },
@@ -189,19 +180,6 @@ function BuyPage() {
     <div className="content-grid">
       <section className="panel stack task-panel trade-panel-compact">
 
-        {/* Order placed banner */}
-        {orderJustPlaced && currentOrder && (
-          <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true"><Icon name="arrowRight" size={15} strokeWidth={2.4} /></span>
-            <div className="opb-body">
-              <strong>One step left</strong>
-              <span>
-                Pay via M-Pesa below and submit the code to confirm — the order is saved only once you do.
-              </span>
-            </div>
-          </div>
-        )}
-
         {error && <div className="error">{error}</div>}
 
         <div className="page-section-head compact-page-head">
@@ -218,9 +196,9 @@ function BuyPage() {
 
             <div className="copy-detail-list">
               {[
-                { label: "PayBill", value: settings.mpesaPaybillNumber },
-                { label: "Account", value: settings.mpesaAccountNumber },
-                { label: "Name",    value: settings.mpesaTillName },
+                { label: "PayBill", value: currentOrder.mpesaPaybillNumber || settings.mpesaPaybillNumber },
+                { label: "Account", value: currentOrder.mpesaAccountNumber || settings.mpesaAccountNumber },
+                { label: "Name",    value: currentOrder.mpesaTillName || settings.mpesaTillName },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <span>{label}</span>
@@ -228,6 +206,7 @@ function BuyPage() {
                   <button
                     type="button"
                     className="copy-button"
+                    aria-label={`Copy ${label}`}
                     onClick={() => copyValue(label, value)}
                   >
                     {copiedValue === label ? "Copied" : "Copy"}
@@ -235,9 +214,14 @@ function BuyPage() {
                 </div>
               ))}
             </div>
+            <p className="pic-note">Tcash fee included: {formatKES(currentOrder.feeKesAmount)}.</p>
             <p className="pic-note">Pay on M-Pesa, then paste the confirmation code below.</p>
           </div>
 
+
+            <details className="tcash-quote-disclosure"><summary>Saved quote and fee breakdown</summary><QuoteDetails type="buy" asset={currentOrder.asset} amount={currentOrder.cryptoAmount}
+          gross={currentOrder.grossKesAmount} fee={currentOrder.feeKesAmount} total={currentOrder.kesAmount}
+          rate={currentOrder.grossKesAmount / currentOrder.cryptoAmount} /></details>
           <div className="trade-dest-strip">
             <span className="tds-icon" aria-hidden="true"><Icon name="arrowDown" size={16} strokeWidth={2.1} /></span>
             <div className="tds-text">
@@ -253,8 +237,9 @@ function BuyPage() {
             <input
               id="mpesaCode"
               value={paymentReference}
-              onChange={(e) => setPaymentReference(e.target.value)}
-              placeholder="QWE123XYZ"
+              onChange={(e) => setPaymentReference(e.target.value.toUpperCase())}
+              placeholder="ABC123DE45"
+              maxLength={10} autoCapitalize="characters" autoCorrect="off" spellCheck={false}
             />
           </div>
 
@@ -262,7 +247,7 @@ function BuyPage() {
             label="Hold to submit payment"
             holdingLabel="Keep holding…"
             disabled={!paymentReference.trim()}
-            onConfirm={() => { tenderHaptics.send(); markAsPaid(paymentReference); }}
+            onConfirm={async () => { tenderHaptics.send(); await markAsPaid(paymentReference); }}
           />
         </div>
       </section>

@@ -253,7 +253,7 @@ export function buildWorldAppDeeplink(path = "/") {
   return `https://worldcoin.org/mini-app?app_id=${encodeURIComponent(appId)}&path=${encodeURIComponent(normalizedPath)}`;
 }
 
-export async function requestWorldPayment({ amount, asset = "WLD", description, to }) {
+export async function requestWorldPayment({ amount, asset = "WLD", description, to, onSubmitted }) {
   if (!MiniKit.isInstalled()) {
     throw new Error("Open Tcash inside World App to send WLD without leaving the mini app.");
   }
@@ -290,6 +290,7 @@ export async function requestWorldPayment({ amount, asset = "WLD", description, 
     transactionId: data.transactionId || data.transaction_id,
   };
 
+  if (normalizedPayload.transactionId) await onSubmitted?.(normalizedPayload);
   const confirmation = await confirmWorldPayment(normalizedPayload);
 
   return {
@@ -299,6 +300,7 @@ export async function requestWorldPayment({ amount, asset = "WLD", description, 
     timestamp: data.timestamp,
     transactionId: normalizedPayload.transactionId,
     verified: confirmation.verified,
+    submitted: confirmation.submitted,
     transactionStatus: confirmation.transactionStatus,
   };
 }

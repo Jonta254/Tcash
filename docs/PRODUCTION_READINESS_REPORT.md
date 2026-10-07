@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Production Readiness Report
 
 Prepared as a security/QA/release audit. Every finding below was verified by

@@ -135,6 +135,14 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Reward eligibility has no authoritative cross-device attribution yet.
+  // Keep historical claims available to operators, but accept no new user
+  // claims based on self-reported browser counts or reward amounts.
+  if (!isAdmin) {
+    sendJson(res, 403, { ok: false, error: "Referral rewards are not available. Contact support about an existing claim." });
+    return;
+  }
+
   try {
     const payload = await readJsonBody(req);
     const claim = payload.claim;
@@ -163,7 +171,11 @@ export default async function handler(req, res) {
         return;
       }
 
-      const updated = { ...existing, ...claim, updatedAt: new Date().toISOString() };
+      if (existing.status === "paid" && claim.status !== "paid") {
+        sendJson(res, 409, { ok: false, error: "A paid referral claim cannot be reopened." });
+        return;
+      }
+      const updated = { ...existing, status: claim.status, updatedAt: new Date().toISOString() };
       await redisCommand(["HSET", CLAIMS_KEY, claim.id, JSON.stringify(updated)]);
 
       logAdminAction({

@@ -3,6 +3,7 @@ const MAX_BODY_BYTES = 256 * 1024; // 256KB — generous for this app's JSON pay
 export function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json");
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   res.end(JSON.stringify(payload));
 }
 

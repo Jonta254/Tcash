@@ -1,3 +1,4 @@
+import { useAppSettings } from "../../hooks/useAppSettings";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
@@ -10,8 +11,8 @@ const GUIDE_SECTIONS = [
     summary: "How to begin using Tcash",
     points: [
       "Connect your World wallet first so Tcash knows who you are and can keep your account secure.",
-      "Save your M-Pesa payout number in Profile before placing sell orders or claiming referral rewards.",
-      "Use Home to view your KES balance, live WLD and USDC rates, and quick actions.",
+      "Confirm your own M-Pesa number on every sell order. You can save a default number in Profile.",
+      "Home shows your crypto holdings and estimated value in KES. It is not a cash account.",
     ],
   },
   {
@@ -20,7 +21,7 @@ const GUIDE_SECTIONS = [
     summary: "Pay M-Pesa and receive WLD or USDC",
     points: [
       "Open Trade, choose Buy, and enter the KES amount you want to pay.",
-      "Tcash shows the live quote with fee included before you submit the order.",
+      "Review the saved amount, fee, PayBill and account number before paying. M-Pesa may charge separately.",
       "After M-Pesa payment is confirmed, the crypto is sent to your connected World wallet.",
     ],
   },
@@ -31,7 +32,7 @@ const GUIDE_SECTIONS = [
     points: [
       "Open Trade, choose Sell, then enter the crypto amount you want to send.",
       "Tcash shows the live KES payout quote with fee included before submission.",
-      "After manual review, KES is sent to the M-Pesa number saved on your Tcash profile.",
+      "After manual review, KES is sent to the M-Pesa number saved with that order.",
     ],
   },
   {
@@ -40,7 +41,7 @@ const GUIDE_SECTIONS = [
     summary: "What to do if an order is delayed",
     points: [
       "Check the History page first to confirm whether the order is pending, reviewing, or completed.",
-      "Use WhatsApp support for urgent payout or payment follow-up.",
+      "Contact support with the order ID from History. Do not make another payment for the same order.",
       "Use email support for account questions, privacy requests, or detailed order help.",
     ],
   },
@@ -56,6 +57,7 @@ const GUIDE_SECTIONS = [
  */
 function SupportPage() {
   const user = getCurrentUser();
+  const settings = useAppSettings();
   const [openGuideId, setOpenGuideId] = useState("getting-started");
 
   useEffect(() => {
@@ -101,10 +103,10 @@ function SupportPage() {
 
   return (
     <div className="tdr-home page-enter">
-      <h1 className="sr-only">Support — help and direct contact</h1>
+      <h1 className="tcash-page-title">Help and support</h1>
 
       <div>
-        <p className="tdr-home-greeting">Answers, and a direct line when you need one</p>
+        <p className="tdr-home-greeting">Have a question about your order?</p>
       </div>
 
       <section id="guide" className="tdr-home-section">
@@ -123,6 +125,7 @@ function SupportPage() {
                   style={{ width: "100%" }}
                   onClick={() => toggleGuide(section.id)}
                   aria-expanded={isOpen}
+                  aria-controls={`guide-${section.id}`}
                 >
                   <div className="tdr-ledger-mid">
                     <span className="tdr-ledger-title">{section.title}</span>
@@ -134,7 +137,7 @@ function SupportPage() {
                 </button>
 
                 {isOpen ? (
-                  <ul className="tdr-guide-points">
+                  <ul id={`guide-${section.id}`} className="tdr-guide-points">
                     {section.points.map((point) => (
                       <li key={point}>{point}</li>
                     ))}
@@ -165,7 +168,7 @@ function SupportPage() {
             <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="mail" size={13} strokeWidth={1.9} /></span>
             <div className="tdr-ledger-mid">
               <span className="tdr-ledger-title">Email support</span>
-              <span className="tdr-ledger-date">Account questions, order help, privacy issues</span>
+              <span className="tdr-ledger-date">{settings.supportEmail}</span>
             </div>
           </button>
           <button
@@ -196,7 +199,7 @@ function SupportPage() {
             <span className="tdr-ledger-icon" aria-hidden="true"><Icon name="check" size={13} strokeWidth={1.9} /></span>
             <div className="tdr-ledger-mid">
               <span className="tdr-ledger-title">User Guidelines</span>
-              <span className="tdr-ledger-date">Rules, responsibilities, trade limits, referral rules</span>
+              <span className="tdr-ledger-date">Order steps, fees, responsibilities and limits</span>
             </div>
           </Link>
           <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="tdr-ledger-row">

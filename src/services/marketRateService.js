@@ -1,3 +1,4 @@
+import { buildCoinGeckoRates, buildWorldRates, buildUsdKesRate } from "./marketQuote.js";
 import { updateExchangeRates } from "./settingsService";
 
 const LAST_LIVE_RATES_SESSION_KEY = "worldtmpesa_last_live_rates";
@@ -7,7 +8,7 @@ const MARKET_REFRESH_COOLDOWN_MS = 1000 * 60;
 const WORLD_PRICES_URL =
   "https://app-backend.toolsforhumanity.com/public/v1/miniapps/prices?fiatCurrencies=KES&cryptoCurrencies=WLD,USDC";
 const COINGECKO_PRICES_URL =
-  "https://api.coingecko.com/api/v3/simple/price?ids=worldcoin,usd-coin,tether&vs_currencies=kes,usd&include_last_updated_at=true&precision=full";
+  "https://api.coingecko.com/api/v3/simple/price?ids=worldcoin-wld,usd-coin&vs_currencies=kes,usd&include_last_updated_at=true&precision=full";
 const BINANCE_WLD_USDT_URL = "https://api.binance.com/api/v3/ticker/price?symbol=WLDUSDT";
 const USD_KES_URL = "https://open.er-api.com/v6/latest/USD";
 let marketRequestInFlight = null;
@@ -59,79 +60,6 @@ function parsePositiveNumber(value) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
-function isFreshTimestamp(unixSeconds) {
-  const timestamp = Number(unixSeconds || 0);
-
-  if (!timestamp) {
-    return false;
-  }
-
-  const ageMs = Date.now() - timestamp * 1000;
-  return ageMs >= 0 && ageMs <= 1000 * 60 * 20;
-}
-
-function buildStableKesReference(payload) {
-  const usdcKes = parsePositiveNumber(payload?.["usd-coin"]?.kes);
-  const usdcUsd = parsePositiveNumber(payload?.["usd-coin"]?.usd);
-  const usdtKes = parsePositiveNumber(payload?.tether?.kes);
-  const usdtUsd = parsePositiveNumber(payload?.tether?.usd);
-
-  const stableKesCandidates = [
-    usdcKes > 1 && usdcUsd > 0 ? usdcKes / usdcUsd : 0,
-    usdtKes > 1 && usdtUsd > 0 ? usdtKes / usdtUsd : 0,
-  ].filter((value) => value > 0);
-
-  const kesPerUsd = stableKesCandidates.length
-    ? stableKesCandidates.reduce((sum, value) => sum + value, 0) / stableKesCandidates.length
-    : 0;
-
-  return {
-    kesPerUsd,
-    stableKes: usdcKes > 1 ? usdcKes : usdtKes,
-  };
-}
-
-function buildCoinGeckoRates(payload) {
-  const directWldKes = parsePositiveNumber(payload?.worldcoin?.kes);
-  const wldUsd = parsePositiveNumber(payload?.worldcoin?.usd);
-  const { kesPerUsd, stableKes } = buildStableKesReference(payload);
-  const derivedWldKes = wldUsd > 0 && kesPerUsd > 0 ? wldUsd * kesPerUsd : 0;
-  const wldKes =
-    derivedWldKes > 1
-      ? derivedWldKes
-      : directWldKes > 1
-        ? directWldKes
-        : 0;
-
-  if (wldKes <= 1 || stableKes <= 1 || !isFreshTimestamp(payload?.worldcoin?.last_updated_at)) {
-    return null;
-  }
-
-  return {
-    WLD: wldKes,
-    USDC: stableKes,
-  };
-}
-
-function buildWorldRates(payload) {
-  const worldPrices = payload?.result?.prices || {};
-  const worldWldKes = parsePositiveNumber(worldPrices?.WLD?.KES);
-  const worldUsdcKes = parsePositiveNumber(worldPrices?.USDC?.KES);
-
-  if (worldWldKes <= 1 || worldUsdcKes <= 1) {
-    return null;
-  }
-
-  return {
-    WLD: worldWldKes,
-    USDC: worldUsdcKes,
-  };
-}
-
-function buildUsdKesRate(payload) {
-  return parsePositiveNumber(payload?.rates?.KES);
-}
-
 function buildBinanceRates(payload, usdKesRate, fallbackUsdcKes) {
   const wldUsdt = parsePositiveNumber(payload?.price);
 
@@ -175,15 +103,17 @@ async function fetchDirectMarketRates() {
           ? buildWorldRates(worldResult.value.payload)
           : null;
 
-      const coinGeckoRates =
-        coinGeckoResult.status === "fulfilled" && coinGeckoResult.value.ok
-          ? buildCoinGeckoRates(coinGeckoResult.value.payload)
-          : null;
-
       const usdKesRate =
         usdKesResult.status === "fulfilled" && usdKesResult.value.ok
           ? buildUsdKesRate(usdKesResult.value.payload)
           : 0;
+
+      const coinGeckoRates =
+        coinGeckoResult.status === "fulfilled" && coinGeckoResult.value.ok
+          ? buildCoinGeckoRates(coinGeckoResult.value.payload, usdKesRate)
+          : null;
+
+
 
       const binanceRates =
         binanceResult.status === "fulfilled" && binanceResult.value.ok
@@ -194,7 +124,7 @@ async function fetchDirectMarketRates() {
             )
           : null;
 
-      const selectedRates = binanceRates || worldRates || coinGeckoRates;
+      const selectedRates = worldRates || coinGeckoRates || binanceRates;
 
       if (!selectedRates) {
         throw new Error("Tcash could not load direct live market prices.");
@@ -205,11 +135,11 @@ async function fetchDirectMarketRates() {
           WLD: selectedRates.WLD,
           USDC: selectedRates.USDC,
         },
-        source: binanceRates
-          ? "binance-wld-usdt-plus-usd-kes"
-          : worldRates
-            ? "world-public-prices-direct"
-            : "coingecko-market-direct",
+        source: worldRates
+          ? "world-public-prices-direct"
+          : coinGeckoRates
+            ? "coingecko-market-direct"
+            : "binance-wld-usdt-plus-usd-kes",
         fetchedAt: new Date().toISOString(),
         isFallback: false,
       };
@@ -222,8 +152,8 @@ async function fetchDirectMarketRates() {
 function rememberRates(rates) {
   try {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem(LAST_LIVE_RATES_SESSION_KEY, JSON.stringify(rates));
-      window.localStorage.setItem(LAST_LIVE_RATES_STORAGE_KEY, JSON.stringify(rates));
+      window.sessionStorage.setItem(LAST_LIVE_RATES_SESSION_KEY, JSON.stringify({ ...rates, fetchedAt: Date.now() }));
+      window.localStorage.setItem(LAST_LIVE_RATES_STORAGE_KEY, JSON.stringify({ ...rates, fetchedAt: Date.now() }));
     }
   } catch {
     // Ignore session persistence issues.
@@ -247,7 +177,7 @@ export function getLastLiveMarketRates() {
       const wldRate = Number(parsed?.WLD || 0);
       const usdcRate = Number(parsed?.USDC || 0);
 
-      if (wldRate > 0 && usdcRate > 0) {
+      if (wldRate > 0 && usdcRate > 0 && Date.now() - Number(parsed.fetchedAt || 0) < 300000 && Number(parsed.fetchedAt) <= Date.now()) {
         return {
           WLD: wldRate,
           USDC: usdcRate,

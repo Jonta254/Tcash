@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import OrderCard from "../../components/orders/OrderCard";
 import {
+  fetchSharedAdminOrders,
+  commitPaidOrder,
   getCurrentUser,
   getOrdersForCurrentUser,
   openWhatsAppSupport,
@@ -14,8 +16,8 @@ import {
 const TABS = [
   { id: "all",       label: "All" },
   { id: "pending",   label: "Pending" },
-  { id: "completed", label: "Done" },
-  { id: "failed",    label: "Failed" },
+  { id: "completed", label: "Settled" },
+  { id: "failed",    label: "Closed" },
 ];
 
 function OrdersPage() {
@@ -24,23 +26,58 @@ function OrdersPage() {
   const [paymentCodes, setPaymentCodes] = useState({});
   const [message,      setMessage]      = useState("");
   const user = getCurrentUser();
+  const [submittingId, setSubmittingId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshInFlight = useRef(false);
+  const submissionInFlight = useRef(false);
+  const refresh = useCallback(async () => {
+    if (refreshInFlight.current) return;
+    refreshInFlight.current = true;
+    setRefreshing(true);
+    try {
+      const result = await fetchSharedAdminOrders();
+      if (!result?.ok) throw new Error(result?.message || "Unable to refresh orders.");
+      setOrders(getOrdersForCurrentUser());
+      setMessage("");
+    } catch (error) { setMessage(error.message || "Showing saved history. Reconnect to refresh."); }
+    finally { refreshInFlight.current = false; setRefreshing(false); }
+  }, []);
+  useEffect(() => {
+    void refresh();
+    const foreground = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", foreground);
+    window.addEventListener("online", foreground);
+    return () => { document.removeEventListener("visibilitychange", foreground); window.removeEventListener("online", foreground); };
+  }, [refresh]);
 
   const handlePaymentCodeChange = (id, val) =>
     setPaymentCodes((p) => ({ ...p, [id]: val }));
 
   const handleMarkBuyPaid = async (orderId) => {
+    if (submissionInFlight.current) return;
     const code = (paymentCodes[orderId] || "").trim().toUpperCase();
     if (!code) { setMessage("Enter the M-Pesa code before marking as paid."); return; }
-    const updated = updateOrder(orderId, { paymentReference: code, status: "paid" }, null, { sync: false });
-    try {
-      await syncOrderToAdminQueue(updated);
-    } catch (err) {
-      setOrders(getOrdersForCurrentUser());
-      setMessage(err instanceof Error ? err.message : "Saved locally — could not notify admin.");
+    if (!/^[A-Z0-9]{10}$/.test(code)) { setMessage("Enter the 10-character code from your M-Pesa confirmation SMS."); return; }
+    const draft = orders.find(order => order.id === orderId);
+    if (!draft || draft.status !== "pending" || draft.type !== "buy") {
+      setMessage("This order is no longer waiting for an M-Pesa code. Refresh History.");
       return;
     }
+    submissionInFlight.current = true;
+    setSubmittingId(orderId);
+    try {
+      await commitPaidOrder(draft, { paymentReference: code, status: "paid" });
+    } catch (err) {
+      setOrders(getOrdersForCurrentUser());
+      setMessage(err instanceof Error ? err.message : "Could not record the payment. Keep this order and try submitting the code again.");
+      return;
+    } finally {
+      submissionInFlight.current = false;
+      setSubmittingId(null);
+    }
+    setPaymentCodes(current => ({ ...current, [orderId]: "" }));
     setOrders(getOrdersForCurrentUser());
-    setMessage("Payment code submitted. Admin will confirm and release your crypto.");
+    setMessage("Payment code submitted. An operator will confirm and release your crypto.");
   };
 
   /* counts per tab */
@@ -62,11 +99,11 @@ function OrdersPage() {
     <div className="stack page-enter">
 
       {/* ── HEADER ─────────────────────────────────────────────── */}
-      <section className="panel stack orders-header-panel">
+      <section className="stack tcash-history-heading">
         <div className="orders-header-row">
           <div>
-            <span className="brand-kicker">Transaction history</span>
-            <h2>Your orders</h2>
+            <span className="sr-only">Transaction history</span>
+            <h1 className="tcash-page-title">Your orders</h1>
           </div>
           <div className="orders-header-meta">
             <span className="orders-total-badge">{orders.length}</span>
@@ -78,7 +115,11 @@ function OrdersPage() {
           </div>
         </div>
 
-        {message && <div className="notice">{message}</div>}
+        <div className="tcash-history-refresh">
+          <span className="muted">An operator reviews each payment before settlement.</span>
+          <button type="button" className="button-ghost" disabled={refreshing} onClick={refresh}>{refreshing ? "Refreshing…" : "Refresh"}</button>
+        </div>
+        {message && <div className="notice" role="status">{message}</div>}
 
         {/* Tab filter */}
         <div className="orders-tab-row">
@@ -87,6 +128,7 @@ function OrdersPage() {
               key={tab.id}
               type="button"
               className={`orders-tab${activeTab === tab.id ? " active" : ""}`}
+              aria-pressed={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -114,19 +156,22 @@ function OrdersPage() {
                       id={`mpesa-${order.id}`}
                       value={paymentCodes[order.id] || ""}
                       onChange={(e) => handlePaymentCodeChange(order.id, e.target.value)}
-                      placeholder="QWE123XYZ"
+                      placeholder="ABC123DE45"
+                      maxLength={10} autoCapitalize="characters" autoCorrect="off" spellCheck={false}
                     />
                   </div>
                   <button
                     type="button"
                     className="button"
+                    disabled={Boolean(submittingId)}
                     onClick={() => handleMarkBuyPaid(order.id)}
                   >
-                    I have paid — submit code
+                    {submittingId === order.id ? "Submitting…" : "Submit M-Pesa code"}
                   </button>
                 </div>
               )}
 
+              {order.status === "pending" && <Link className="button-secondary" to={`/trade?tab=${order.type}&order=${encodeURIComponent(order.id)}`}>Continue payment</Link>}
               <div className="order-card-actions">
                 <button
                   type="button"
@@ -175,32 +220,7 @@ function OrdersPage() {
         </section>
       )}
 
-      {/* ── DELAY SUPPORT FOOTER ───────────────────────────────── */}
-      {orders.length > 0 && (
-        <section className="support-footer support-footer-emphasis">
-          <div>
-            <strong>Payment delay?</strong>
-            <p>Open WhatsApp for urgent help with a delayed payment or payout.</p>
-          </div>
-          <button
-            type="button"
-            className="button"
-            onClick={() =>
-              openWhatsAppSupport({
-                message: [
-                  "Hello Tcash support,",
-                  "",
-                  "My payment or settlement is delayed.",
-                  "",
-                  `World username: ${user?.username ? `@${user.username}` : "Not available"}`,
-                ].join("\n"),
-              })
-            }
-          >
-            WhatsApp
-          </button>
-        </section>
-      )}
+      <Link to="/support" className="button-ghost">Need help with an order? →</Link>
 
     </div>
   );

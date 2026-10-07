@@ -11,7 +11,6 @@ const ProfilePage = lazy(() => import("../pages/app/ProfilePage"));
 const SupportPage = lazy(() => import("../pages/app/SupportPage"));
 const WalletPage = lazy(() => import("../pages/app/WalletPage"));
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
-const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
 const TradePage = lazy(() => import("../pages/trade/TradePage"));
 
 function PageLoader() {
@@ -32,7 +31,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={withSuspense(<LoginPage />)} />
-      <Route path="/signup" element={withSuspense(<SignupPage />)} />
+      <Route path="/signup" element={<Navigate to="/login" replace />} />
       <Route
         path="/"
         element={

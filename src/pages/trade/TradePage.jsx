@@ -16,6 +16,7 @@ function TradePage() {
     tenderHaptics.select();
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", tab);
+    nextParams.delete("order");
     setSearchParams(nextParams, { replace: true });
   };
 
@@ -27,6 +28,7 @@ function TradePage() {
         <button
           type="button"
           className={`tdr-trade-half${activeTab === "buy" ? " active" : ""}`}
+          aria-pressed={activeTab === "buy"}
           onClick={() => switchTab("buy")}
         >
           <span className="tdr-trade-half-label">Buy</span>
@@ -35,6 +37,7 @@ function TradePage() {
         <button
           type="button"
           className={`tdr-trade-half${activeTab === "sell" ? " active" : ""}`}
+          aria-pressed={activeTab === "sell"}
           onClick={() => switchTab("sell")}
         >
           <span className="tdr-trade-half-label">Sell</span>
@@ -42,7 +45,7 @@ function TradePage() {
         </button>
       </nav>
 
-      {activeTab === "buy" ? <BuyPage /> : <SellPage />}
+      {activeTab === "buy" ? <BuyPage key={searchParams.get("order") || "new-buy"} /> : <SellPage key={searchParams.get("order") || "new-sell"} />}
     </div>
   );
 }

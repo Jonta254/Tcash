@@ -4,42 +4,27 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import {
   buildWorldAppDeeplink,
   connectWithWorldAppWallet,
-  evaluateReferralRewards,
-  findReferrerByCode,
-  findUserByUsername,
-  findUserByWalletAddress,
   getCurrentUser,
   getWorldAppContext,
   loginWithWorldApp,
-  notifyAdminReferralEvent,
   tenderHaptics,
 } from "../../services";
 
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
   const settings = useAppSettings();
   const worldApp = getWorldAppContext();
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [worldLoading, setWorldLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState("");
   const [authStage, setAuthStage] = useState("idle");
-  const targetPath = location.state?.from?.pathname || "/";
-  const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
-
-  const getPostLoginPath = (user) => {
-    if (!user) {
-      return targetPath;
-    }
-
-    if (user.isAdmin) {
-      const requestedPath = location.state?.from?.pathname;
-      return requestedPath === "/admin" || requestedPath === "/tmpesa-admin" ? requestedPath : "/";
-    }
-
-    return targetPath;
-  };
+  const requestedLocation = location.state?.from;
+  const requestedPath = requestedLocation?.pathname || "/";
+  const targetPath = requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\")
+    ? requestedPath + (requestedLocation?.search || "") + (requestedLocation?.hash || "")
+    : "/";
 
   const finalizeSessionRedirect = () => {
     const currentUser = getCurrentUser();
@@ -48,7 +33,7 @@ function LoginPage() {
       throw new Error("Tcash could not save your login session. Please try again.");
     }
 
-    const nextPath = getPostLoginPath(currentUser);
+    const nextPath = targetPath;
 
     navigate(nextPath, { replace: true });
 
@@ -56,7 +41,7 @@ function LoginPage() {
       const latestUser = getCurrentUser();
 
       if (latestUser && window.location.pathname === "/login") {
-        window.location.replace(getPostLoginPath(latestUser));
+        window.location.replace(targetPath);
       }
     }, 120);
   };
@@ -65,11 +50,12 @@ function LoginPage() {
     const currentUser = getCurrentUser();
 
     if (currentUser) {
-      navigate(getPostLoginPath(currentUser), { replace: true });
+      navigate(targetPath, { replace: true });
     }
   }, [navigate, targetPath]);
 
   const handleWorldAppLogin = async () => {
+    if (!consent || worldLoading) return;
     setError("");
     setWorldLoading(true);
     setAuthStage("wallet");
@@ -77,36 +63,11 @@ function LoginPage() {
 
     try {
       const profile = await connectWithWorldAppWallet();
-      const existingUser =
-        findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
 
       setAuthStage("unlock");
       setAuthStatus("Opening your Tcash session...");
 
-      loginWithWorldApp(profile, {
-        referredByCode:
-          existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
-      });
-
-      if (!existingUser && referralCode) {
-        const referrer = findReferrerByCode(referralCode);
-        const rewardState = referrer ? evaluateReferralRewards(referrer) : null;
-
-        notifyAdminReferralEvent({
-          eventType: "signup",
-          referralCode,
-          referrerUsername: referrer?.username || "",
-          referrerLabel: referrer?.fullName || referrer?.phone || "Tcash referrer",
-          referrerMpesaPhoneNumber: referrer?.mpesaPhoneNumber || "",
-          referredUsername: profile.username || "",
-          referredLabel: profile.fullName || profile.username || "New user",
-          referredWalletAddress: profile.walletAddress || "",
-          referredUsers: rewardState?.summary.referredUsers || 0,
-          activatedUsers: rewardState?.summary.activatedUsers || 0,
-          eligibleRewardKes: rewardState?.eligibleRewardKes || 0,
-          createdAt: new Date().toISOString(),
-        });
-      }
+      loginWithWorldApp(profile);
 
       tenderHaptics.verify();
       finalizeSessionRedirect();
@@ -121,7 +82,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="page-bg">
+    <div className="page-bg tcash-auth-page">
       <div className="tdr-login page-enter">
         <span className="tdr-login-kicker">World mini app</span>
 
@@ -135,24 +96,33 @@ function LoginPage() {
 
         <h1 className="tdr-login-word">Tcash</h1>
         <p className="tdr-login-copy">
-          The bridge between your World wallet and M-Pesa. One tap, a human review, your money.
+          Buy WLD or USDC with M-Pesa. Sell to receive Kenyan shillings. Every payment is reviewed by an operator.
         </p>
 
-        {error ? <p className="tdr-login-error">{error}</p> : null}
-        {authStatus ? <p className="tdr-login-status">{authStatus}</p> : null}
+        {error ? <p className="tdr-login-error" role="alert">{error}</p> : null}
+        {authStatus ? <p className="tdr-login-status" role="status">{authStatus}</p> : null}
 
+        <div className="tcash-entry-details" aria-label="How Tcash works">
+          <div><span>01</span><p>See the amount and fee before paying.</p></div>
+          <div><span>02</span><p>Approve crypto payments in World App.</p></div>
+          <div><span>03</span><p>Follow your order through to settlement.</p></div>
+        </div>
+        <label className="tcash-consent">
+          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />
+          <span>I am 18 or older, accept the <a href="/terms.html" target="_blank" rel="noreferrer">terms</a>, and agree to Tcash storing my wallet details and order information as described in the <a href="/privacy.html" target="_blank" rel="noreferrer">privacy policy</a>.</span>
+        </label>
         <div className="tdr-login-actions">
           <button
             type="button"
             className="tdr-login-cta"
             onClick={handleWorldAppLogin}
-            disabled={!worldApp.isInstalled || worldLoading}
+            disabled={!consent || !worldApp.isInstalled || worldLoading}
           >
             {worldLoading ? "Opening World approval…" : "Continue with World App"}
           </button>
 
           {worldApp.isInstalled ? (
-            <span className="tdr-login-hint">Tcash opens your wallet session automatically.</span>
+            <span className="tdr-login-hint">Approve wallet sign-in to continue. Tcash never asks for your PIN or recovery phrase.</span>
           ) : settings.worldAppId ? (
             <a
               className="tdr-login-fallback"
@@ -166,6 +136,8 @@ function LoginPage() {
             <span className="tdr-login-hint">Wallet Auth only works inside World App.</span>
           )}
         </div>
+        <p className="tcash-entry-note">Available for M-Pesa settlement in Kenya. Tcash is independently operated.</p>
+        <a className="tdr-login-fallback" href="mailto:brianokindo2022@gmail.com">Contact Tcash support</a>
       </div>
     </div>
   );
