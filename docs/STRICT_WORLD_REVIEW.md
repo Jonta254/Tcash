@@ -45,3 +45,8 @@ The earlier pass also added private Redis storage, order ownership checks, immut
 - [World Pay](https://docs.world.org/mini-apps/commands/pay)
 
 No official approval, legal certification, completed real settlement or native proof success is claimed.
+
+## Preview deployment check
+
+Commit 7e76932 deployed READY. Authenticated preview fetches returned health 200, fresh /api/world-prices 200 and terms HTML 200 on 7 October 2026. The connector could not distinguish the unsigned orders response from deployment protection, so that live authorization check remains unconfirmed for this deployment; automated session/ownership checks pass. Preview access remains protected. A final legal markup correction closes the main landmark correctly.
+
