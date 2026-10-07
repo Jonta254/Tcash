@@ -146,10 +146,6 @@ export function getOrdersForCurrentUser() {
     return [];
   }
 
-  if (currentUser.isAdmin) {
-    return orders;
-  }
-
   return orders.filter(order => currentUser.walletAddress
     ? String(order.userWalletAddress || "").toLowerCase() === currentUser.walletAddress.toLowerCase()
     : order.userId === currentUser.id);

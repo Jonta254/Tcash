@@ -72,8 +72,6 @@ function LoginPage() {
 
     try {
       const profile = await connectWithWorldAppWallet();
-      const existingUser =
-        findUserByWalletAddress(profile.walletAddress) || findUserByUsername(profile.username);
 
       setAuthStage("unlock");
       setAuthStatus("Opening your Tcash session...");
@@ -110,8 +108,8 @@ function LoginPage() {
           Buy WLD or USDC with M-Pesa. Sell to receive Kenyan shillings. Every payment is reviewed by an operator.
         </p>
 
-        {error ? <p className="tdr-login-error">{error}</p> : null}
-        {authStatus ? <p className="tdr-login-status">{authStatus}</p> : null}
+        {error ? <p className="tdr-login-error" role="alert">{error}</p> : null}
+        {authStatus ? <p className="tdr-login-status" role="status">{authStatus}</p> : null}
 
         <div className="tcash-entry-details" aria-label="How Tcash works">
           <div><span>01</span><p>See the amount and fee before paying.</p></div>

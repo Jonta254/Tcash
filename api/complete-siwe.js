@@ -8,9 +8,21 @@ import {
   USER_SESSION_MAX_AGE,
 } from "./_lib/userSession.js";
 import { isValidSignedServerNonce } from "./_lib/world.js";
+import { isTrustedOrigin } from "./_lib/csrf.js";
 
 export default async function handler(req, res) {
-  if (!allowMethods(req, res, ["POST"])) {
+  if (!allowMethods(req, res, ["POST", "DELETE"])) {
+    return;
+  }
+  if (req.method === "DELETE") {
+    if (!isTrustedOrigin(req)) {
+      sendJson(res, 403, { ok: false, error: "Request origin could not be verified." });
+      return;
+    }
+    res.setHeader("Set-Cookie", [USER_SESSION_COOKIE, "tmpesa_siwe", "tmpesa_payment_reference"].map(name =>
+      serializeCookie(name, "", { maxAge: 0, sameSite: "None", secure: true }),
+    ));
+    sendJson(res, 200, { ok: true });
     return;
   }
 

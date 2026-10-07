@@ -60,3 +60,5 @@ Approval and live World ID proof generation remain unverified until the correspo
 ## Latest strict review
 
 See [the current review](docs/STRICT_WORLD_REVIEW.md). New referral reward claims are disabled. Listing artwork is not a substitute for genuine World App screenshots. Payment recovery is saved to the server before chain confirmation; real-device interruption tests remain required.
+
+The current guideline-by-guideline evidence and production gate are in [docs/WORLD_GUIDELINE_REVIEW.md](docs/WORLD_GUIDELINE_REVIEW.md).

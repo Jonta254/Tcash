@@ -8,6 +8,7 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import { useHighValueVerification } from "../../hooks/useHighValueVerification";
 import {
+  APP_CONFIG,
   canUseWorldPay,
   commitPaidOrder,
   mergeAdminOrders,

@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [notifications, setNotifications] = useState(false);
   const [notificationBusy, setNotificationBusy] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
     let active = true;
     getWorldNotificationPermissionState({ command: false })
@@ -51,8 +52,14 @@ export default function ProfilePage() {
     catch (e) { setError(e.message || "Could not open sharing. Try again."); }
   };
   const signOut = async () => {
-    logoutUser(); navigate("/login", { replace: true });
-    await closeMiniApp().catch(() => null);
+    if (signingOut) return;
+    setSigningOut(true); setError("");
+    try {
+      await logoutUser();
+      navigate("/login", { replace: true });
+      await closeMiniApp().catch(() => null);
+    } catch { setError("Could not end your session. Reconnect and try signing out again."); }
+    finally { setSigningOut(false); }
   };
   return (
     <div className="tdr-home page-enter">
@@ -86,7 +93,7 @@ export default function ProfilePage() {
           {adminSession === "granted" && <Link className="tdr-ledger-row" to="/tmpesa-admin">Operator desk →</Link>}
         </div>
       </section>
-      <button className="button-ghost" type="button" onClick={signOut}>Sign out</button>
+      <button className="button-ghost" type="button" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
     </div>
   );
 }

@@ -80,6 +80,7 @@ async function notifyAdminWorldOrderCreated(order) {
   }
 
   return postJson("/api/notify-admin", {
+    orderId: order.id,
     walletAddress,
     title: "New Tcash order",
     message: `${getOrderUserLabel(order)} placed a ${order.type} order for ${formatCryptoAmount(order.cryptoAmount)} ${order.asset}.`,
@@ -153,6 +154,7 @@ export async function notifyWorldUserOrderCreated(order) {
 
   try {
     return await postJson("/api/notify-admin", {
+      orderId: order.id,
       walletAddress: order.userWalletAddress,
       title: "Tcash order received",
       message:
@@ -201,6 +203,7 @@ export async function notifyWorldUserOrderStatus(order, status) {
 
   try {
     return await postJson("/api/notify-admin", {
+      orderId: order.id,
       walletAddress: order.userWalletAddress,
       title: copy.title,
       message: copy.message,

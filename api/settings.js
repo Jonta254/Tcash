@@ -69,6 +69,15 @@ export function sanitizeSettingsPayload(payload) {
     if (!isBoundedString(value)) {
       throw new Error(`Enter a valid value for ${field}.`);
     }
+    if (field === "sellWalletAddress" && !/^0x[a-fA-F0-9]{40}$/.test(value)) {
+      throw new Error("Enter a complete World Chain receiving wallet address.");
+    }
+    if (field === "mpesaPaybillNumber" && !/^\d{5,7}$/.test(value)) {
+      throw new Error("Enter a valid M-Pesa PayBill number (5 to 7 digits).");
+    }
+    if (field === "supportEmail" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      throw new Error("Enter a valid support email address.");
+    }
 
     sanitized[field] = value;
   }
@@ -77,7 +86,7 @@ export function sanitizeSettingsPayload(payload) {
     const feeKesPerCoin = {};
 
     for (const [asset, value] of Object.entries(payload.feeKesPerCoin)) {
-      if (!isBoundedString(asset, 16) || !isValidFee(value)) {
+      if (!["WLD", "USDC"].includes(asset) || !isValidFee(value)) {
         throw new Error(`Enter a valid fee for ${asset}.`);
       }
 

@@ -32,7 +32,7 @@ const GUIDE_SECTIONS = [
     points: [
       "Open Trade, choose Sell, then enter the crypto amount you want to send.",
       "Tcash shows the live KES payout quote with fee included before submission.",
-      "After manual review, KES is sent to the M-Pesa number saved on your Tcash profile.",
+      "After manual review, KES is sent to the M-Pesa number saved with that order.",
     ],
   },
   {

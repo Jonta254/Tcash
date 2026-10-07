@@ -41,3 +41,5 @@ Code improvements and local checks do not establish World App approval. See `WOR
 ## Current review status
 
 See [the strict review](docs/STRICT_WORLD_REVIEW.md) for fixed findings, validation evidence and the required native-device and operator checks. Historical certification reports do not establish World approval.
+
+`npm run check` checks undefined runtime names. Production builds run this check automatically before bundling.

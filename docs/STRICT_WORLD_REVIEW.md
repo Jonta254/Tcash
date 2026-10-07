@@ -50,3 +50,18 @@ No official approval, legal certification, completed real settlement or native p
 
 Commit 7e76932 deployed READY. Authenticated preview fetches returned health 200, fresh /api/world-prices 200 and terms HTML 200 on 7 October 2026. The connector could not distinguish the unsigned orders response from deployment protection, so that live authorization check remains unconfirmed for this deployment; automated session/ownership checks pass. Preview access remains protected. A final legal markup correction closes the main landmark correctly.
 
+
+## Additional local pass — not pushed
+
+Operator actions now reflect pending, reviewing and closed states. Cancelled orders cannot be changed from the UI; settlement is offered only after review. Queue refresh failures disable status changes, overlapping refreshes are prevented and status requests disable repeat actions. Payout instructions explicitly require checking actual receipt. Order details expose the saved receiver and ID; unknown historical fees are labelled not recorded. Support refers to the number saved with the order. Production build and diff checks pass. Browser fixtures verified pending/reviewing/cancelled controls and a queue failure at 320px with no overflow. No operator payout or real status change was performed.
+
+
+## Strict local review — latest pass
+
+Fixed two runtime blockers: unused unimported login lookups after Wallet Auth and a missing Sell configuration import. Production builds now run a targeted TypeScript diagnostic check for undefined runtime names; this is not full type checking. History submission and refresh requests use actual in-flight locks. Sign-out expires server cookies before removing the local session, with failure reported. Wallet accounts no longer merge by username, and personal history stays scoped to the active wallet. Live routing validates receiving addresses, email and supported fee assets. Operator forms follow incoming server settings until edited; the business name is editable.
+
+Validation: 141 tests across 21 files passed; production build and runtime-name check passed. Eight user routes checked at 320px showed no horizontal overflow or crash fallback. The small-amount Sell guidance renders correctly. These latest changes remain local and have not been pushed or deployed. Native World App tests and operational requirements above remain outstanding.
+
+## Current guideline pass
+
+See [WORLD_GUIDELINE_REVIEW.md](WORLD_GUIDELINE_REVIEW.md). Notification delivery now requires a signed session and ownership of a stored order (or an operator session); recipients and functional status messages are derived from the stored record. World ID verification records are explicitly disclosed in privacy. Validation: 146 tests across 23 files and build checks pass. Previous local-pass entries describe development history, not the final deployment status.

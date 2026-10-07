@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import OrderCard from "../../components/orders/OrderCard";
@@ -28,7 +28,11 @@ function OrdersPage() {
   const user = getCurrentUser();
   const [submittingId, setSubmittingId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const refreshInFlight = useRef(false);
+  const submissionInFlight = useRef(false);
   const refresh = useCallback(async () => {
+    if (refreshInFlight.current) return;
+    refreshInFlight.current = true;
     setRefreshing(true);
     try {
       const result = await fetchSharedAdminOrders();
@@ -36,7 +40,7 @@ function OrdersPage() {
       setOrders(getOrdersForCurrentUser());
       setMessage("");
     } catch (error) { setMessage(error.message || "Showing saved history. Reconnect to refresh."); }
-    finally { setRefreshing(false); }
+    finally { refreshInFlight.current = false; setRefreshing(false); }
   }, []);
   useEffect(() => {
     void refresh();
@@ -50,18 +54,28 @@ function OrdersPage() {
     setPaymentCodes((p) => ({ ...p, [id]: val }));
 
   const handleMarkBuyPaid = async (orderId) => {
-    if (submittingId) return;
+    if (submissionInFlight.current) return;
     const code = (paymentCodes[orderId] || "").trim().toUpperCase();
     if (!code) { setMessage("Enter the M-Pesa code before marking as paid."); return; }
     if (!/^[A-Z0-9]{10}$/.test(code)) { setMessage("Enter the 10-character code from your M-Pesa confirmation SMS."); return; }
     const draft = orders.find(order => order.id === orderId);
+    if (!draft || draft.status !== "pending" || draft.type !== "buy") {
+      setMessage("This order is no longer waiting for an M-Pesa code. Refresh History.");
+      return;
+    }
+    submissionInFlight.current = true;
+    setSubmittingId(orderId);
     try {
       await commitPaidOrder(draft, { paymentReference: code, status: "paid" });
     } catch (err) {
       setOrders(getOrdersForCurrentUser());
       setMessage(err instanceof Error ? err.message : "Could not record the payment. Keep this order and try submitting the code again.");
       return;
+    } finally {
+      submissionInFlight.current = false;
+      setSubmittingId(null);
     }
+    setPaymentCodes(current => ({ ...current, [orderId]: "" }));
     setOrders(getOrdersForCurrentUser());
     setMessage("Payment code submitted. An operator will confirm and release your crypto.");
   };

@@ -75,10 +75,14 @@ function OrderCard({ order, children }) {
         <div className="tdr-ledger-reveal-inner">
           <div className="tdr-receipt-lines">
             <div className="tdr-receipt-line">
+              <span>Order ID</span>
+              <strong>{order.id}</strong>
+            </div>
+            <div className="tdr-receipt-line">
               <span>{order.type === "sell" ? "KES payout" : "KES to pay"}</span>
               <strong>{formatKES(order.kesAmount)}</strong>
             </div>
-            <div className="tdr-receipt-line"><span>Tcash fee</span><strong>{formatKES(order.feeKesAmount)}</strong></div>
+            <div className="tdr-receipt-line"><span>Tcash fee</span><strong>{Number.isFinite(order.feeKesAmount) ? formatKES(order.feeKesAmount) : "Not recorded"}</strong></div>
             <div className="tdr-receipt-line">
               <span>Asset</span>
               <strong>{formatCryptoAmount(order.cryptoAmount)} {order.asset}</strong>
@@ -93,6 +97,18 @@ function OrderCard({ order, children }) {
               <div className="tdr-receipt-line">
                 <span>Reference</span>
                 <strong>{order.paymentReference}</strong>
+              </div>
+            )}
+            {order.type === "buy" && order.walletAddress && (
+              <div className="tdr-receipt-line">
+                <span>Receiving wallet</span>
+                <strong>{order.walletAddress}</strong>
+              </div>
+            )}
+            {order.type === "sell" && order.sellWalletAddress && (
+              <div className="tdr-receipt-line">
+                <span>Crypto receiver</span>
+                <strong>{order.sellWalletAddress}</strong>
               </div>
             )}
             {order.destinationUsername && (

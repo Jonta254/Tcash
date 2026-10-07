@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import OrderCard from "../../components/orders/OrderCard";
 import { useAdminSession } from "../../hooks/useAdminSession";
 import { useAppSettings } from "../../hooks/useAppSettings";
@@ -63,6 +63,14 @@ function AdminPage() {
   const [referralClaimError, setReferralClaimError] = useState("");
   const [orderQueueMessage, setOrderQueueMessage] = useState("");
   const [orderQueueError, setOrderQueueError] = useState("");
+  const [orderUpdatingId, setOrderUpdatingId] = useState(null);
+  const [queueReady, setQueueReady] = useState(false);
+  const feesEdited = useRef(false);
+  const operationsEdited = useRef(false);
+  useEffect(() => {
+    if (!feesEdited.current) setFeeInputs({ WLD: String(liveSettings.feeKesPerCoin?.WLD ?? 0), USDC: String(liveSettings.feeKesPerCoin?.USDC ?? 0) });
+    if (!operationsEdited.current) setOperationalInputs({ sellWalletAddress: liveSettings.sellWalletAddress, mpesaPaybillNumber: liveSettings.mpesaPaybillNumber, mpesaAccountNumber: liveSettings.mpesaAccountNumber, mpesaTillName: liveSettings.mpesaTillName, supportEmail: liveSettings.supportEmail });
+  }, [liveSettings]);
   const payoutQueue = useMemo(
     () => orders.filter((order) => order.type === "sell" && order.status === "paid"),
     [orders],
@@ -95,55 +103,67 @@ function AdminPage() {
     }
 
     let active = true;
+    let refreshing = false;
 
     const syncAdminData = async () => {
-      setOrders(getAllOrders().slice().sort((a, b) => {
-        const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
-        return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
-      }));
-      setReferralClaims(getAllReferralClaims());
-      setAdminAlerts(getAdminAlerts());
-
+      if (refreshing) return;
+      refreshing = true;
       try {
-        await backfillExistingOrdersToAdminQueue();
-        const payload = await fetchSharedAdminOrders();
-
-        if (!active) {
-          return;
-        }
-
-        if (payload.pendingSetup) {
-          setOrderQueueMessage(payload.message || "Shared admin order queue needs setup.");
-          setOrderQueueError("");
-          return;
-        }
-
-        const rawOrders = payload.orders || getAllOrders();
-        setOrders(rawOrders.slice().sort((a, b) => {
+        setOrders(getAllOrders().slice().sort((a, b) => {
           const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
           return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
         }));
-        setOrderQueueMessage(payload.orders?.length ? "Shared admin queue loaded." : "");
-        setOrderQueueError("");
-      } catch (error) {
-        if (active) {
-          setOrderQueueError(
-            error instanceof Error ? error.message : "Could not load shared admin orders.",
-          );
-        }
-      }
+        setReferralClaims(getAllReferralClaims());
+        setAdminAlerts(getAdminAlerts());
 
-      try {
-        const claimsPayload = await fetchSharedReferralClaimQueue();
+        try {
+          await backfillExistingOrdersToAdminQueue();
+          const payload = await fetchSharedAdminOrders();
 
-        if (active && claimsPayload?.ok) {
-          setReferralClaims(claimsPayload.claims || []);
+          if (!active) {
+            return;
+          }
+
+          if (!payload?.ok || payload.pendingSetup) {
+            setQueueReady(false);
+            setOrderQueueError(payload?.error || payload?.message || "Could not refresh orders. Status changes are paused until the queue reconnects.");
+            return;
+          }
+
+          setQueueReady(true);
+
+          const rawOrders = payload.orders || getAllOrders();
+          setOrders(rawOrders.slice().sort((a, b) => {
+            const priority = { pending: 0, paid: 1, completed: 2, rejected: 3, cancelled: 3 };
+            return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+          }));
+          setOrderQueueMessage(payload.orders?.length ? "Shared admin queue loaded." : "");
+          setOrderQueueError("");
+        } catch (error) {
+          if (active) {
+            setQueueReady(false);
+            setOrderQueueError(
+              error instanceof Error ? error.message : "Could not load shared admin orders.",
+            );
+          }
         }
-      } catch {
-        // Falls back to whatever's in local storage from this
-        // browser's own prior loads — same tolerance as the order
-        // queue's own fetch above.
-      }
+
+        try {
+          const claimsPayload = await fetchSharedReferralClaimQueue();
+
+          if (active && claimsPayload?.ok) {
+            setReferralClaims(claimsPayload.claims || []);
+            setReferralClaimError("");
+          } else if (active) {
+            setReferralClaimError("Past claims could not refresh. Displayed records may be outdated.");
+          }
+        } catch {
+          if (active) setReferralClaimError("Past claims could not refresh. Displayed records may be outdated.");
+          // Falls back to whatever's in local storage from this
+          // browser's own prior loads — same tolerance as the order
+          // queue's own fetch above.
+        }
+      } finally { refreshing = false; }
     };
     const adminAlertsEventName = getAdminAlertsUpdatedEventName();
 
@@ -195,10 +215,11 @@ function AdminPage() {
   }
 
   const handleStatusUpdate = async (order, status) => {
+    if (orderUpdatingId || !queueReady) return;
     const confirmMessages = {
-      completed: "Mark this order as completed? This will notify the user.",
+      completed: "Confirm that you checked the payment asset, amount, receiver and reference, and already sent the exact payout. Mark this order settled?",
       rejected: "Mark this order as failed? This cannot be undone.",
-      paid: "Mark this order as paid?",
+      paid: "Confirm that payment evidence has been submitted. This does not confirm receipt or settlement. Move this order to review?",
     };
     const confirmMsg = confirmMessages[status] || `Update order status to ${status}?`;
     if (!window.confirm(confirmMsg)) {
@@ -212,6 +233,7 @@ function AdminPage() {
       });
 
     setOrderQueueError("");
+    setOrderUpdatingId(order.id);
     const updated = { ...order, status, updatedAt: new Date().toISOString() };
     try {
       await syncOrderToAdminQueue(updated, { notifyAdmin: false });
@@ -220,6 +242,8 @@ function AdminPage() {
       tenderHaptics.fail();
       setOrderQueueError((error instanceof Error ? error.message : "Tcash could not save this status.") + " Refresh the queue before retrying.");
       return;
+    } finally {
+      setOrderUpdatingId(null);
     }
 
     if (status === "completed") {
@@ -241,6 +265,7 @@ function AdminPage() {
 
     try {
       const nextFees = await updateFeeKesPerCoin(feeInputs);
+      feesEdited.current = false;
       setFeeInputs({
         WLD: String(nextFees.WLD),
         USDC: String(nextFees.USDC),
@@ -287,6 +312,7 @@ function AdminPage() {
 
     try {
       const nextSettings = await updateOperationalSettings(operationalInputs);
+      operationsEdited.current = false;
       setOperationalInputs({
         sellWalletAddress: nextSettings.sellWalletAddress,
         mpesaPaybillNumber: nextSettings.mpesaPaybillNumber,
@@ -330,8 +356,8 @@ function AdminPage() {
             </div>
           </div>
         </div>
-        {orderQueueError ? <div className="error">{orderQueueError}</div> : null}
-        {orderQueueMessage ? <div className="notice">{orderQueueMessage}</div> : null}
+        {orderQueueError ? <div className="error" role="alert">{orderQueueError}</div> : null}
+        {orderQueueMessage ? <div className="notice" role="status">{orderQueueMessage}</div> : null}
 
         <div className="orders-tab-row" role="tablist" aria-label="Admin sections">
           {[
@@ -366,7 +392,7 @@ function AdminPage() {
               <span className="brand-kicker">Admin alerts</span>
               <h3>Order and referral notifications</h3>
               <p className="muted">
-                Tcash records admin alerts here and also attempts Gmail and World push delivery when configured.
+                Tcash records admin alerts here and also attempts email and World push delivery when configured.
               </p>
             </div>
             <span className={`status-pill ${unreadAlerts.length ? "pending" : "completed"}`}>
@@ -400,7 +426,7 @@ function AdminPage() {
 
       {adminTab === "settings" && (
         <>
-      <section className="panel stack task-panel">
+      <section className="panel stack task-panel" onChangeCapture={() => { feesEdited.current = true; }}>
         <div className="split">
           <div>
             <h3>Live Price and Fee Control</h3>
@@ -455,7 +481,7 @@ function AdminPage() {
         </button>
       </section>
 
-      <section className="panel stack task-panel">
+      <section className="panel stack task-panel" onChangeCapture={() => { operationsEdited.current = true; }}>
         <div>
           <h3>Mini App Operations</h3>
           <p className="muted">
@@ -517,7 +543,7 @@ function AdminPage() {
               />
             </div>
 
-            <div className="field admin-hidden-field">
+            <div className="field">
               <label htmlFor="mpesaTillName">Business Name</label>
               <input
                 id="mpesaTillName"
@@ -570,10 +596,10 @@ function AdminPage() {
         <section className="panel stack task-panel">
           <div>
             <span className="brand-kicker">Payout Queue</span>
-            <h3>Sell orders ready for M-Pesa payout</h3>
+            <h3>Sell payments awaiting operator checks</h3>
             <p className="muted">
-              These users have already sent crypto. Use the name and M-Pesa number below when
-              sending their KES payout.
+              A submitted reference is not proof of receipt. Check the asset, amount, World Chain receiver
+              and transaction before paying the saved M-Pesa number. Mark settled only after payout.
             </p>
           </div>
           <div className="stack">
@@ -643,32 +669,35 @@ function AdminPage() {
           {orders.map((order) => (
             <OrderCard key={order.id} order={order}>
               <div className="action-grid">
-                {order.status !== "paid" && order.status !== "completed" && order.status !== "rejected" ? (
+                {order.status === "pending" ? (
                   <button
                     type="button"
                     className="button-secondary"
+                    disabled={Boolean(orderUpdatingId) || !queueReady}
                     onClick={() => handleStatusUpdate(order, "paid")}
                   >
-                    Mark Paid
+                    Move to review
                   </button>
                 ) : null}
-                {order.status !== "completed" && order.status !== "rejected" ? (
+                {order.status === "paid" ? (
                   <button
                     type="button"
                     className="button"
+                    disabled={Boolean(orderUpdatingId) || !queueReady}
                     onClick={() => handleStatusUpdate(order, "completed")}
                   >
-                    Mark Completed
+                    Confirm settled
                   </button>
                 ) : null}
-                {order.status !== "completed" && order.status !== "rejected" ? (
+                {["pending", "paid"].includes(order.status) ? (
                   <button
                     type="button"
                     className="button-ghost"
                     style={{ color: "var(--error, #b5654f)" }}
+                    disabled={Boolean(orderUpdatingId) || !queueReady}
                     onClick={() => handleStatusUpdate(order, "rejected")}
                   >
-                    Mark Failed
+                    Close order
                   </button>
                 ) : null}
                 <button
@@ -676,7 +705,7 @@ function AdminPage() {
                   className="button-ghost"
                   onClick={() => openOrderSupportEmail(order, "support")}
                 >
-                  Email User
+                  Open support draft
                 </button>
               </div>
             </OrderCard>
@@ -684,7 +713,8 @@ function AdminPage() {
         </section>
       ) : (
         <section className="panel empty-state">
-          <h3>No orders to review</h3>
+          <h3>{queueReady ? "No orders to review" : "Order queue unavailable"}</h3>
+          {!queueReady && <p className="muted">The queue retries automatically. Wait for it to reconnect before reviewing orders.</p>}
         </section>
       ))}
 

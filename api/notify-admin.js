@@ -1,4 +1,9 @@
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
+import { parseCookies } from "./_lib/cookies.js";
+import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./_lib/userSession.js";
+import { requestIsRecognizedAdmin } from "./_lib/adminAuth.js";
+import { isTrustedOrigin } from "./_lib/csrf.js";
+import { readNotificationOrder, notificationForOrder } from "./_lib/orderNotification.js";
 
 // Combines what were two near-identical endpoints (notify-order,
 // notify-referral) into one — both just build an admin notification
@@ -120,6 +125,7 @@ async function sendWorldNotification(res, { walletAddress, title, message, miniA
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
+    signal: AbortSignal.timeout(5000),
     body: JSON.stringify(
       buildNotificationPayload({ walletAddress, title, message, miniAppPath }),
     ),
@@ -243,13 +249,22 @@ export default async function handler(req, res) {
     return;
   }
 
+  const session = verifyUserSessionToken(parseCookies(req)[USER_SESSION_COOKIE]);
+  if (!session.valid) { sendJson(res, 401, { sent: false, error: "Sign in to request an order notification." }); return; }
+  if (!isTrustedOrigin(req)) { sendJson(res, 403, { sent: false, error: "Request origin could not be verified." }); return; }
   try {
     const payload = await readJsonBody(req);
+    const order = await readNotificationOrder(payload?.orderId || payload?.order?.id);
+    if (!order || (!requestIsRecognizedAdmin(req) && String(order.userWalletAddress).toLowerCase() !== session.walletAddress.toLowerCase())) {
+      sendJson(res, 403, { sent: false, error: "This notification requires an order belonging to your wallet." }); return;
+    }
 
     // World App push notification — handled entirely separately from the
     // Resend email paths below (different upstream, different response shape).
     if (payload?.walletAddress && payload?.title && payload?.message) {
-      await sendWorldNotification(res, payload);
+      const notice = notificationForOrder(order, payload.walletAddress);
+      if (!notice) { sendJson(res, 403, { sent: false, error: "Notification recipient does not match this order." }); return; }
+      await sendWorldNotification(res, notice);
       return;
     }
 
@@ -257,9 +272,9 @@ export default async function handler(req, res) {
     let errorMessage;
 
     if (payload?.order?.id && payload?.order?.type) {
-      email = buildOrderEmail(payload.order);
+      email = buildOrderEmail(order);
     } else if (payload?.eventType && payload?.referralCode) {
-      email = buildReferralEmail(payload);
+      sendJson(res, 403, { notified: false, error: "Referral notifications are paused." }); return;
     } else {
       errorMessage = payload?.order
         ? "Missing order details."
@@ -287,6 +302,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
         "Idempotency-Key": email.idempotencyKey,
       },
+      signal: AbortSignal.timeout(5000),
       body: JSON.stringify({
         from: process.env.ORDER_EMAIL_FROM || FROM_EMAIL,
         to: process.env.ORDER_NOTIFICATION_EMAIL || ADMIN_EMAIL,
