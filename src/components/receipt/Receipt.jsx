@@ -29,7 +29,7 @@ function Receipt({ title, leadCopy, amountLabel, amountValue, lines, reference, 
       </div>
 
       <div className="tdr-receipt-stamp" aria-hidden="true">
-        <Icon name="check" size={34} strokeWidth={1.7} />
+        <Icon name="history" size={34} strokeWidth={1.7} />
       </div>
 
       <h2 className="tdr-receipt-title">{title}</h2>

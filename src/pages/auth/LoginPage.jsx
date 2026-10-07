@@ -4,21 +4,15 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import {
   buildWorldAppDeeplink,
   connectWithWorldAppWallet,
-  evaluateReferralRewards,
-  findReferrerByCode,
-  findUserByUsername,
-  findUserByWalletAddress,
   getCurrentUser,
   getWorldAppContext,
   loginWithWorldApp,
-  notifyAdminReferralEvent,
   tenderHaptics,
 } from "../../services";
 
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
   const settings = useAppSettings();
   const worldApp = getWorldAppContext();
   const [consent, setConsent] = useState(false);
@@ -27,7 +21,6 @@ function LoginPage() {
   const [authStatus, setAuthStatus] = useState("");
   const [authStage, setAuthStage] = useState("idle");
   const targetPath = location.state?.from?.pathname || "/";
-  const referralCode = (searchParams.get("ref") || "").trim().toUpperCase();
 
   const getPostLoginPath = (user) => {
     if (!user) {
@@ -85,30 +78,7 @@ function LoginPage() {
       setAuthStage("unlock");
       setAuthStatus("Opening your Tcash session...");
 
-      loginWithWorldApp(profile, {
-        referredByCode:
-          existingUser?.referredByCode || (!existingUser && referralCode ? referralCode : ""),
-      });
-
-      if (!existingUser && referralCode) {
-        const referrer = findReferrerByCode(referralCode);
-        const rewardState = referrer ? evaluateReferralRewards(referrer) : null;
-
-        notifyAdminReferralEvent({
-          eventType: "signup",
-          referralCode,
-          referrerUsername: referrer?.username || "",
-          referrerLabel: referrer?.fullName || referrer?.phone || "Tcash referrer",
-          referrerMpesaPhoneNumber: referrer?.mpesaPhoneNumber || "",
-          referredUsername: profile.username || "",
-          referredLabel: profile.fullName || profile.username || "New user",
-          referredWalletAddress: profile.walletAddress || "",
-          referredUsers: rewardState?.summary.referredUsers || 0,
-          activatedUsers: rewardState?.summary.activatedUsers || 0,
-          eligibleRewardKes: rewardState?.eligibleRewardKes || 0,
-          createdAt: new Date().toISOString(),
-        });
-      }
+      loginWithWorldApp(profile);
 
       tenderHaptics.verify();
       finalizeSessionRedirect();

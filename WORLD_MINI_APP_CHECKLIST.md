@@ -56,3 +56,7 @@ Official sources:
 - [Pay](https://docs.world.org/mini-apps/commands/pay)
 
 Approval and live World ID proof generation remain unverified until the corresponding Portal and real-device checks succeed.
+
+## Latest strict review
+
+See [the current review](docs/STRICT_WORLD_REVIEW.md). New referral reward claims are disabled. Listing artwork is not a substitute for genuine World App screenshots. Payment recovery is saved to the server before chain confirmation; real-device interruption tests remain required.

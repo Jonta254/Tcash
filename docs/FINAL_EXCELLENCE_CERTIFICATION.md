@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Final Product Excellence & World App Certification
 
 This report follows the brief's own rule literally: audit first, change

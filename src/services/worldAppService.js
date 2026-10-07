@@ -290,7 +290,7 @@ export async function requestWorldPayment({ amount, asset = "WLD", description, 
     transactionId: data.transactionId || data.transaction_id,
   };
 
-  if (normalizedPayload.transactionId) onSubmitted?.(normalizedPayload);
+  if (normalizedPayload.transactionId) await onSubmitted?.(normalizedPayload);
   const confirmation = await confirmWorldPayment(normalizedPayload);
 
   return {

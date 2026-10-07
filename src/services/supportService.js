@@ -5,14 +5,6 @@ function encodeQueryValue(value) {
   return encodeURIComponent(value).replace(/%20/g, "%20");
 }
 
-function buildGmailComposeUrl({ subject, body }) {
-  const supportEmail = getSettings().supportEmail;
-  return (
-    "https://mail.google.com/mail/?" +
-    `view=cm&fs=1&to=${encodeQueryValue(supportEmail)}&su=${encodeQueryValue(subject)}&body=${encodeQueryValue(body)}`
-  );
-}
-
 function buildMailToUrl({ subject, body }) {
   const supportEmail = getSettings().supportEmail;
   return `mailto:${encodeURIComponent(supportEmail)}?subject=${encodeQueryValue(subject)}&body=${encodeQueryValue(body)}`;
@@ -20,7 +12,6 @@ function buildMailToUrl({ subject, body }) {
 
 export function openSupportEmail({ subject, body }) {
   const mailToUrl = buildMailToUrl({ subject, body });
-  const gmailUrl = buildGmailComposeUrl({ subject, body });
 
   const link = document.createElement("a");
   link.href = mailToUrl;
@@ -30,9 +21,7 @@ export function openSupportEmail({ subject, body }) {
   link.click();
   link.remove();
 
-  window.setTimeout(() => {
-    window.location.href = gmailUrl;
-  }, 700);
+
 }
 
 export function openWhatsAppSupport({ message }) {

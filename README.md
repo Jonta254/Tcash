@@ -37,3 +37,7 @@ Optional operator email and World notification credentials enable delivery of no
 ## Release status
 
 Code improvements and local checks do not establish World App approval. See `WORLD_MINI_APP_CHECKLIST.md` for configuration, real-device testing, migration, and submission requirements. Production fulfillment and World ID proof generation must be tested with the actual operator setup before release.
+
+## Current review status
+
+See [the strict review](docs/STRICT_WORLD_REVIEW.md) for fixed findings, validation evidence and the required native-device and operator checks. Historical certification reports do not establish World approval.

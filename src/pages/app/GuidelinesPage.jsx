@@ -5,7 +5,7 @@ const SECTIONS = [
     items: [
       { rule: "Age 18+", detail: "You must be at least 18 years old. Tcash is not available to minors." },
       { rule: "World App account", detail: "Sign in using World Wallet Auth. Shared, borrowed, or fictitious accounts are not permitted." },
-      { rule: "One account per person", detail: "Operating multiple accounts to exploit the referral program or any Tcash feature is prohibited." },
+      { rule: "One account per person", detail: "Use your own wallet and M-Pesa account. Do not share your wallet approval or recovery details." },
       { rule: "Lawful use", detail: "You are responsible for ensuring your use of Tcash complies with the laws applicable to you." },
     ],
   },
@@ -13,10 +13,10 @@ const SECTIONS = [
     id: "orders",
     title: "How orders work",
     items: [
-      { rule: "Buy (M-Pesa → WLD/USDC)", detail: "Pay the quoted KES amount to the Tcash M-Pesa PayBill with your order reference, then submit your transaction code. Admin verifies and releases crypto to your World wallet." },
+      { rule: "Buy (M-Pesa → WLD/USDC)", detail: "Pay the exact amount using the PayBill and account number shown on your saved order. Submit the M-Pesa code. An operator checks the payment and sends crypto to your World wallet." },
       { rule: "Sell (WLD/USDC → KES)", detail: "Approve the World Pay transaction, then wait for admin review. KES is sent to your saved M-Pesa payout number after confirmation." },
-      { rule: "Settlement times", detail: "Orders are manually reviewed. Typical settlement is within a few hours during business hours. Contact support if not settled within 24 hours." },
-      { rule: "Rates and fees", detail: "Live rates plus a per-coin fee are shown in the quote before you confirm. The rate active when the admin processes your order applies to settlement." },
+      { rule: "Settlement times", detail: "Settlement is manual. Check History for progress and contact support if your payment or payout is delayed. Do not pay twice." },
+      { rule: "Rates and fees", detail: "The amount and Tcash fee are saved with your order before payment. M-Pesa may charge separately. The recorded amounts stay with that order." },
     ],
   },
   {
@@ -30,19 +30,10 @@ const SECTIONS = [
     ],
   },
   {
-    id: "referral",
-    title: "Referral program rules",
-    items: [
-      { rule: "Genuine referrals only", detail: "Referral rewards are for inviting real new World users who trade on Tcash. Self-referrals and fake accounts are prohibited and will result in suspension." },
-      { rule: "Reward eligibility", detail: "Base reward (KES 30) credited when a referred user completes their first trade. Milestones: KES 100 at 6 activated referrals, KES 150 at 10." },
-      { rule: "Claim process", detail: "Claims are reviewed manually and paid to your saved M-Pesa number. Tcash may withhold rewards that appear fraudulent." },
-    ],
-  },
-  {
     id: "disputes",
     title: "Disputes and refunds",
     items: [
-      { rule: "Contact support promptly", detail: "Reach out immediately if a buy order is not settled after payment, a sell payout has not arrived within 24 hours, or the amount appears incorrect." },
+      { rule: "Contact support promptly", detail: "Reach out immediately if a buy order is not settled after payment, a sell payout is delayed, or the amount appears incorrect." },
       { rule: "No duplicate orders", detail: "Contact support before placing a duplicate order for the same transaction." },
       { rule: "Completed orders", detail: "Once an order is marked completed and funds have been sent, reversals may not be possible." },
     ],
@@ -51,8 +42,8 @@ const SECTIONS = [
     id: "risk",
     title: "Risk disclosure",
     items: [
-      { rule: "Rate changes", detail: "Crypto values can change significantly. The settled rate is the one active when your order is processed, which may differ from the quote at submission." },
-      { rule: "No guarantees", detail: "Tcash does not guarantee any particular exchange rate or payout amount. Only trade amounts you can afford to lose." },
+      { rule: "Rate changes", detail: "Crypto values can change significantly. The initial estimate can change when the server saves your order. Review the saved amounts before paying." },
+      { rule: "No guarantees", detail: "Crypto assets can lose value. Tcash does not provide investment advice or promise financial returns." },
       { rule: "Manual service", detail: "All orders are processed by a human operator. Settlement is not instant or automated." },
     ],
   },
@@ -62,7 +53,7 @@ const SECTIONS = [
     items: [
       { rule: "Buy limits", detail: "KES 600 minimum · KES 20,000 maximum per buy order." },
       { rule: "Sell limits", detail: "Minimum USD equivalent of $1 per sell order." },
-      { rule: "Kenya only", detail: "Mobile-money settlement is via M-Pesa Kenya and Airtel Kenya. International settlement is not currently supported." },
+      { rule: "Kenya only", detail: "Settlement uses M-Pesa Kenya. Use a registered Kenyan M-Pesa number." },
     ],
   },
 ];
@@ -76,7 +67,7 @@ const SECTIONS = [
 function GuidelinesPage() {
   return (
     <div className="tdr-home page-enter">
-      <h1 className="sr-only">User Guidelines — rules and limits</h1>
+      <h1 className="tcash-page-title">How Tcash works</h1>
 
       <div>
         <p className="tdr-home-greeting">Rules, responsibilities, and limits for using Tcash</p>

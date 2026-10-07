@@ -310,7 +310,7 @@ function AdminPage() {
             <span className="brand-kicker">Admin panel</span>
             <h2>Manual confirmation and live settings</h2>
             <p className="muted">
-              Review orders, confirm referral payouts, and manage Tcash's live operational setup.
+              Review payment evidence, settle orders, and manage Tcash's live settings.
             </p>
           </div>
           <div className="mini-metrics">
@@ -337,7 +337,7 @@ function AdminPage() {
           {[
             { id: "orders", label: "Orders", count: pendingOrderCount },
             { id: "alerts", label: "Alerts", count: unreadAlerts.length },
-            { id: "claims", label: "Claims", count: pendingClaimCount },
+            { id: "claims", label: "Past claims", count: pendingClaimCount },
             { id: "settings", label: "Settings", count: 0 },
           ].map((tab) => (
             <button
@@ -405,7 +405,7 @@ function AdminPage() {
           <div>
             <h3>Live Price and Fee Control</h3>
             <p className="muted">
-              Tcash now reads live WLD and USDC market prices from World's public price endpoint.
+              Tcash uses fresh market prices for WLD and USDC.
               Set the KES fee deducted from each sell coin and added to each buy coin.
             </p>
           </div>
@@ -460,7 +460,7 @@ function AdminPage() {
           <h3>Mini App Operations</h3>
           <p className="muted">
             Set the live wallet receiver for sell-side payments, the M-Pesa PayBill for buy orders,
-            and the Gmail support destination for user help actions.
+            and the support email destination for user help actions.
           </p>
         </div>
 
@@ -482,7 +482,7 @@ function AdminPage() {
               placeholder="0xRecipientWallet"
             />
             <span className="muted field-hint">
-              WLD sell orders use this wallet for the in-app send flow inside Tcash.
+              Sell orders use this receiving wallet for World Pay or a manual World Chain transfer.
             </span>
           </div>
 
@@ -534,7 +534,7 @@ function AdminPage() {
           </div>
 
           <div className="field">
-            <label htmlFor="supportEmail">Support Gmail</label>
+            <label htmlFor="supportEmail">Support email</label>
             <input
               id="supportEmail"
               type="email"
@@ -595,7 +595,7 @@ function AdminPage() {
             <span className="brand-kicker">Referral claims</span>
             <h3>Referral rewards ready for M-Pesa payout</h3>
             <p className="muted">
-              These users reached a referral target and requested payout. Review and send the reward
+              These are historical, self-reported claims. Verify eligibility independently before sending a reward
               directly to the saved M-Pesa number.
             </p>
           </div>

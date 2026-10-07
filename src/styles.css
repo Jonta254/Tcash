@@ -5585,3 +5585,70 @@ input[type="number"] {
 
 .tcash-auth-page { padding: 24px 18px; }
 .tcash-auth-page .tdr-login { min-height: calc(100dvh - 48px); padding: 0; }
+.tcash-page-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.tcash-page-heading h1, .tcash-page-title { font: 500 1.6rem var(--font-ledger); margin:0; }
+.tcash-section-title { font-size:0.8rem; font-weight:600; color:var(--muted); margin:0 0 12px; }
+.tcash-setting-row { width:100%; justify-content:space-between; text-align:left; color:var(--text); }
+.tcash-shell-title { color:var(--muted); font-size:0.8rem; }
+.tcash-receive-address { display:grid; gap:12px; padding:16px; border:1px solid var(--border); border-radius:12px; }
+.tcash-receive-address code { overflow-wrap:anywhere; font-size:0.85rem; user-select:all; }
+.tdr-home { gap:22px; }
+.tdr-home-refresh { width:44px; height:44px; margin-bottom:0; }
+.tdr-home-balance-num { min-width:0; overflow-wrap:anywhere; }
+.tdr-home-balance-meta { flex-wrap:wrap; gap:6px 12px; }
+.tdr-act-card, :root[data-theme="light"] .tdr-act-card { box-shadow:none; border-radius:12px; }
+.tdr-act-card:active, :root[data-theme="light"] .tdr-act-card:active { box-shadow:none; }
+.tdr-home-util-link, .tdr-home-invite-action, .copy-button, .button-ghost { min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+.shell-avatar { min-width:44px; min-height:44px; }
+.tdr-hold-dot { animation:none; }
+.tdr-ledger-title, .tdr-ledger-amt, .tdr-home-greeting { overflow-wrap:anywhere; }
+.tdr-guide-points { font-size:0.9rem; line-height:1.65; }
+.tdr-ledger-date { line-height:1.5; }
+.tcash-setting-row, .tdr-home-section a.tdr-ledger-row { font-size:0.9rem; }
+.tab-bar { height:auto; min-height:64px; }
+:focus-visible { outline:2px solid var(--primary); outline-offset:4px; }
+@media (max-width:360px) {
+  .tdr-home { gap:18px; }
+  .tdr-home-brand { flex-wrap:wrap; gap:4px 10px; }
+  .tdr-home-balance-num { font-size:clamp(1.8rem,8vw,2.4rem); }
+  .tcash-shell-title { font-size:0.72rem; }
+  .orders-tab { padding-left:10px; padding-right:10px; }
+}
+/* Theme-aware payment surfaces, consistent with the rest of Tcash. */
+.trade-dest-strip, :root[data-theme="light"] .trade-dest-strip { background:var(--primary-soft); border-color:var(--border); border-radius:10px; }
+.tds-text strong, :root[data-theme="light"] .tds-text strong, .tds-inline-input { color:var(--text); }
+.tds-text span, .tds-text-input label { color:var(--muted); }
+.tds-icon { color:var(--primary); background:transparent; }
+.tds-inline-input { min-height:44px; }
+.tds-inline-input::placeholder { color:var(--muted); }
+.field input, .field select, :root[data-theme="light"] .field input, :root[data-theme="light"] .field select { background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:10px; min-height:44px; font-size:1rem; }
+.trade-summary-box { background:transparent; border-radius:10px; }
+.payment-card { background:var(--primary-soft); border-color:var(--border); border-radius:12px; }
+.payment-card strong, .payment-card span, .payment-card p, .copy-detail-list code, :root[data-theme="light"] .payment-card strong, :root[data-theme="light"] .pic-amount, :root[data-theme="light"] .copy-detail-list code { color:var(--text); }
+.copy-detail-list div { background:transparent; border-radius:0; border-bottom:1px solid var(--border); padding:8px 0; }
+.copy-button { color:var(--primary); background:transparent; border-color:var(--border); }
+.highlight-box, .action-highlight, :root[data-theme="light"] .highlight-box { background:var(--primary-soft); border-color:var(--border); }
+.tcash-wallet-address { font-size:0.8rem; overflow-wrap:anywhere; user-select:all; }
+.tsb-row { gap:16px; }
+.tsb-row strong { overflow-wrap:anywhere; text-align:right; }
+.tdr-wallet-vault p { margin:0; }
+.tcash-quote-disclosure { border:1px solid var(--border); border-radius:10px; }
+.tcash-quote-disclosure summary { cursor:pointer; color:var(--primary); padding:12px; min-height:44px; }
+.tcash-quote-disclosure .trade-summary-box { border:0; }
+.payment-card .pic-note { font-size:0.8rem; line-height:1.5; font-weight:400; }
+.tcash-section-title { font-size:0.9rem; margin:0; }
+.tdr-home-section > p { margin:0; font-size:0.9rem; line-height:1.6; }
+.tdr-home-nudge-row input { min-width:0; min-height:48px; border-radius:10px; padding:12px; background:var(--panel); color:var(--text); border:1px solid var(--border); font-size:1rem; }
+.tcash-history-heading .orders-tab-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+.tcash-history-heading .orders-tab { min-height:44px; padding:6px; font-size:0.76rem; }
+.tcash-history-heading { padding:4px 0 12px; border-bottom:1px solid var(--border); }
+.tdr-receipt-stamp { color:var(--primary); background:var(--primary-soft); }
+.highlight-box strong, .highlight-box code, :root[data-theme="light"] .highlight-box strong, :root[data-theme="light"] .highlight-box code { color:var(--text); }
+.highlight-box p, :root[data-theme="light"] .highlight-box p { color:var(--muted); }
+:root[data-theme="light"] .action-highlight { background:var(--primary-soft); }
+@media (max-width:767px) {
+  .tab-bar { left:0; right:0; bottom:0; width:100%; transform:none; gap:0; padding-left:4px; padding-right:4px; border-radius:0; grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .tab-link { padding:0; }
+  .tab-link-shell { width:100%; padding-left:2px; padding-right:2px; }
+  .tab-label { overflow:visible; text-overflow:clip; font-size:0.74rem; }
+}

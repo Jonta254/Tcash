@@ -28,6 +28,7 @@ function TradePage() {
         <button
           type="button"
           className={`tdr-trade-half${activeTab === "buy" ? " active" : ""}`}
+          aria-pressed={activeTab === "buy"}
           onClick={() => switchTab("buy")}
         >
           <span className="tdr-trade-half-label">Buy</span>
@@ -36,6 +37,7 @@ function TradePage() {
         <button
           type="button"
           className={`tdr-trade-half${activeTab === "sell" ? " active" : ""}`}
+          aria-pressed={activeTab === "sell"}
           onClick={() => switchTab("sell")}
         >
           <span className="tdr-trade-half-label">Sell</span>

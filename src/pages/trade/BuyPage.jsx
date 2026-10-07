@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
@@ -13,10 +12,8 @@ import { formatCryptoAmount, formatKES, getCurrentUser, haptic, tenderHaptics } 
 function BuyPage() {
   const settings     = useAppSettings();
   const currentUser  = getCurrentUser();
-  const navigate     = useNavigate();
   const [copiedValue,    setCopiedValue]    = useState("");
   const [orderCreating,  setOrderCreating]  = useState(false);
-  const [orderJustPlaced, setOrderJustPlaced] = useState(false);
 
   const {
     asset, setAsset,
@@ -54,7 +51,6 @@ function BuyPage() {
       const order = await placeOrder();
       if (order) {
         tenderHaptics.commit();
-        setOrderJustPlaced(true);
       }
       setOrderCreating(false);
     });
@@ -63,7 +59,7 @@ function BuyPage() {
   const resetFlow = () => {
     setStep(1);
     setCurrentOrder(null);
-    setOrderJustPlaced(false);
+
     setError("");
     setBuyKesInput("");
     setPaymentReference("");
@@ -87,16 +83,16 @@ function BuyPage() {
     return (
       <div className="content-grid">
         <section className="panel stack task-panel trade-panel-compact">
-          {error && <div className="error">{error}</div>}
+          {error && <div className="error" role="alert">{error}</div>}
           {verifyError && <div className="error">{verifyError}</div>}
           {worldIdWidget}
 
           {(currentUser?.walletAddress || currentUser?.username) && (
-            <div className="trade-dest-strip">
+          <div className="trade-dest-strip">
               <span className="tds-icon" aria-hidden="true"><Icon name="arrowDown" size={16} strokeWidth={2.1} /></span>
               <div className="tds-text">
                 <strong>{currentUser?.username ? `@${currentUser.username}` : "Wallet connected"}</strong>
-                <span>Crypto delivered here after admin review</span>
+                <span>Crypto delivered here after operator review</span>
               </div>
             </div>
           )}
@@ -146,7 +142,7 @@ function BuyPage() {
             type="button"
             className="button"
             onClick={handleCreateBuyOrder}
-            disabled={orderCreating || verifyStarting || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
+            disabled={orderCreating || verifyStarting || exchangeRate <= 0 || !buyKesInput || kesAmount < buyKesMin || kesAmount > buyKesMax}
           >
             {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Review buy order"}
           </button>
@@ -161,8 +157,8 @@ function BuyPage() {
       <div className="content-grid">
         <Receipt
           title="Payment submitted"
-          leadCopy={`Admin will verify your M-Pesa payment and release ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} to your wallet.`}
-          amountLabel="You paid"
+          leadCopy={`An operator will verify your M-Pesa payment and release ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} to your wallet.`}
+          amountLabel="Amount submitted"
           amountValue={formatKES(currentOrder.kesAmount)}
           reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
           shareText={`Tcash order — submitted a buy of ${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset} for ${formatKES(currentOrder.kesAmount)}.`}
@@ -184,19 +180,6 @@ function BuyPage() {
     <div className="content-grid">
       <section className="panel stack task-panel trade-panel-compact">
 
-        {/* Order placed banner */}
-        {orderJustPlaced && currentOrder && (
-          <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true"><Icon name="arrowRight" size={15} strokeWidth={2.4} /></span>
-            <div className="opb-body">
-              <strong>One step left</strong>
-              <span>
-                Pay via M-Pesa below and submit the code to confirm — your order is already saved so you can return to it in History.
-              </span>
-            </div>
-          </div>
-        )}
-
         {error && <div className="error">{error}</div>}
 
         <div className="page-section-head compact-page-head">
@@ -206,9 +189,6 @@ function BuyPage() {
           </div>
         </div>
 
-        <QuoteDetails type="buy" asset={currentOrder.asset} amount={currentOrder.cryptoAmount}
-          gross={currentOrder.grossKesAmount} fee={currentOrder.feeKesAmount} total={currentOrder.kesAmount}
-          rate={currentOrder.grossKesAmount / currentOrder.cryptoAmount} />
         <div className="stack">
           <div className="payment-card payment-instructions-card">
             <span className="pic-label">Pay via M-Pesa PayBill</span>
@@ -226,6 +206,7 @@ function BuyPage() {
                   <button
                     type="button"
                     className="copy-button"
+                    aria-label={`Copy ${label}`}
                     onClick={() => copyValue(label, value)}
                   >
                     {copiedValue === label ? "Copied" : "Copy"}
@@ -233,9 +214,14 @@ function BuyPage() {
                 </div>
               ))}
             </div>
+            <p className="pic-note">Tcash fee included: {formatKES(currentOrder.feeKesAmount)}.</p>
             <p className="pic-note">Pay on M-Pesa, then paste the confirmation code below.</p>
           </div>
 
+
+            <details className="tcash-quote-disclosure"><summary>Saved quote and fee breakdown</summary><QuoteDetails type="buy" asset={currentOrder.asset} amount={currentOrder.cryptoAmount}
+          gross={currentOrder.grossKesAmount} fee={currentOrder.feeKesAmount} total={currentOrder.kesAmount}
+          rate={currentOrder.grossKesAmount / currentOrder.cryptoAmount} /></details>
           <div className="trade-dest-strip">
             <span className="tds-icon" aria-hidden="true"><Icon name="arrowDown" size={16} strokeWidth={2.1} /></span>
             <div className="tds-text">
@@ -251,8 +237,9 @@ function BuyPage() {
             <input
               id="mpesaCode"
               value={paymentReference}
-              onChange={(e) => setPaymentReference(e.target.value)}
-              placeholder="QWE123XYZ"
+              onChange={(e) => setPaymentReference(e.target.value.toUpperCase())}
+              placeholder="ABC123DE45"
+              maxLength={10} autoCapitalize="characters" autoCorrect="off" spellCheck={false}
             />
           </div>
 

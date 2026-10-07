@@ -2,9 +2,19 @@ import { parseCookies, serializeCookie } from "./_lib/cookies.js";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { logEvent, logSecurityEvent } from "./_lib/log.js";
 import { getWorldPortalConfig, hasWorldPortalConfig } from "./_lib/world.js";
+import { USER_SESSION_COOKIE, verifyUserSessionToken } from "./_lib/userSession.js";
+import { isTrustedOrigin } from "./_lib/csrf.js";
 
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ["POST"])) {
+    return;
+  }
+  if (!verifyUserSessionToken(parseCookies(req)[USER_SESSION_COOKIE]).valid) {
+    sendJson(res, 401, { verified: false, error: "Sign in again to check this payment." });
+    return;
+  }
+  if (!isTrustedOrigin(req)) {
+    sendJson(res, 403, { verified: false, error: "Request origin could not be verified." });
     return;
   }
 
@@ -15,7 +25,7 @@ export default async function handler(req, res) {
 
     const transactionId = payload?.transactionId || payload?.transaction_id;
 
-    if (!transactionId || !payload?.reference) {
+    if (typeof transactionId !== "string" || transactionId.length > 256 || !transactionId || !payload?.reference) {
       sendJson(res, 400, { verified: false, error: "Missing transaction payload." });
       return;
     }
@@ -43,12 +53,13 @@ export default async function handler(req, res) {
 
     const { appId, apiKey } = getWorldPortalConfig();
     const response = await fetch(
-      `https://developer.worldcoin.org/api/v2/minikit/transaction/${transactionId}?app_id=${appId}&type=payment`,
+      `https://developer.worldcoin.org/api/v2/minikit/transaction/${encodeURIComponent(transactionId)}?app_id=${encodeURIComponent(appId)}&type=payment`,
       {
         method: "GET",
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
+        signal: AbortSignal.timeout(8000),
       },
     );
 

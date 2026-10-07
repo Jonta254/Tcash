@@ -54,6 +54,7 @@ function OrderCard({ order, children }) {
         className="tdr-ledger-entry-row"
         onClick={toggle}
         aria-expanded={open}
+        aria-controls={`order-${order.id}`}
       >
         <span className={`tdr-ledger-icon tdr-ledger-icon-${order.type}`} aria-hidden="true">
           <Icon name={order.type === "buy" ? "arrowUp" : "arrowDown"} size={13} strokeWidth={2.2} />
@@ -70,7 +71,7 @@ function OrderCard({ order, children }) {
         </div>
       </button>
 
-      <div className={`tdr-ledger-reveal${open ? " open" : ""}`}>
+      <div id={`order-${order.id}`} className={`tdr-ledger-reveal${open ? " open" : ""}`} inert={open ? undefined : ""} aria-hidden={!open}>
         <div className="tdr-ledger-reveal-inner">
           <div className="tdr-receipt-lines">
             <div className="tdr-receipt-line">

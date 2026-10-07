@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Icon from "../../components/icons/Icon";
 import AmountField from "../../components/interaction/AmountField";
 import HoldToConfirm from "../../components/interaction/HoldToConfirm";
@@ -9,7 +8,6 @@ import { useAppSettings } from "../../hooks/useAppSettings";
 import { useOrderFlow } from "../../hooks/useOrderFlow";
 import { useHighValueVerification } from "../../hooks/useHighValueVerification";
 import {
-  APP_CONFIG,
   canUseWorldPay,
   commitPaidOrder,
   mergeAdminOrders,
@@ -21,6 +19,7 @@ import {
   getWorldWalletPortfolio,
   haptic,
   requestWorldPayment,
+  syncOrderToAdminQueue,
   tenderHaptics,
 } from "../../services";
 
@@ -28,11 +27,9 @@ function SellPage() {
   const settings     = useAppSettings();
   const currentUser  = getCurrentUser();
   const worldApp     = getWorldAppContext();
-  const navigate     = useNavigate();
 
   const [sendLoading,     setSendLoading]     = useState(false);
   const [orderCreating,   setOrderCreating]   = useState(false);
-  const [orderJustPlaced, setOrderJustPlaced] = useState(false);
   const initialPortfolio = getCachedWorldWalletPortfolio(currentUser?.walletAddress);
   const [walletPortfolio, setWalletPortfolio] = useState(initialPortfolio);
   const [walletLoading,   setWalletLoading]   = useState(false);
@@ -66,7 +63,7 @@ function SellPage() {
   const canSendInsideMiniApp =
     worldApp.isInstalled &&
     canUseWorldPay(asset) &&
-    Boolean(settings.sellWalletAddress?.trim());
+    Boolean((currentOrder?.sellWalletAddress || settings.sellWalletAddress)?.trim());
 
   const selectedAssetBalance = useMemo(
     () => walletPortfolio.assets.find((e) => e.symbol === asset),
@@ -85,6 +82,7 @@ function SellPage() {
           const c = getCachedWorldWalletPortfolio(currentUser.walletAddress);
           if (c.assets.length) setWalletPortfolio(c);
           else setWalletPortfolio({ walletAddress: currentUser.walletAddress, assets: [], supported: true });
+          setWalletError("Could not refresh balances. Check your World wallet before sending.");
         }
       })
       .finally(() => { if (active) setWalletLoading(false); });
@@ -104,9 +102,13 @@ function SellPage() {
         asset:       currentOrder.asset,
         description: `Tcash sell order ${currentOrder.id}`,
         to:          currentOrder.sellWalletAddress || settings.sellWalletAddress,
-        onSubmitted: payload => {
+        onSubmitted: async payload => {
           const saved = { ...currentOrder, paymentReference: payload.transactionId, paymentMethod: "world-pay", paymentVerificationStatus: "verification_pending" };
           setCurrentOrder(saved); mergeAdminOrders([saved]);
+          // Save the command reference remotely before checking chain status,
+          // so another device also knows this order must not launch Pay again.
+          const accepted = await commitPaidOrder(saved, { status: "paid" });
+          setCurrentOrder(accepted);
         },
       });
       // Only block if the payment definitively failed (not just pending/unindexed)
@@ -119,13 +121,15 @@ function SellPage() {
       setCurrentOrder(submittedOrder);
       mergeAdminOrders([submittedOrder]);
       // Retain the command result while waiting for durable acceptance.
-      const updated = await commitPaidOrder(currentOrder, {
+      const updated = { ...currentOrder,
         paymentMethod:             "world-pay",
         paymentReference:          payment.transactionId,
         paymentSummary:            `World Pay submitted (${payment.transactionStatus})`,
         paymentVerificationStatus: payment.transactionStatus,
         status:                    "paid",
-      });
+      };
+      await syncOrderToAdminQueue(updated, { notifyAdmin: false });
+      mergeAdminOrders([updated]);
       tenderHaptics.send();
       setCurrentOrder(updated);
       setPaymentReference(payment.transactionId);
@@ -162,7 +166,6 @@ function SellPage() {
       const order = await placeOrder();
       if (order) {
         tenderHaptics.commit();
-        setOrderJustPlaced(true);
       }
       setOrderCreating(false);
     });
@@ -170,7 +173,7 @@ function SellPage() {
 
   const resetFlow = () => {
     setStep(1); setCurrentOrder(null);
-    setOrderJustPlaced(false); setError("");
+setError("");
     setCryptoAmount(""); setPaymentReference("");
   };
 
@@ -179,7 +182,7 @@ function SellPage() {
     return (
       <div className="content-grid">
         <section className="panel stack task-panel trade-panel-compact">
-          {error && <div className="error">{error}</div>}
+          {error && <div className="error" role="alert">{error}</div>}
           {verifyError && <div className="error">{verifyError}</div>}
           {worldIdWidget}
 
@@ -250,9 +253,9 @@ function SellPage() {
             type="button"
             className="button"
             onClick={handleCreateSellOrder}
-            disabled={orderCreating || verifyStarting || !cryptoAmount || grossKesAmount < sellMinKesEquivalent}
+            disabled={orderCreating || verifyStarting || exchangeRate <= 0 || !cryptoAmount || grossKesAmount < sellMinKesEquivalent}
           >
-            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Confirm sell order"}
+            {verifyStarting ? "Starting World ID…" : orderCreating ? "Placing order…" : "Review sell order"}
           </button>
         </section>
       </div>
@@ -264,8 +267,8 @@ function SellPage() {
     return (
       <div className="content-grid">
         <Receipt
-          title={canSendInsideMiniApp ? "Payment sent" : "Order submitted"}
-          leadCopy={`Admin will confirm your payment and send ${formatKES(currentOrder.kesAmount)} to ${currentOrder.payoutPhoneNumber}.`}
+          title="Payment submitted"
+          leadCopy={`An operator will confirm your payment and send ${formatKES(currentOrder.kesAmount)} to ${currentOrder.payoutPhoneNumber}.`}
           amountLabel="KES payout"
           amountValue={formatKES(currentOrder.kesAmount)}
           reference={currentOrder.paymentReference || currentOrder.id.slice(0, 8).toUpperCase()}
@@ -273,7 +276,7 @@ function SellPage() {
           onNewTrade={resetFlow}
           lines={[
             { label: "Order type", value: `Sell ${currentOrder.asset}` },
-            { label: "You sent", value: `${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset}` },
+            { label: "Submitted amount", value: `${formatCryptoAmount(currentOrder.cryptoAmount)} ${currentOrder.asset}` },
             { label: "M-Pesa to", value: currentOrder.payoutPhoneNumber },
           ]}
         />
@@ -285,19 +288,6 @@ function SellPage() {
   return (
     <div className="content-grid">
       <section className="panel stack task-panel trade-panel-compact">
-
-        {/* Order placed banner */}
-        {orderJustPlaced && currentOrder && (
-          <div className="order-placed-banner">
-            <span className="opb-check" aria-hidden="true"><Icon name="arrowRight" size={15} strokeWidth={2.4} /></span>
-            <div className="opb-body">
-              <strong>One step left</strong>
-              <span>
-                Send your {formatCryptoAmount(currentOrder.cryptoAmount)} {currentOrder.asset} below to confirm — your order is already saved so you can return to it in History.
-              </span>
-            </div>
-          </div>
-        )}
 
         {error && <div className="error">{error}</div>}
 
@@ -313,16 +303,9 @@ function SellPage() {
         </div>
 
         <div className="stack">
-          <div className="trade-summary-box trade-summary-compact">
-            <div className="tsb-row">
-              <span>You send</span>
-              <strong>{formatCryptoAmount(currentOrder.cryptoAmount, 6)} {currentOrder.asset}</strong>
-            </div>
-            <div className="tsb-row tsb-row-receive">
-              <span>You receive</span>
-              <strong>{formatKES(currentOrder.kesAmount)}</strong>
-            </div>
-          </div>
+          <QuoteDetails type="sell" asset={currentOrder.asset} amount={currentOrder.cryptoAmount}
+            gross={currentOrder.grossKesAmount} fee={currentOrder.feeKesAmount} total={currentOrder.kesAmount}
+            rate={currentOrder.grossKesAmount / currentOrder.cryptoAmount} />
 
           <div className="trade-dest-strip">
             <span className="tds-icon" aria-hidden="true"><Icon name="phone" size={16} strokeWidth={2} /></span>
@@ -346,7 +329,7 @@ function SellPage() {
                 disabled={sendLoading}
                 onConfirm={handleMiniAppSend}
               />
-              {sendLoading ? <p className="tdr-login-status">Opening World payment…</p> : null}
+              {sendLoading ? <p className="tdr-login-status">Recording your payment…</p> : null}
             </>
           ) : (
             <>
@@ -356,13 +339,22 @@ function SellPage() {
                   Transfer crypto to the Tcash wallet and paste the blockchain transaction hash.
                 </p>
               </div>
+              <div className="tcash-receive-address">
+                <span className="muted">Tcash receiving wallet · World Chain only</span>
+                <code>{currentOrder.sellWalletAddress}</code>
+                <button type="button" className="button-secondary" onClick={async () => {
+                  try { await navigator.clipboard.writeText(currentOrder.sellWalletAddress); setError(""); }
+                  catch { setError("Copy failed. Long-press the full address to copy it."); }
+                }}>Copy receiving address</button>
+              </div>
               <div className="field">
                 <label htmlFor="txRef">Transaction hash</label>
                 <input
                   id="txRef"
                   value={paymentReference}
                   onChange={(e) => setPaymentReference(e.target.value)}
-                  placeholder="0x1234…"
+                  placeholder="0x followed by 64 characters"
+                  maxLength={66} autoCapitalize="none" autoCorrect="off" spellCheck={false}
                 />
               </div>
               <HoldToConfirm

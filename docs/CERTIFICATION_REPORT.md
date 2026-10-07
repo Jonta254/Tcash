@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Certification Report
 
 This is the closing pass over `PRODUCTION_READINESS_REPORT.md`,

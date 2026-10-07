@@ -1,3 +1,5 @@
+> Historical document. Superseded by [the strict review](STRICT_WORLD_REVIEW.md). This is not World approval or current release evidence.
+
 # TCash — Launch Readiness Report
 
 This builds directly on [`PRODUCTION_READINESS_REPORT.md`](PRODUCTION_READINESS_REPORT.md)

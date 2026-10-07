@@ -1,5 +1,9 @@
 import { formatCryptoAmount, formatKES } from "../../services/pricingService";
+import { Link } from "react-router-dom";
 export default function QuoteDetails({ type, asset, amount, gross, fee, total, rate }) {
+  if (!Number.isFinite(rate) || rate <= 0) {
+    return <section className="trade-summary-box" role="status"><p className="muted">Waiting for a current market rate.</p><Link to="/">Refresh rates on Home →</Link></section>;
+  }
   return (
     <section className="trade-summary-box trade-summary-compact" aria-label="Quote breakdown">
       <div className="tsb-row"><span>Market value</span><strong>{formatKES(gross)}</strong></div>
