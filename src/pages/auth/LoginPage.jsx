@@ -20,20 +20,11 @@ function LoginPage() {
   const [worldLoading, setWorldLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState("");
   const [authStage, setAuthStage] = useState("idle");
-  const targetPath = location.state?.from?.pathname || "/";
-
-  const getPostLoginPath = (user) => {
-    if (!user) {
-      return targetPath;
-    }
-
-    if (user.isAdmin) {
-      const requestedPath = location.state?.from?.pathname;
-      return requestedPath === "/admin" || requestedPath === "/tmpesa-admin" ? requestedPath : "/";
-    }
-
-    return targetPath;
-  };
+  const requestedLocation = location.state?.from;
+  const requestedPath = requestedLocation?.pathname || "/";
+  const targetPath = requestedPath.startsWith("/") && !requestedPath.startsWith("//") && !requestedPath.includes("\\")
+    ? requestedPath + (requestedLocation?.search || "") + (requestedLocation?.hash || "")
+    : "/";
 
   const finalizeSessionRedirect = () => {
     const currentUser = getCurrentUser();
@@ -42,7 +33,7 @@ function LoginPage() {
       throw new Error("Tcash could not save your login session. Please try again.");
     }
 
-    const nextPath = getPostLoginPath(currentUser);
+    const nextPath = targetPath;
 
     navigate(nextPath, { replace: true });
 
@@ -50,7 +41,7 @@ function LoginPage() {
       const latestUser = getCurrentUser();
 
       if (latestUser && window.location.pathname === "/login") {
-        window.location.replace(getPostLoginPath(latestUser));
+        window.location.replace(targetPath);
       }
     }, 120);
   };
@@ -59,7 +50,7 @@ function LoginPage() {
     const currentUser = getCurrentUser();
 
     if (currentUser) {
-      navigate(getPostLoginPath(currentUser), { replace: true });
+      navigate(targetPath, { replace: true });
     }
   }, [navigate, targetPath]);
 

@@ -11,13 +11,12 @@
     "check": "node scripts/check-runtime-names.mjs"
   },
   "dependencies": {
-    "@vercel/blob": "^2.4.0",
     "@worldcoin/idkit": "^4.2.1",
     "@worldcoin/idkit-core": "^4.2.2",
     "@worldcoin/minikit-js": "^1.9.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
