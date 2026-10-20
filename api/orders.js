@@ -1,5 +1,6 @@
 import { getFreshMarketQuote } from "./world-prices.js";
 import { priceOrder } from "./_lib/quote.js";
+import { reviewError } from "../shared/orderReview.js";
 import { randomUUID } from "node:crypto";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { parseCookies } from "./_lib/cookies.js";
@@ -111,16 +112,22 @@ local wallet = ARGV[3]
 local admin = ARGV[4] == 'true'
 local all = redis.call('HVALS', KEYS[1])
 local refs = {}
+local settlements = {}
 for _, raw in ipairs(all) do
   local decoded = cjson.decode(raw)
   local saved = decoded.order or decoded
   if saved.paymentReference and saved.paymentReference ~= '' then refs[string.upper(saved.paymentReference)] = saved.id end
+  if saved.settlementReference and saved.settlementReference ~= '' then settlements[string.upper(saved.settlementReference)] = saved.id end
 end
 for _, order in ipairs(incoming) do
   local raw = redis.call('HGET', KEYS[1], order.id)
   if raw then
     local decoded = cjson.decode(raw)
     local saved = decoded.order or decoded
+    if admin and saved.status ~= order.status and order.reviewFromStatus ~= saved.status then return redis.error_reply('Order changed during review. Refresh the queue') end
+    for _, field in ipairs({'settlementReference','rejectionReason','reviewedAt','reviewedBy','reviewFromStatus'}) do
+      if (not admin or saved.status == 'completed' or saved.status == 'rejected' or saved.status == 'cancelled') and saved[field] ~= order[field] then return redis.error_reply('Review details cannot change') end
+    end
     if not admin and string.lower(saved.userWalletAddress or saved.walletAddress or '') ~= wallet then return redis.error_reply('Order ownership conflict') end
     for _, field in ipairs({'type','asset','cryptoAmount','kesAmount','grossKesAmount','feeKesAmount','feePerCoinKes','walletAddress','userWalletAddress','payoutPhoneNumber','createdAt','sellWalletAddress','mpesaPaybillNumber','mpesaAccountNumber','mpesaTillName'}) do
       if saved[field] ~= order[field] then return redis.error_reply('Order details cannot change') end
@@ -133,6 +140,11 @@ for _, order in ipairs(incoming) do
     local ref = string.upper(order.paymentReference)
     if refs[ref] and refs[ref] ~= order.id then return redis.error_reply('Payment reference already used') end
     refs[ref] = order.id
+  end
+  if order.settlementReference and order.settlementReference ~= '' then
+    local ref = string.upper(order.settlementReference)
+    if settlements[ref] and settlements[ref] ~= order.id then return redis.error_reply('Settlement reference already used') end
+    settlements[ref] = order.id
   end
 end
 for index, order in ipairs(incoming) do
@@ -177,6 +189,9 @@ export function isOrderRecord(value) {
     "userPhone",
     "userWalletAddress",
     "referredByCode",
+    "settlementReference",
+    "reviewedAt",
+    "reviewedBy",
   ];
 
   return (
@@ -395,6 +410,13 @@ export function assertOrderUpdate(existing, incoming, callerWallet, isAdmin) {
   if (incoming.type === "sell" && !/^0[17]\d{8}$/.test(incoming.payoutPhoneNumber || "")) throw new Error("Enter a valid Kenyan payout number.");
   if (["paid", "completed"].includes(incoming.status) && !incoming.paymentReference) throw new Error("A submitted payment requires a reference.");
   if (incoming.type === "buy" && incoming.paymentReference && !/^[A-Z0-9]{10}$/.test(incoming.paymentReference)) throw new Error("Enter a valid M-Pesa code.");
+  const reviewFields = ["settlementReference", "rejectionReason", "reviewedAt", "reviewedBy", "reviewFromStatus"];
+  if (existing && ["completed", "rejected", "cancelled"].includes(existing.status) && incoming.status !== existing.status) throw new Error("A closed order cannot be reopened.");
+  if ((!isAdmin || existing?.status === incoming.status || ["completed", "rejected", "cancelled"].includes(existing?.status)) && reviewFields.some(field => incoming[field] !== existing?.[field])) throw new Error("Operator review details cannot change.");
+  if (isAdmin && existing && existing.status !== incoming.status) {
+    const error = reviewError(existing, incoming.status, incoming);
+    if (error) throw new Error(error);
+  }
   if (!existing) return;
   if (!isAdmin && !orderBelongsToWallet(existing, callerWallet)) throw new Error("This order does not belong to your wallet.");
   const immutable = ["type", "asset", "cryptoAmount", "kesAmount", "grossKesAmount", "feeKesAmount", "feePerCoinKes", "walletAddress", "userWalletAddress", "payoutPhoneNumber", "createdAt", "sellWalletAddress", "mpesaPaybillNumber", "mpesaAccountNumber", "mpesaTillName"];
@@ -581,9 +603,21 @@ export default async function handler(req, res) {
       if (!worldIdVerificationAvailable()) { sendJson(res, 503, { ok: false, error: "High-value trades are unavailable until identity verification is configured. Contact support." }); return; }
       if (!await isWalletVerified(requestUserWallet(req))) { sendJson(res, 403, { ok: false, requiresWorldId: true, error: "Verify with World ID before placing a high-value trade." }); return; }
     }
-    for (const order of orders) {
-      assertOrderUpdate(stored.find(existing => existing.id === order.id), order, requestUserWallet(req), isAdmin);
+    try {
+      for (const order of orders) {
+        assertOrderUpdate(stored.find(existing => existing.id === order.id), order, requestUserWallet(req), isAdmin);
+      }
+    } catch (error) {
+      sendJson(res, 409, { ok: false, error: error.message }); return;
     }
+    orders = orders.map(order => {
+      const saved = stored.find(existing => existing.id === order.id);
+      if (isAdmin && saved && saved.status !== order.status) {
+        return { ...order, reviewFromStatus: saved.status, reviewedAt: new Date().toISOString(), reviewedBy: adminWallet,
+          updatedAt: new Date().toISOString(), rejectionReason: order.status === "rejected" ? order.rejectionReason.trim() : saved.rejectionReason };
+      }
+      return order;
+    });
     const batchReferences = orders.map(order => String(order.paymentReference || "").toUpperCase()).filter(Boolean);
     if (new Set(batchReferences).size !== batchReferences.length) {
       sendJson(res, 409, { ok: false, error: "A payment reference can only be used once." });

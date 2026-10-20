@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import AdminOrderActions from "../../components/orders/AdminOrderActions";
+import { reviewError } from "../../../shared/orderReview.js";
 import OrderCard from "../../components/orders/OrderCard";
 import { useAdminSession } from "../../hooks/useAdminSession";
 import { useAppSettings } from "../../hooks/useAppSettings";
@@ -64,6 +66,7 @@ function AdminPage() {
   const [orderQueueMessage, setOrderQueueMessage] = useState("");
   const [orderQueueError, setOrderQueueError] = useState("");
   const [orderUpdatingId, setOrderUpdatingId] = useState(null);
+  const orderWriteBusy = useRef(false);
   const [queueReady, setQueueReady] = useState(false);
   const feesEdited = useRef(false);
   const operationsEdited = useRef(false);
@@ -214,11 +217,13 @@ function AdminPage() {
     );
   }
 
-  const handleStatusUpdate = async (order, status) => {
-    if (orderUpdatingId || !queueReady) return;
+  const handleStatusUpdate = async (order, status, changes = {}) => {
+    if (orderWriteBusy.current || !queueReady) return;
+    const validationError = reviewError(order, status, changes);
+    if (validationError) { setOrderQueueError(validationError); return; }
     const confirmMessages = {
       completed: "Confirm that you checked the payment asset, amount, receiver and reference, and already sent the exact payout. Mark this order settled?",
-      rejected: "Mark this order as failed? This cannot be undone.",
+      rejected: "Reject this order with the recorded reason? This does not refund any funds and cannot be undone.",
       paid: "Confirm that payment evidence has been submitted. This does not confirm receipt or settlement. Move this order to review?",
     };
     const confirmMsg = confirmMessages[status] || `Update order status to ${status}?`;
@@ -233,16 +238,21 @@ function AdminPage() {
       });
 
     setOrderQueueError("");
+    orderWriteBusy.current = true;
     setOrderUpdatingId(order.id);
-    const updated = { ...order, status, updatedAt: new Date().toISOString() };
+    const updated = { ...order, ...changes, status, updatedAt: new Date().toISOString() };
     try {
-      await syncOrderToAdminQueue(updated, { notifyAdmin: false });
-      updateOrder(order.id, { status }, order, { sync: false });
+      const result = await syncOrderToAdminQueue(updated, { notifyAdmin: false });
+      const saved = result?.orders?.find(entry => entry.id === order.id);
+      if (!saved) throw new Error("The server did not confirm the saved order.");
+      updateOrder(order.id, saved, order, { sync: false });
     } catch (error) {
       tenderHaptics.fail();
+      setQueueReady(false);
       setOrderQueueError((error instanceof Error ? error.message : "Tcash could not save this status.") + " Refresh the queue before retrying.");
       return;
     } finally {
+      orderWriteBusy.current = false;
       setOrderUpdatingId(null);
     }
 
@@ -669,37 +679,7 @@ function AdminPage() {
           {orders.map((order) => (
             <OrderCard key={order.id} order={order}>
               <div className="action-grid">
-                {order.status === "pending" ? (
-                  <button
-                    type="button"
-                    className="button-secondary"
-                    disabled={Boolean(orderUpdatingId) || !queueReady}
-                    onClick={() => handleStatusUpdate(order, "paid")}
-                  >
-                    Move to review
-                  </button>
-                ) : null}
-                {order.status === "paid" ? (
-                  <button
-                    type="button"
-                    className="button"
-                    disabled={Boolean(orderUpdatingId) || !queueReady}
-                    onClick={() => handleStatusUpdate(order, "completed")}
-                  >
-                    Confirm settled
-                  </button>
-                ) : null}
-                {["pending", "paid"].includes(order.status) ? (
-                  <button
-                    type="button"
-                    className="button-ghost"
-                    style={{ color: "var(--error, #b5654f)" }}
-                    disabled={Boolean(orderUpdatingId) || !queueReady}
-                    onClick={() => handleStatusUpdate(order, "rejected")}
-                  >
-                    Close order
-                  </button>
-                ) : null}
+                <AdminOrderActions key={`${order.id}-${order.status}`} order={order} disabled={Boolean(orderUpdatingId) || !queueReady} onUpdate={handleStatusUpdate} />
                 <button
                   type="button"
                   className="button-ghost"
