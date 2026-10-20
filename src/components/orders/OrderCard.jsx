@@ -99,6 +99,7 @@ function OrderCard({ order, children }) {
                 <strong>{order.paymentReference}</strong>
               </div>
             )}
+            {order.settlementReference && <div className="tdr-receipt-line"><span>{order.type === "sell" ? "M-Pesa payout code" : "Delivery transaction"}</span><strong>{order.settlementReference}</strong></div>}
             {order.type === "buy" && order.walletAddress && (
               <div className="tdr-receipt-line">
                 <span>Receiving wallet</span>
@@ -143,7 +144,7 @@ function OrderCard({ order, children }) {
           </div>
           {isFailed && (
             <p className="muted tdr-ledger-closed-note">
-              Order {order.status} — contact support if you need help.
+              Order {order.status}{order.rejectionReason ? `: ${order.rejectionReason}` : " — contact support if you need help."}
             </p>
           )}
 
