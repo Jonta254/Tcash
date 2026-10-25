@@ -1,7 +1,9 @@
 import { MiniKit } from "@worldcoin/minikit-js";
 import { APP_CONFIG } from "../config/appConfig";
+import { boundedOperation } from "./boundedOperation.js";
 import {
   completeSiweVerification,
+  checkWalletSession,
   confirmWorldPayment,
   createPaymentReference,
   requestServerNonce,
@@ -44,7 +46,7 @@ function toTokenUnits(amount, decimals) {
   return units || "0";
 }
 
-async function runMiniKitCommand(commandName, payload) {
+async function runMiniKitCommand(commandName, payload, timeoutMs) {
   // World docs: prefer commandsAsync (the documented async API)
   const command =
     MiniKit.commandsAsync?.[commandName] ||
@@ -55,7 +57,8 @@ async function runMiniKitCommand(commandName, payload) {
     throw new Error(`World App command ${commandName} is not available in this MiniKit version.`);
   }
 
-  const result = await command.call(MiniKit, payload);
+  const operation = command.call(MiniKit, payload);
+  const result = timeoutMs ? await boundedOperation(operation, timeoutMs, "World App did not finish sign-in. Close the wallet prompt and try again.") : await operation;
 
   // World docs: async commands return { finalPayload } or { commandPayload, finalPayload }
   const data = result?.finalPayload || result?.data || result;
@@ -209,19 +212,23 @@ export async function connectWithWorldAppWallet() {
     statement: "Sign in to Tcash inside World App",
     expirationTime: new Date(Date.now() + 1000 * 60 * 10),
     notBefore: new Date(Date.now() - 1000 * 60),
-  });
+  }, 90000);
 
   const verification = await completeSiweVerification(data, nonce, nonceSignature);
 
   if (!verification.isValid) {
     throw new Error("Wallet authentication could not be verified by the backend.");
   }
+  const session = await checkWalletSession();
+  if (!session.valid || session.walletAddress?.toLowerCase() !== verification.address?.toLowerCase()) {
+    throw new Error("Your secure session could not be saved. Reopen Tcash in World App and try signing in again.");
+  }
 
   let resolvedUser = MiniKit.user;
 
   if (!resolvedUser?.username && verification.address) {
     try {
-      resolvedUser = await MiniKit.getUserByAddress(verification.address);
+      resolvedUser = await boundedOperation(MiniKit.getUserByAddress(verification.address), 5000, "Profile lookup timed out.");
     } catch {
       resolvedUser = MiniKit.user;
     }

@@ -42,6 +42,12 @@ export async function requestServerNonce() {
   return readJsonResponse(response);
 }
 
+export async function checkWalletSession() {
+  const response = await fetchWithTimeout("/api/complete-siwe", { credentials: "include", cache: "no-store" });
+  if (response.status === 401) return { valid: false };
+  return readJsonResponse(response);
+}
+
 export async function completeSiweVerification(payload, nonce, nonceSignature) {
   const response = await fetchWithTimeout("/api/complete-siwe", {
     method: "POST",
