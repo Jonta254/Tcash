@@ -1,17 +1,25 @@
 import { verifySiweMessage } from "@worldcoin/minikit-js";
-import { serializeCookie } from "./_lib/cookies.js";
+import { parseCookies, serializeCookie } from "./_lib/cookies.js";
 import { allowMethods, readJsonBody, sendJson } from "./_lib/http.js";
 import { logEvent, logSecurityEvent } from "./_lib/log.js";
 import {
   createUserSessionToken,
   USER_SESSION_COOKIE,
   USER_SESSION_MAX_AGE,
+  verifyUserSessionToken,
 } from "./_lib/userSession.js";
 import { claimSiweNonce, isValidSignedServerNonce } from "./_lib/world.js";
 import { isTrustedOrigin } from "./_lib/csrf.js";
 
 export default async function handler(req, res) {
-  if (!allowMethods(req, res, ["POST", "DELETE"])) {
+  if (!allowMethods(req, res, ["GET", "POST", "DELETE"])) {
+    return;
+  }
+  if (req.method === "GET") {
+    const session = verifyUserSessionToken(parseCookies(req)[USER_SESSION_COOKIE]);
+    sendJson(res, session.valid ? 200 : 401, session.valid
+      ? { valid: true, walletAddress: session.walletAddress }
+      : { valid: false, error: "Sign in again to reconnect your wallet session." });
     return;
   }
   if (req.method === "DELETE") {
@@ -26,6 +34,7 @@ export default async function handler(req, res) {
     return;
   }
 
+  let stage = "challenge";
   try {
     const { payload, nonce, nonceSignature } = await readJsonBody(req);
 
@@ -48,6 +57,7 @@ export default async function handler(req, res) {
       return;
     }
 
+    stage = "signature";
     const verification = await verifySiweMessage(payload, nonce);
     const verifiedAddress = verification.siweMessageData?.address || payload.address;
     const isValid = Boolean(verification.isValid && verifiedAddress);
@@ -68,10 +78,12 @@ export default async function handler(req, res) {
     // existence for a regular user — every other endpoint that needs to
     // know "who is this" reads the signed cookie set here, never a
     // client-supplied walletAddress/userId field.
+    stage = "challenge-storage";
     if (!(await claimSiweNonce(nonce))) {
       sendJson(res, 400, { isValid: false, error: "This sign-in request was already used. Start sign-in again." });
       return;
     }
+    stage = "session";
     const sessionToken = createUserSessionToken(verifiedAddress);
     const setUserSessionCookie = serializeCookie(USER_SESSION_COOKIE, sessionToken, {
       maxAge: USER_SESSION_MAX_AGE,
@@ -88,6 +100,7 @@ export default async function handler(req, res) {
       nonce,
     });
   } catch (error) {
+    logSecurityEvent("siwe.failed", { stage, errorName: error?.name || "Error" });
     sendJson(res, 400, {
       isValid: false,
       error: error instanceof Error ? error.message : "Unable to verify wallet auth.",

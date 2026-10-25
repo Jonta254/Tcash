@@ -3,7 +3,7 @@ import { APP_CONFIG } from "../../config/appConfig";
 
 function SafeMiniKitProvider({ children }) {
   return (
-    <MiniKitProvider appId={APP_CONFIG.worldAppId}>
+    <MiniKitProvider props={{ appId: APP_CONFIG.worldAppId }}>
       {children}
     </MiniKitProvider>
   );
