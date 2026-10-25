@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-vi.mock('@worldcoin/minikit-js',()=>({verifySiweMessage:vi.fn()}));
+vi.mock('@worldcoin/minikit-js/siwe',()=>({verifySiweMessage:vi.fn()}));
 import handler from './complete-siwe.js';
 describe('ending a wallet session',()=>{
  it('expires all session and payment cookies on the current app',async()=>{
