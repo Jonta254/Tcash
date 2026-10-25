@@ -47,11 +47,9 @@ function toTokenUnits(amount, decimals) {
 }
 
 async function runMiniKitCommand(commandName, payload, timeoutMs) {
-  // World docs: prefer commandsAsync (the documented async API)
-  const command =
-    MiniKit.commandsAsync?.[commandName] ||
-    MiniKit[`${commandName}Async`] ||
-    MiniKit[commandName];
+  // MiniKit 2 commands are async top-level methods. Reading the removed
+  // commandsAsync getter itself throws; do not probe the legacy API.
+  const command = MiniKit[commandName];
 
   if (!command) {
     throw new Error(`World App command ${commandName} is not available in this MiniKit version.`);
@@ -60,8 +58,9 @@ async function runMiniKitCommand(commandName, payload, timeoutMs) {
   const operation = command.call(MiniKit, payload);
   const result = timeoutMs ? await boundedOperation(operation, timeoutMs, "World App did not finish sign-in. Close the wallet prompt and try again.") : await operation;
 
-  // World docs: async commands return { finalPayload } or { commandPayload, finalPayload }
-  const data = result?.finalPayload || result?.data || result;
+  if (result?.executedWith === "fallback") throw new Error("Open Tcash in World App to complete this action.");
+  const data = result?.data;
+  if (!data) throw new Error(`World App returned no result for ${commandName}. Please try again.`);
 
   if (data?.status === "error") {
     const error = new Error(data?.message || `World App ${commandName} command was cancelled.`);
@@ -501,7 +500,7 @@ export function haptic(type = "light") {
   if (!MiniKit.isInstalled()) return;
   const payload = HAPTIC_PAYLOAD[type] || HAPTIC_PAYLOAD.light;
   try {
-    MiniKit.commands?.sendHapticFeedback?.(payload);
+    void MiniKit.sendHapticFeedback(payload).catch(() => {});
   } catch {
     // silently ignore — haptics are enhancement only
   }
